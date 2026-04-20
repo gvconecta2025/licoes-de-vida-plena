@@ -72,7 +72,7 @@
 
     // Textos e Páginas Especiais (Capa e Autor)
     const initialTexts = [
-      { id: 'capa', title: 'Capa do Livro', type: 'special' }, // Nova Capa
+      { id: 'capa', title: 'Capa do Livro', type: 'special' }, 
       { id: 'prologo', title: 'Prólogo', docxUrl: './prologo.docx', content: null },
       { id: 'licao0a', title: 'Lição 0a', docxUrl: './licao-0a.docx', content: null },
       { id: 'licao0b', title: 'Lição 0b', docxUrl: './licao-0b.docx', content: null },
@@ -90,11 +90,10 @@
       { id: 'licao10', title: 'Lição 10', docxUrl: './licao-10.docx', content: null },
       { id: 'licao11', title: 'Lição 11', docxUrl: './licao-11.docx', content: null },
       { id: 'licao12', title: 'Lição 12', docxUrl: './licao-12.docx', content: null },
-      { id: 'autor', title: 'Sobre o Autor', type: 'special' } // Nova Página do Autor
+      { id: 'autor', title: 'Sobre o Autor', type: 'special' } 
     ];
 
     function App() {
-      // Carregar todas as preferências e dados offline do localStorage
       const loadPrefs = () => {
         try { return JSON.parse(localStorage.getItem('leitorWebPrefs')) || {}; } 
         catch(e) { return {}; }
@@ -135,19 +134,16 @@
       
       const [isPlaying, setIsPlaying] = useState(false);
 
-      // Função Mágica de Leitura (.DOCX) + Modo Offline
       useEffect(() => {
         if (activeText && activeText.docxUrl && !activeText.content && activeText.type !== 'special') {
           
-          // 1. Verificar se o documento já foi salvo offline no telemóvel/computador
           if (offlineDocs[activeText.id]) {
              setTexts(prevTexts => prevTexts.map(t => 
                 t.id === activeTextId ? { ...t, content: offlineDocs[activeText.id] } : t
              ));
-             return; // Termina aqui, carregamento instantâneo!
+             return; 
           }
 
-          // 2. Se não estiver offline, extrair do arquivo .docx
           setIsLoading(true);
           fetch(activeText.docxUrl)
             .then(response => {
@@ -161,7 +157,6 @@
               
               const firstChild = tempDiv.firstElementChild;
               
-              // Extração inteligente do Título
               if (firstChild && firstChild.textContent.trim().length > 0) {
                 const titleText = firstChild.textContent.trim();
                 setExtractedTitles(prev => ({ ...prev, [activeTextId]: titleText }));
@@ -175,11 +170,9 @@
               
               if (!rawText.trim()) rawText = "(O arquivo docx está vazio ou não pôde ser lido)";
 
-              // 3. Salvar o texto no Cache Offline (localStorage)
               const updatedOfflineDocs = { ...loadOfflineContent(), [activeTextId]: rawText };
               localStorage.setItem('leitorWebOfflineDocs', JSON.stringify(updatedOfflineDocs));
 
-              // Atualizar no ecrã
               setTexts(prevTexts => prevTexts.map(t => 
                 t.id === activeTextId ? { ...t, content: rawText } : t
               ));
@@ -375,7 +368,7 @@
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 pt-4 space-y-2">
+            <div className="flex-1 overflow-y-auto p-4 pt-4 space-y-2 pb-24">
               {texts.map(text => (
                 <div 
                   key={text.id}
@@ -420,18 +413,7 @@
 
               <div className="flex items-center gap-1 sm:gap-2 shrink-0 relative ml-2 z-50">
                 
-                {/* O Botão de Ouvir só aparece se não for a Capa ou Autor e se houver conteúdo */}
-                {activeText.type !== 'special' && (
-                  <button 
-                    onClick={toggleSpeech}
-                    className={`flex items-center justify-center gap-2 px-4 py-2 sm:py-2.5 rounded-full font-bold transition-all active:scale-95 shadow-sm shrink-0 relative z-50
-                      ${isPlaying ? 'bg-red-500/20 text-red-600 ring-2 ring-red-500/50' : 'bg-black/10 hover:bg-black/20'}`}
-                  >
-                    {isPlaying ? <i className="fas fa-square text-lg pointer-events-none"></i> : <i className="fas fa-play text-lg pointer-events-none"></i>}
-                    <span className="hidden sm:inline text-sm pointer-events-none">{isPlaying ? 'Parar' : 'Ouvir'}</span>
-                  </button>
-                )}
-
+                {/* Botão de Configurações */}
                 <button 
                   onClick={() => setShowSettings(!showSettings)}
                   className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all shrink-0 ml-1 relative z-50"
@@ -443,7 +425,6 @@
                 {/* Menu de Configurações Dropdown */}
                 {showSettings && (
                   <React.Fragment>
-                    {/* Fundo invisível para fechar ao clicar fora */}
                     <div className="fixed inset-0 w-screen h-screen z-40" onClick={() => setShowSettings(false)}></div>
                     
                     <div className={`absolute right-0 top-full mt-3 p-5 rounded-3xl shadow-2xl border w-72 sm:w-80 z-50 origin-top-right animate-in fade-in zoom-in-95 duration-200 flex flex-col gap-6 ${currentTheme.solidMenuClasses}`}>
@@ -497,11 +478,9 @@
             {/* Container Dinâmico de Leitura / Páginas Especiais */}
             <div className="flex-1 w-full relative flex overflow-hidden">
               
-              {/* Páginas Especiais: Capa e Autor */}
               {activeText.type === 'special' ? (
                 <div className="w-full h-full overflow-y-auto">
                   {activeText.id === 'capa' ? (
-                    /* Layout da Capa do Livro */
                     <div className="flex flex-col items-center justify-center min-h-full text-center p-8 animate-in fade-in duration-1000">
                       <div className="max-w-xl w-full flex flex-col items-center border-[6px] border-double border-current p-10 sm:p-16 rounded-sm bg-black/5 backdrop-blur-sm shadow-2xl">
                         <i className="fas fa-seedling text-5xl sm:text-6xl mb-8 opacity-80"></i>
@@ -521,13 +500,10 @@
                       </div>
                     </div>
                   ) : (
-                    /* Layout da Página do Autor */
                     <div className="flex flex-col items-center justify-center min-h-full text-center p-8 animate-in fade-in duration-1000">
                       <div className="max-w-2xl w-full flex flex-col items-center p-8">
-                        {/* Avatar do Autor (Substitua o src da imagem depois se quiser) */}
                         <div className="w-40 h-40 rounded-full bg-black/10 flex items-center justify-center mb-6 shadow-xl border-4 border-current overflow-hidden">
                            <i className="fas fa-user-edit text-6xl opacity-50"></i>
-                           {/* Exemplo de imagem: <img src="URL_DA_FOTO" className="w-full h-full object-cover" /> */}
                         </div>
                         <h2 className="text-4xl font-black uppercase tracking-wider opacity-90 mb-2">Nome do Autor</h2>
                         <h3 className="text-lg uppercase tracking-widest opacity-60 mb-8">Escritor & Pensador</h3>
@@ -542,9 +518,7 @@
                   )}
                 </div>
               ) : (
-                /* Layout Normal de Leitura de Lições */
                 <React.Fragment>
-                  {/* Botões de Navegação Laterais (Translúcidos) */}
                   {viewMode === 'page' && !isLoading && (
                     <div className="absolute inset-0 pointer-events-none flex justify-between z-10 pb-8">
                       <button onClick={() => turnPage('prev')} className="pointer-events-auto h-full w-16 sm:w-28 flex items-center justify-start pl-2 sm:pl-6 text-current opacity-10 hover:opacity-40 transition-opacity active:opacity-60">
@@ -556,7 +530,6 @@
                     </div>
                   )}
 
-                  {/* Área de Leitura */}
                   <div 
                     ref={scrollContainerRef}
                     onScroll={handleScroll}
@@ -580,7 +553,7 @@
                             height: '100%', 
                             padding: `24px ${pad}px 40px ${pad}px`, 
                             boxSizing: 'border-box'
-                          } : { paddingBottom: '80px' }}
+                          } : { paddingBottom: '120px' }}
                         >
                           <h2 
                             className="font-bold mb-6 sm:mb-8 leading-tight opacity-90"
@@ -613,6 +586,7 @@
                     </div>
                   </div>
 
+                  {/* Numeração de Página */}
                   {viewMode === 'page' && !isLoading && (
                     <div className="absolute bottom-2 left-0 right-0 w-full text-center pointer-events-none z-20">
                       <span className="bg-black/10 backdrop-blur-sm px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-bold opacity-60 tracking-wider">
@@ -620,10 +594,26 @@
                       </span>
                     </div>
                   )}
+                  
                 </React.Fragment>
               )}
-
             </div>
+            
+            {/* Botão de Áudio Flutuante Fixo e Pequeno na Base da Tela */}
+            {activeText.type !== 'special' && !isLoading && (
+              <button
+                onClick={toggleSpeech}
+                className={`fixed bottom-12 right-4 sm:bottom-12 sm:right-8 z-[100] flex items-center justify-center gap-2 px-3 py-2 rounded-full shadow-lg border border-current transition-all active:scale-90
+                  ${isPlaying ? 'bg-red-600/90 text-white border-red-500 animate-pulse' : 'bg-black/20 hover:bg-black/30 backdrop-blur-md'}`}
+                title={isPlaying ? 'Parar Áudio' : 'Ouvir Lição'}
+              >
+                <i className={`fas ${isPlaying ? 'fa-square' : 'fa-headphones'} text-xs pointer-events-none`}></i>
+                <span className="text-[10px] font-bold uppercase tracking-wider pointer-events-none">
+                  {isPlaying ? 'Parar' : 'Ouvir'}
+                </span>
+              </button>
+            )}
+
           </main>
         </div>
       );
