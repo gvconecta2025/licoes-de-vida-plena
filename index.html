@@ -158,8 +158,8 @@
       const scrollTimeout = useRef(null);
       const touchTimeout = useRef(null);
       const flipSoundRef = useRef(null);
+      const utteranceRef = useRef(null); // Ref para evitar Garbage Collection do áudio
       
-      const synth = window.speechSynthesis;
       const [isPlaying, setIsPlaying] = useState(false);
 
       // Leitor de DOCX
@@ -262,9 +262,10 @@
         }
       }, [activeTextId, viewMode, isLoading]);
 
+      // Limpa qualquer áudio em execução se o aplicativo for fechado
       useEffect(() => {
-        return () => synth.cancel();
-      }, [synth]);
+        return () => window.speechSynthesis.cancel();
+      }, []);
 
       // Alternar Conclusão da Lição
       const toggleLessonCompletion = (id) => {
@@ -345,15 +346,27 @@
 
       const toggleSpeech = () => {
         if (isPlaying) {
-          synth.cancel();
+          window.speechSynthesis.cancel();
           setIsPlaying(false);
         } else {
           if (!activeText || !activeText.content) return;
+          
+          // Garante que qualquer áudio travado é cancelado primeiro
+          window.speechSynthesis.cancel();
+          
           const utterance = new SpeechSynthesisUtterance(activeText.content);
           utterance.lang = 'pt-BR'; 
+          
           utterance.onend = () => setIsPlaying(false);
-          utterance.onerror = () => setIsPlaying(false);
-          synth.speak(utterance);
+          utterance.onerror = (e) => {
+            console.error("Erro na leitura de voz: ", e);
+            setIsPlaying(false);
+          };
+          
+          // Salva na referência para o navegador não limpar a memória
+          utteranceRef.current = utterance;
+          
+          window.speechSynthesis.speak(utterance);
           setIsPlaying(true);
         }
       };
@@ -396,7 +409,10 @@
                   key={text.id}
                   onClick={() => {
                     setActiveTextId(text.id);
-                    if (isPlaying) { synth.cancel(); setIsPlaying(false); }
+                    if (isPlaying) { 
+                      window.speechSynthesis.cancel(); 
+                      setIsPlaying(false); 
+                    }
                     if (window.innerWidth < 768) setIsSidebarOpen(false);
                   }}
                   className={`p-3.5 rounded-xl cursor-pointer transition-all flex justify-between items-center group
