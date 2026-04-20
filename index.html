@@ -25,13 +25,11 @@
       margin: 0;
       padding: 0;
       -webkit-font-smoothing: antialiased;
-      overflow: hidden; /* Previne rolagem no body, delegando para o React */
+      overflow: hidden; 
     }
-    /* Evita seleções de texto indesejadas nos botões */
     button {
       user-select: none;
     }
-    /* Estilo de scroll para o modo de rolagem vertical */
     .hide-scrollbar::-webkit-scrollbar {
       width: 8px;
     }
@@ -39,7 +37,6 @@
       background: rgba(0, 0, 0, 0.2);
       border-radius: 4px;
     }
-    /* Oculta completamente a barra no modo Kindle/Páginas */
     .hide-scrollbar-completely::-webkit-scrollbar {
       display: none;
     }
@@ -47,8 +44,6 @@
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
-    
-    /* Animação de carregamento (Spinner) */
     .loader {
       border: 4px solid rgba(255,255,255,0.1);
       border-left-color: currentColor;
@@ -66,60 +61,18 @@
   <script type="text/babel">
     const { useState, useEffect, useRef, useCallback } = React;
 
-    // Configuração dos Temas com Degradês
     const themes = {
-      claro: { 
-        id: 'claro', 
-        name: 'Claro', 
-        classes: 'bg-gradient-to-br from-gray-50 to-gray-200 text-gray-800',
-        panelClasses: 'bg-white/60 border-gray-300',
-        solidMenuClasses: 'bg-gray-50 border-gray-300',
-        preview: 'bg-gray-200'
-      },
-      polen: { 
-        id: 'polen', 
-        name: 'Pólen', 
-        classes: 'bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-100 text-amber-900',
-        panelClasses: 'bg-white/40 border-amber-200',
-        solidMenuClasses: 'bg-amber-50 border-amber-300',
-        preview: 'bg-amber-200'
-      },
-      escuro: { 
-        id: 'escuro', 
-        name: 'Escuro', 
-        classes: 'bg-gradient-to-br from-zinc-800 to-black text-zinc-100', // Modificado para um escuro neutro distinto do azul
-        panelClasses: 'bg-zinc-900/50 border-zinc-700',
-        solidMenuClasses: 'bg-zinc-900 border-zinc-700',
-        preview: 'bg-zinc-800'
-      },
-      cafe: { 
-        id: 'cafe', 
-        name: 'Café', 
-        classes: 'bg-gradient-to-br from-[#4a3b32] to-[#2e231d] text-[#e8dcc4]',
-        panelClasses: 'bg-black/20 border-[#6a5647]',
-        solidMenuClasses: 'bg-[#3b2d26] border-[#6a5647]',
-        preview: 'bg-[#4a3b32]'
-      },
-      azul: { 
-        id: 'azul', 
-        name: 'Azul', 
-        classes: 'bg-gradient-to-br from-slate-700 to-slate-900 text-blue-100',
-        panelClasses: 'bg-black/20 border-slate-600',
-        solidMenuClasses: 'bg-slate-800 border-slate-600',
-        preview: 'bg-slate-700'
-      },
-      vermelho: { 
-        id: 'vermelho', 
-        name: 'Vermelho', 
-        classes: 'bg-gradient-to-br from-[#4a2424] to-[#2d1414] text-[#e8cfcf]',
-        panelClasses: 'bg-black/20 border-[#6e3636]',
-        solidMenuClasses: 'bg-[#3d1e1e] border-[#6e3636]',
-        preview: 'bg-[#4a2424]'
-      }
+      claro: { id: 'claro', name: 'Claro', classes: 'bg-gradient-to-br from-gray-50 to-gray-200 text-gray-800', panelClasses: 'bg-white/60 border-gray-300', solidMenuClasses: 'bg-gray-50 border-gray-300', preview: 'bg-gray-200' },
+      polen: { id: 'polen', name: 'Pólen', classes: 'bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-100 text-amber-900', panelClasses: 'bg-white/40 border-amber-200', solidMenuClasses: 'bg-amber-50 border-amber-300', preview: 'bg-amber-200' },
+      escuro: { id: 'escuro', name: 'Escuro', classes: 'bg-gradient-to-br from-zinc-800 to-black text-zinc-100', panelClasses: 'bg-zinc-900/50 border-zinc-700', solidMenuClasses: 'bg-zinc-900 border-zinc-700', preview: 'bg-zinc-800' },
+      cafe: { id: 'cafe', name: 'Café', classes: 'bg-gradient-to-br from-[#4a3b32] to-[#2e231d] text-[#e8dcc4]', panelClasses: 'bg-black/20 border-[#6a5647]', solidMenuClasses: 'bg-[#3b2d26] border-[#6a5647]', preview: 'bg-[#4a3b32]' },
+      azul: { id: 'azul', name: 'Azul', classes: 'bg-gradient-to-br from-slate-700 to-slate-900 text-blue-100', panelClasses: 'bg-black/20 border-slate-600', solidMenuClasses: 'bg-slate-800 border-slate-600', preview: 'bg-slate-700' },
+      vermelho: { id: 'vermelho', name: 'Vermelho', classes: 'bg-gradient-to-br from-[#4a2424] to-[#2d1414] text-[#e8cfcf]', panelClasses: 'bg-black/20 border-[#6e3636]', solidMenuClasses: 'bg-[#3d1e1e] border-[#6e3636]', preview: 'bg-[#4a2424]' }
     };
 
-    // Textos do App
+    // Textos e Páginas Especiais (Capa e Autor)
     const initialTexts = [
+      { id: 'capa', title: 'Capa do Livro', type: 'special' }, // Nova Capa
       { id: 'prologo', title: 'Prólogo', docxUrl: './prologo.docx', content: null },
       { id: 'licao0a', title: 'Lição 0a', docxUrl: './licao-0a.docx', content: null },
       { id: 'licao0b', title: 'Lição 0b', docxUrl: './licao-0b.docx', content: null },
@@ -136,20 +89,27 @@
       { id: 'licao9', title: 'Lição 9', docxUrl: './licao-9.docx', content: null },
       { id: 'licao10', title: 'Lição 10', docxUrl: './licao-10.docx', content: null },
       { id: 'licao11', title: 'Lição 11', docxUrl: './licao-11.docx', content: null },
-      { id: 'licao12', title: 'Lição 12', docxUrl: './licao-12.docx', content: null }
+      { id: 'licao12', title: 'Lição 12', docxUrl: './licao-12.docx', content: null },
+      { id: 'autor', title: 'Sobre o Autor', type: 'special' } // Nova Página do Autor
     ];
 
     function App() {
+      // Carregar todas as preferências e dados offline do localStorage
       const loadPrefs = () => {
-        try {
-          const saved = JSON.parse(localStorage.getItem('leitorWebPrefs'));
-          return saved || {};
-        } catch(e) { return {}; }
+        try { return JSON.parse(localStorage.getItem('leitorWebPrefs')) || {}; } 
+        catch(e) { return {}; }
       };
+      
+      const loadOfflineContent = () => {
+        try { return JSON.parse(localStorage.getItem('leitorWebOfflineDocs')) || {}; } 
+        catch(e) { return {}; }
+      };
+
       const prefs = loadPrefs();
+      const offlineDocs = loadOfflineContent();
 
       const [texts, setTexts] = useState(initialTexts);
-      const [activeTextId, setActiveTextId] = useState(prefs.activeTextId || initialTexts[0].id);
+      const [activeTextId, setActiveTextId] = useState(prefs.activeTextId || 'capa');
       const [isLoading, setIsLoading] = useState(false); 
       
       const [currentTheme, setCurrentTheme] = useState(themes[prefs.themeId] || themes.polen);
@@ -171,15 +131,24 @@
       const scrollTimeout = useRef(null);
       const touchTimeout = useRef(null);
       const flipSoundRef = useRef(null);
-      const utteranceRef = useRef(null); // Ref para evitar Garbage Collection do áudio
+      const utteranceRef = useRef(null); 
       
       const [isPlaying, setIsPlaying] = useState(false);
 
-      // Leitor de DOCX
+      // Função Mágica de Leitura (.DOCX) + Modo Offline
       useEffect(() => {
-        if (activeText && activeText.docxUrl && !activeText.content) {
-          setIsLoading(true);
+        if (activeText && activeText.docxUrl && !activeText.content && activeText.type !== 'special') {
           
+          // 1. Verificar se o documento já foi salvo offline no telemóvel/computador
+          if (offlineDocs[activeText.id]) {
+             setTexts(prevTexts => prevTexts.map(t => 
+                t.id === activeTextId ? { ...t, content: offlineDocs[activeText.id] } : t
+             ));
+             return; // Termina aqui, carregamento instantâneo!
+          }
+
+          // 2. Se não estiver offline, extrair do arquivo .docx
+          setIsLoading(true);
           fetch(activeText.docxUrl)
             .then(response => {
               if (!response.ok) throw new Error('Arquivo não encontrado');
@@ -192,11 +161,11 @@
               
               const firstChild = tempDiv.firstElementChild;
               
-              // Extrai o primeiro parágrafo/cabeçalho como título e salva na memória
+              // Extração inteligente do Título
               if (firstChild && firstChild.textContent.trim().length > 0) {
                 const titleText = firstChild.textContent.trim();
                 setExtractedTitles(prev => ({ ...prev, [activeTextId]: titleText }));
-                firstChild.remove(); // Remove a primeira linha do conteúdo para não duplicar com o H2
+                firstChild.remove(); 
               }
 
               let rawText = tempDiv.innerHTML
@@ -206,6 +175,11 @@
               
               if (!rawText.trim()) rawText = "(O arquivo docx está vazio ou não pôde ser lido)";
 
+              // 3. Salvar o texto no Cache Offline (localStorage)
+              const updatedOfflineDocs = { ...loadOfflineContent(), [activeTextId]: rawText };
+              localStorage.setItem('leitorWebOfflineDocs', JSON.stringify(updatedOfflineDocs));
+
+              // Atualizar no ecrã
               setTexts(prevTexts => prevTexts.map(t => 
                 t.id === activeTextId ? { ...t, content: rawText } : t
               ));
@@ -213,7 +187,7 @@
             })
             .catch(error => {
               console.error(error);
-              const errorMsg = `Erro ao carregar o texto.\n\nVerifique se enviou o arquivo "${activeText.docxUrl}" corretamente para o servidor.`;
+              const errorMsg = `O arquivo desta lição ainda não foi disponibilizado ou ocorreu um erro de conexão.\n\nVerifique se tem internet ou se o autor já publicou esta lição.`;
               setTexts(prevTexts => prevTexts.map(t => 
                 t.id === activeTextId ? { ...t, content: errorMsg } : t
               ));
@@ -222,21 +196,18 @@
         }
       }, [activeTextId, texts]);
 
-      // Atualizar Paginação (Matemática de Colunas)
       const updatePageInfo = useCallback(() => {
-        if (viewMode !== 'page' || !scrollContainerRef.current) return;
+        if (viewMode !== 'page' || !scrollContainerRef.current || activeText.type === 'special') return;
         const container = scrollContainerRef.current;
         const width = container.clientWidth;
         if (width === 0) return;
 
-        // O scrollWidth total dividido pela largura da janela visível nos dá o total de páginas
         const total = Math.max(1, Math.ceil((container.scrollWidth - 10) / width));
         const current = Math.max(1, Math.round(container.scrollLeft / width) + 1);
         
         setPageInfo({ current: Math.min(current, total), total });
-      }, [viewMode]);
+      }, [viewMode, activeText.type]);
 
-      // Responsividade e gatilhos de paginação
       useEffect(() => {
         const handleResize = () => {
           setWindowWidth(window.innerWidth);
@@ -249,19 +220,16 @@
         return () => window.removeEventListener('resize', handleResize);
       }, [updatePageInfo]);
 
-      // Aciona recalculo de páginas quando texto carrega ou fontes mudam
       useEffect(() => {
         const timeoutId = setTimeout(updatePageInfo, 150);
         return () => clearTimeout(timeoutId);
       }, [activeTextId, fontSize, lineSpacing, viewMode, isLoading, texts, updatePageInfo]);
 
-      // Efeito sonoro de página
       useEffect(() => {
         flipSoundRef.current = new Audio('https://assets.codepen.io/16327/page-flip-01a.mp3');
         flipSoundRef.current.volume = 0.3; 
       }, []);
 
-      // Salva Preferências
       useEffect(() => {
         const prefsToSave = {
           activeTextId,
@@ -276,35 +244,32 @@
         localStorage.setItem('leitorWebPrefs', JSON.stringify(prefsToSave));
       }, [activeTextId, currentTheme, fontSize, lineSpacing, viewMode, scrollPositions, completedLessons, extractedTitles]);
 
-      // Restaura Posição do Scroll
       useEffect(() => {
-        if (scrollContainerRef.current && !isLoading) {
+        if (scrollContainerRef.current && !isLoading && activeText.type !== 'special') {
           const savedPos = scrollPositions[`${activeTextId}_${viewMode}`] || 0;
-          if (viewMode === 'scroll') {
-            scrollContainerRef.current.scrollTop = savedPos;
-          } else {
-            scrollContainerRef.current.scrollLeft = savedPos;
-          }
+          if (viewMode === 'scroll') scrollContainerRef.current.scrollTop = savedPos;
+          else scrollContainerRef.current.scrollLeft = savedPos;
+        } else if (scrollContainerRef.current && activeText.type === 'special') {
+          scrollContainerRef.current.scrollTop = 0;
+          scrollContainerRef.current.scrollLeft = 0;
         }
-      }, [activeTextId, viewMode, isLoading]);
+      }, [activeTextId, viewMode, isLoading, activeText.type]);
 
-      // Limpa qualquer áudio em execução se o aplicativo for fechado
       useEffect(() => {
         return () => window.speechSynthesis.cancel();
       }, []);
 
-      // Alternar Conclusão da Lição
       const toggleLessonCompletion = (id) => {
         setCompletedLessons(prev => 
           prev.includes(id) ? prev.filter(lessonId => lessonId !== id) : [...prev, id]
         );
       };
 
-      // Rastreamento de leitura
       const handleScroll = (e) => {
+        if (activeText.type === 'special') return;
         const pos = viewMode === 'scroll' ? e.target.scrollTop : e.target.scrollLeft;
         
-        if (viewMode === 'page') updatePageInfo(); // Atualiza numeração de página ao vivo
+        if (viewMode === 'page') updatePageInfo(); 
 
         if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
         scrollTimeout.current = setTimeout(() => {
@@ -315,17 +280,15 @@
         }, 300);
       };
 
-      // Toca o som de passar página
       const playFlipSound = () => {
-        if (flipSoundRef.current && viewMode === 'page') {
+        if (flipSoundRef.current && viewMode === 'page' && activeText.type !== 'special') {
           flipSoundRef.current.currentTime = 0;
           flipSoundRef.current.play().catch(() => {});
         }
       };
 
-      // Trava de página ("Snap") após arrastar com o dedo
       const handleTouchEnd = () => {
-        if (viewMode !== 'page' || !scrollContainerRef.current) return;
+        if (viewMode !== 'page' || !scrollContainerRef.current || activeText.type === 'special') return;
         
         if (touchTimeout.current) clearTimeout(touchTimeout.current);
         touchTimeout.current = setTimeout(() => {
@@ -342,9 +305,8 @@
         }, 300); 
       };
 
-      // Virar página (Estilo Kindle)
       const turnPage = (direction) => {
-        if (scrollContainerRef.current) {
+        if (scrollContainerRef.current && activeText.type !== 'special') {
           const container = scrollContainerRef.current;
           const scrollAmount = container.clientWidth; 
           container.scrollBy({
@@ -357,47 +319,28 @@
 
       const handleZoomIn = () => setFontSize(prev => Math.min(prev + 2, 48));
       const handleZoomOut = () => setFontSize(prev => Math.max(prev - 2, 14));
-
-      const handleLineSpacing = () => {
-        setLineSpacing(prev => {
-          if (prev === 1.2) return 1.6;
-          if (prev === 1.6) return 2.0;
-          return 1.2;
-        });
-      };
-
-      const toggleViewMode = () => {
-        setViewMode(prev => prev === 'scroll' ? 'page' : 'scroll');
-      };
+      const handleLineSpacing = () => setLineSpacing(prev => prev === 1.2 ? 1.6 : prev === 1.6 ? 2.0 : 1.2);
+      const toggleViewMode = () => setViewMode(prev => prev === 'scroll' ? 'page' : 'scroll');
 
       const toggleSpeech = () => {
         if (isPlaying) {
           window.speechSynthesis.cancel();
           setIsPlaying(false);
         } else {
-          if (!activeText || !activeText.content) return;
+          if (!activeText || !activeText.content || activeText.type === 'special') return;
           
-          // Garante que qualquer áudio travado é cancelado primeiro
           window.speechSynthesis.cancel();
           
-          // O Timeout resolve o bug crónico dos navegadores onde o cancelamento imediato 
-          // bloqueia o processamento da nova fala.
           setTimeout(() => {
             const utterance = new SpeechSynthesisUtterance(activeText.content);
             utterance.lang = 'pt-BR'; 
-            
             utterance.onstart = () => setIsPlaying(true);
             utterance.onend = () => setIsPlaying(false);
-            utterance.onerror = (e) => {
-              console.error("Erro na leitura de voz: ", e);
-              setIsPlaying(false);
-            };
+            utterance.onerror = () => setIsPlaying(false);
             
-            // Salva na referência para o navegador não limpar a memória acidentalmente
             utteranceRef.current = utterance;
-            
             window.speechSynthesis.speak(utterance);
-          }, 100);
+          }, 150);
         }
       };
 
@@ -407,7 +350,7 @@
       return (
         <div className={`min-h-[100dvh] flex transition-colors duration-500 ease-in-out ${currentTheme.classes}`}>
           
-          {/* Overlay Escuro para Mobile */}
+          {/* Overlay Escuro para Mobile Sidebar */}
           <div 
             className={`fixed inset-0 bg-black/40 z-40 transition-opacity duration-300 md:hidden backdrop-blur-sm
               ${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
@@ -427,7 +370,6 @@
               <button 
                 onClick={() => setIsSidebarOpen(false)} 
                 className="md:hidden p-3 -mr-3 rounded-full hover:bg-black/10 active:scale-95 transition-all"
-                aria-label="Fechar menu"
               >
                 <i className="fas fa-times text-xl"></i>
               </button>
@@ -439,19 +381,18 @@
                   key={text.id}
                   onClick={() => {
                     setActiveTextId(text.id);
-                    if (isPlaying) { 
-                      window.speechSynthesis.cancel(); 
-                      setIsPlaying(false); 
-                    }
+                    if (isPlaying) { window.speechSynthesis.cancel(); setIsPlaying(false); }
                     if (window.innerWidth < 768) setIsSidebarOpen(false);
                   }}
                   className={`p-3.5 rounded-xl cursor-pointer transition-all flex justify-between items-center group
-                    ${activeTextId === text.id ? 'bg-black/10 shadow-sm ring-1 ring-inherit font-bold' : 'hover:bg-black/5 active:bg-black/10'}`}
+                    ${activeTextId === text.id ? 'bg-black/10 shadow-sm ring-1 ring-inherit font-bold' : 'hover:bg-black/5 active:bg-black/10'}
+                    ${text.type === 'special' ? 'border border-current opacity-70 mt-4 mb-2' : ''}`}
                 >
-                  <span className="truncate pr-2 text-[15px]">{extractedTitles[text.id] || text.title}</span>
+                  <span className="truncate pr-2 text-[15px]">
+                    {text.type === 'special' ? text.title : (extractedTitles[text.id] || text.title)}
+                  </span>
                   
-                  {/* Ícone de Check Verde para Lições Concluídas */}
-                  {completedLessons.includes(text.id) && (
+                  {text.type !== 'special' && completedLessons.includes(text.id) && (
                     <i className="fas fa-check-circle text-green-500 text-lg shadow-sm rounded-full bg-white/30 backdrop-blur-sm"></i>
                   )}
                 </div>
@@ -462,15 +403,13 @@
           {/* Conteúdo Principal */}
           <main className="flex-1 flex flex-col h-[100dvh] w-full min-w-0 overflow-hidden relative">
             
-            {/* Barra de Ferramentas Modificada */}
+            {/* Barra de Ferramentas */}
             <header className={`p-2 sm:p-4 flex items-center justify-between border-b backdrop-blur-md z-30 shrink-0 ${currentTheme.panelClasses}`}>
               
-              {/* Lado Esquerdo - Menu e Título em grande destaque */}
               <div className="flex items-center gap-2 sm:gap-4 shrink-0 flex-1 min-w-0">
                 <button 
                   onClick={() => setIsSidebarOpen(true)} 
                   className="p-3 rounded-xl hover:bg-black/10 active:scale-95 transition-all md:hidden shrink-0"
-                  aria-label="Abrir menu"
                 >
                   <i className="fas fa-bars text-xl"></i>
                 </button>
@@ -479,38 +418,36 @@
                 </h1>
               </div>
 
-              {/* Lado Direito - Apenas Ouvir e Configurações */}
-              <div className="flex items-center gap-1 sm:gap-2 shrink-0 relative ml-2">
+              <div className="flex items-center gap-1 sm:gap-2 shrink-0 relative ml-2 z-50">
                 
-                {/* Botão de Ouvir */}
-                <button 
-                  onClick={toggleSpeech}
-                  disabled={isLoading}
-                  className={`flex items-center justify-center gap-2 px-4 py-2 sm:py-2.5 rounded-full font-bold transition-all active:scale-95 shadow-sm shrink-0
-                    ${isPlaying ? 'bg-red-500/20 text-red-600 ring-2 ring-red-500/50' : 'bg-black/10 hover:bg-black/20'}
-                    ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  {isPlaying ? <i className="fas fa-square text-lg"></i> : <i className="fas fa-play text-lg"></i>}
-                  <span className="hidden sm:inline text-sm">{isPlaying ? 'Parar' : 'Ouvir'}</span>
-                </button>
+                {/* O Botão de Ouvir só aparece se não for a Capa ou Autor e se houver conteúdo */}
+                {activeText.type !== 'special' && (
+                  <button 
+                    onClick={toggleSpeech}
+                    className={`flex items-center justify-center gap-2 px-4 py-2 sm:py-2.5 rounded-full font-bold transition-all active:scale-95 shadow-sm shrink-0 relative z-50
+                      ${isPlaying ? 'bg-red-500/20 text-red-600 ring-2 ring-red-500/50' : 'bg-black/10 hover:bg-black/20'}`}
+                  >
+                    {isPlaying ? <i className="fas fa-square text-lg pointer-events-none"></i> : <i className="fas fa-play text-lg pointer-events-none"></i>}
+                    <span className="hidden sm:inline text-sm pointer-events-none">{isPlaying ? 'Parar' : 'Ouvir'}</span>
+                  </button>
+                )}
 
-                {/* Novo Botão de Configurações (Abre o Dropdown) */}
                 <button 
                   onClick={() => setShowSettings(!showSettings)}
-                  className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all shrink-0 ml-1"
-                  title="Configurações de Leitura"
+                  className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all shrink-0 ml-1 relative z-50"
+                  title="Configurações"
                 >
-                  <i className={`fas fa-cog text-xl transition-transform duration-300 ${showSettings ? 'rotate-90' : ''}`}></i>
+                  <i className={`fas fa-cog text-xl transition-transform duration-300 pointer-events-none ${showSettings ? 'rotate-90' : ''}`}></i>
                 </button>
                 
-                {/* Novo Menu de Configurações Dropdown */}
+                {/* Menu de Configurações Dropdown */}
                 {showSettings && (
                   <React.Fragment>
-                    <div className="fixed inset-0 z-40" onClick={() => setShowSettings(false)}></div>
+                    {/* Fundo invisível para fechar ao clicar fora */}
+                    <div className="fixed inset-0 w-screen h-screen z-40" onClick={() => setShowSettings(false)}></div>
+                    
                     <div className={`absolute right-0 top-full mt-3 p-5 rounded-3xl shadow-2xl border w-72 sm:w-80 z-50 origin-top-right animate-in fade-in zoom-in-95 duration-200 flex flex-col gap-6 ${currentTheme.solidMenuClasses}`}>
-                      
-                      {/* Grupo: Fonte e Espaçamento */}
-                      <div className="flex flex-col gap-3">
+                      <div className="flex flex-col gap-3 relative z-50">
                         <span className="text-[11px] font-bold uppercase tracking-wider opacity-60">Tamanho e Espaçamento</span>
                         <div className="flex items-center justify-between bg-black/5 rounded-2xl p-1.5 shadow-inner">
                           <button onClick={handleZoomOut} className="p-3 rounded-xl hover:bg-black/10 flex-1 flex justify-center active:scale-95 transition-all"><i className="fas fa-search-minus text-lg"></i></button>
@@ -521,8 +458,7 @@
                         </div>
                       </div>
 
-                      {/* Grupo: Modo de Leitura */}
-                      <div className="flex flex-col gap-3">
+                      <div className="flex flex-col gap-3 relative z-50">
                         <span className="text-[11px] font-bold uppercase tracking-wider opacity-60">Modo de Leitura</span>
                         <button 
                           onClick={toggleViewMode} 
@@ -536,8 +472,7 @@
                         </button>
                       </div>
 
-                      {/* Grupo: Temas */}
-                      <div className="flex flex-col gap-3">
+                      <div className="flex flex-col gap-3 relative z-50">
                         <span className="text-[11px] font-bold uppercase tracking-wider opacity-60">Cores / Temas</span>
                         <div className="grid grid-cols-3 gap-2">
                           {Object.values(themes).map(theme => (
@@ -547,117 +482,145 @@
                               className={`flex flex-col items-center gap-2 p-3 rounded-2xl transition-all border border-transparent
                                 ${currentTheme.id === theme.id ? 'bg-black/10 shadow-inner border-black/10' : 'hover:bg-black/5'}`}
                             >
-                              {/* Atualizado para a cor correta de preview */}
                               <div className={`w-8 h-8 rounded-full shadow-md ${theme.preview}`}></div>
                               <span className="text-[10px] font-bold opacity-80">{theme.name}</span>
                             </button>
                           ))}
                         </div>
                       </div>
-
                     </div>
                   </React.Fragment>
                 )}
               </div>
             </header>
 
-            {/* Container Dinâmico com as Setas Virtuais do Kindle */}
+            {/* Container Dinâmico de Leitura / Páginas Especiais */}
             <div className="flex-1 w-full relative flex overflow-hidden">
               
-              {/* Botões de Navegação Laterais (Translúcidos) */}
-              {viewMode === 'page' && !isLoading && activeText && (
-                <div className="absolute inset-0 pointer-events-none flex justify-between z-10 pb-8">
-                  {/* Seta Esquerda */}
-                  <button 
-                    onClick={() => turnPage('prev')}
-                    className="pointer-events-auto h-full w-16 sm:w-28 flex items-center justify-start pl-2 sm:pl-6 text-current opacity-10 hover:opacity-40 transition-opacity active:opacity-60"
-                    title="Página Anterior"
-                  >
-                    <i className="fas fa-chevron-left text-5xl sm:text-7xl"></i>
-                  </button>
-                  {/* Seta Direita */}
-                  <button 
-                    onClick={() => turnPage('next')}
-                    className="pointer-events-auto h-full w-16 sm:w-28 flex items-center justify-end pr-2 sm:pr-6 text-current opacity-10 hover:opacity-40 transition-opacity active:opacity-60"
-                    title="Próxima Página"
-                  >
-                    <i className="fas fa-chevron-right text-5xl sm:text-7xl"></i>
-                  </button>
-                </div>
-              )}
-
-              {/* Área de Leitura com Scroll nativo */}
-              <div 
-                ref={scrollContainerRef}
-                onScroll={handleScroll}
-                onTouchEnd={handleTouchEnd}
-                className={`flex-1 w-full h-full relative scroll-smooth
-                  ${viewMode === 'scroll' ? 'overflow-y-auto overflow-x-hidden hide-scrollbar' : 'overflow-x-auto overflow-y-hidden hide-scrollbar-completely'}`}
-              >
-                <div className={`mx-auto w-full ${viewMode === 'scroll' ? 'max-w-3xl p-4 sm:p-6 md:p-12 pb-32' : 'h-full'}`}>
-                  
-                  {isLoading ? (
-                    <div className="flex flex-col items-center justify-center h-full opacity-60 pt-20">
-                      <div className="loader mb-4"></div>
-                      <p className="font-bold tracking-widest uppercase text-sm">Extraindo do Word...</p>
-                    </div>
-                  ) : activeText && (
-                    <article 
-                      className="w-full break-words transition-all duration-300 relative"
-                      style={viewMode === 'page' ? {
-                        /* A mágica do layout de colunas perfeito */
-                        columnWidth: `calc(100vw - ${pad * 2}px)`,
-                        columnGap: `${pad * 2}px`,
-                        height: '100%', 
-                        padding: `24px ${pad}px 40px ${pad}px`, 
-                        boxSizing: 'border-box'
-                      } : { paddingBottom: '80px' }}
-                    >
-                      <h2 
-                        className="font-bold mb-6 sm:mb-8 leading-tight opacity-90"
-                        style={{ fontSize: `${fontSize * 1.4}px`, breakAfter: 'avoid' }}
-                      >
-                        {extractedTitles[activeText.id] || activeText.title}
-                      </h2>
-                      
-                      <div 
-                        className="opacity-85 whitespace-pre-wrap font-serif text-justify"
-                        style={{ 
-                          fontSize: `${fontSize}px`, 
-                          lineHeight: lineSpacing 
-                        }}
-                      >
-                        {activeText.content}
-                      </div>
-
-                      {/* Botão de Marcar como Concluído no Final do Texto */}
-                      <div 
-                        className="mt-16 mb-8 flex justify-center w-full"
-                        style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}
-                      >
-                        <button
-                          onClick={() => toggleLessonCompletion(activeText.id)}
-                          className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-bold shadow-lg transition-all active:scale-95 border-2 z-20 relative
-                            ${completedLessons.includes(activeText.id) 
-                              ? 'bg-green-600/90 text-white border-green-500 hover:bg-green-700' 
-                              : 'bg-black/10 border-current hover:bg-black/20'}`}
+              {/* Páginas Especiais: Capa e Autor */}
+              {activeText.type === 'special' ? (
+                <div className="w-full h-full overflow-y-auto">
+                  {activeText.id === 'capa' ? (
+                    /* Layout da Capa do Livro */
+                    <div className="flex flex-col items-center justify-center min-h-full text-center p-8 animate-in fade-in duration-1000">
+                      <div className="max-w-xl w-full flex flex-col items-center border-[6px] border-double border-current p-10 sm:p-16 rounded-sm bg-black/5 backdrop-blur-sm shadow-2xl">
+                        <i className="fas fa-seedling text-5xl sm:text-6xl mb-8 opacity-80"></i>
+                        <h1 className="text-4xl sm:text-6xl font-black uppercase tracking-widest leading-tight opacity-90 mb-6">
+                          Lições de<br/>Vida Plena
+                        </h1>
+                        <div className="w-32 h-1 bg-current opacity-40 mb-6"></div>
+                        <p className="text-xl sm:text-2xl font-serif italic opacity-80">
+                          Um guia para a sua evolução interior
+                        </p>
+                        <button 
+                          onClick={() => setActiveTextId('prologo')}
+                          className="mt-16 flex items-center gap-3 px-10 py-5 rounded-full font-bold shadow-lg bg-black/10 hover:bg-black/20 border-2 border-current active:scale-95 transition-all text-lg"
                         >
-                          <i className={`fas ${completedLessons.includes(activeText.id) ? 'fa-check-double' : 'fa-check'}`}></i>
-                          {completedLessons.includes(activeText.id) ? 'Lição Concluída!' : 'Marcar como Concluído'}
+                          Começar a Ler <i className="fas fa-arrow-right"></i>
                         </button>
                       </div>
-                    </article>
+                    </div>
+                  ) : (
+                    /* Layout da Página do Autor */
+                    <div className="flex flex-col items-center justify-center min-h-full text-center p-8 animate-in fade-in duration-1000">
+                      <div className="max-w-2xl w-full flex flex-col items-center p-8">
+                        {/* Avatar do Autor (Substitua o src da imagem depois se quiser) */}
+                        <div className="w-40 h-40 rounded-full bg-black/10 flex items-center justify-center mb-6 shadow-xl border-4 border-current overflow-hidden">
+                           <i className="fas fa-user-edit text-6xl opacity-50"></i>
+                           {/* Exemplo de imagem: <img src="URL_DA_FOTO" className="w-full h-full object-cover" /> */}
+                        </div>
+                        <h2 className="text-4xl font-black uppercase tracking-wider opacity-90 mb-2">Nome do Autor</h2>
+                        <h3 className="text-lg uppercase tracking-widest opacity-60 mb-8">Escritor & Pensador</h3>
+                        
+                        <p className="text-lg sm:text-xl font-serif text-justify leading-relaxed opacity-85">
+                          Este é o espaço reservado para a sua biografia. Fale um pouco sobre a sua jornada, as suas motivações para escrever as "Lições de Vida Plena" e o que espera despertar no coração dos seus leitores.
+                          <br/><br/>
+                          Sinta-se à vontade para editar este texto no código do arquivo sempre que pretender.
+                        </p>
+                      </div>
+                    </div>
                   )}
                 </div>
-              </div>
+              ) : (
+                /* Layout Normal de Leitura de Lições */
+                <React.Fragment>
+                  {/* Botões de Navegação Laterais (Translúcidos) */}
+                  {viewMode === 'page' && !isLoading && (
+                    <div className="absolute inset-0 pointer-events-none flex justify-between z-10 pb-8">
+                      <button onClick={() => turnPage('prev')} className="pointer-events-auto h-full w-16 sm:w-28 flex items-center justify-start pl-2 sm:pl-6 text-current opacity-10 hover:opacity-40 transition-opacity active:opacity-60">
+                        <i className="fas fa-chevron-left text-5xl sm:text-7xl"></i>
+                      </button>
+                      <button onClick={() => turnPage('next')} className="pointer-events-auto h-full w-16 sm:w-28 flex items-center justify-end pr-2 sm:pr-6 text-current opacity-10 hover:opacity-40 transition-opacity active:opacity-60">
+                        <i className="fas fa-chevron-right text-5xl sm:text-7xl"></i>
+                      </button>
+                    </div>
+                  )}
 
-              {/* Marcador Fixo de Numeração de Página (Rodapé) */}
-              {viewMode === 'page' && !isLoading && activeText && (
-                <div className="absolute bottom-2 left-0 right-0 w-full text-center pointer-events-none z-20">
-                  <span className="bg-black/10 backdrop-blur-sm px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-bold opacity-60 tracking-wider">
-                    {extractedTitles[activeText.id] || activeText.title} • Pág {pageInfo.current} de {pageInfo.total}
-                  </span>
-                </div>
+                  {/* Área de Leitura */}
+                  <div 
+                    ref={scrollContainerRef}
+                    onScroll={handleScroll}
+                    onTouchEnd={handleTouchEnd}
+                    className={`flex-1 w-full h-full relative scroll-smooth
+                      ${viewMode === 'scroll' ? 'overflow-y-auto overflow-x-hidden hide-scrollbar' : 'overflow-x-auto overflow-y-hidden hide-scrollbar-completely'}`}
+                  >
+                    <div className={`mx-auto w-full ${viewMode === 'scroll' ? 'max-w-3xl p-4 sm:p-6 md:p-12 pb-32' : 'h-full'}`}>
+                      
+                      {isLoading ? (
+                        <div className="flex flex-col items-center justify-center h-full opacity-60 pt-20">
+                          <div className="loader mb-4"></div>
+                          <p className="font-bold tracking-widest uppercase text-sm">Carregando Lição...</p>
+                        </div>
+                      ) : activeText && (
+                        <article 
+                          className="w-full break-words transition-all duration-300 relative"
+                          style={viewMode === 'page' ? {
+                            columnWidth: `calc(100vw - ${pad * 2}px)`,
+                            columnGap: `${pad * 2}px`,
+                            height: '100%', 
+                            padding: `24px ${pad}px 40px ${pad}px`, 
+                            boxSizing: 'border-box'
+                          } : { paddingBottom: '80px' }}
+                        >
+                          <h2 
+                            className="font-bold mb-6 sm:mb-8 leading-tight opacity-90"
+                            style={{ fontSize: `${fontSize * 1.4}px`, breakAfter: 'avoid' }}
+                          >
+                            {extractedTitles[activeText.id] || activeText.title}
+                          </h2>
+                          
+                          <div 
+                            className="opacity-85 whitespace-pre-wrap font-serif text-justify"
+                            style={{ fontSize: `${fontSize}px`, lineHeight: lineSpacing }}
+                          >
+                            {activeText.content}
+                          </div>
+
+                          <div className="mt-16 mb-8 flex justify-center w-full" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                            <button
+                              onClick={() => toggleLessonCompletion(activeText.id)}
+                              className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-bold shadow-lg transition-all active:scale-95 border-2 z-20 relative
+                                ${completedLessons.includes(activeText.id) 
+                                  ? 'bg-green-600/90 text-white border-green-500 hover:bg-green-700' 
+                                  : 'bg-black/10 border-current hover:bg-black/20'}`}
+                            >
+                              <i className={`fas ${completedLessons.includes(activeText.id) ? 'fa-check-double' : 'fa-check'}`}></i>
+                              {completedLessons.includes(activeText.id) ? 'Lição Concluída!' : 'Marcar como Concluído'}
+                            </button>
+                          </div>
+                        </article>
+                      )}
+                    </div>
+                  </div>
+
+                  {viewMode === 'page' && !isLoading && (
+                    <div className="absolute bottom-2 left-0 right-0 w-full text-center pointer-events-none z-20">
+                      <span className="bg-black/10 backdrop-blur-sm px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-bold opacity-60 tracking-wider">
+                        {extractedTitles[activeText.id] || activeText.title} • Pág {pageInfo.current} de {pageInfo.total}
+                      </span>
+                    </div>
+                  )}
+                </React.Fragment>
               )}
 
             </div>
