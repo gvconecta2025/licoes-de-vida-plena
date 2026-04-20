@@ -155,6 +155,7 @@
       const scrollContainerRef = useRef(null);
       const scrollTimeout = useRef(null);
       const touchTimeout = useRef(null);
+      const flipSoundRef = useRef(null);
       
       const synth = window.speechSynthesis;
       const [isPlaying, setIsPlaying] = useState(false);
@@ -206,6 +207,12 @@
         return () => window.removeEventListener('resize', handleResize);
       }, []);
 
+      // Efeito sonoro de página
+      useEffect(() => {
+        flipSoundRef.current = new Audio('https://assets.codepen.io/16327/page-flip-01a.mp3');
+        flipSoundRef.current.volume = 0.3; // Volume suave para ser agradável
+      }, []);
+
       // Salva Preferências
       useEffect(() => {
         const prefsToSave = {
@@ -247,6 +254,14 @@
         }, 300);
       };
 
+      // Toca o som de passar página
+      const playFlipSound = () => {
+        if (flipSoundRef.current && viewMode === 'page') {
+          flipSoundRef.current.currentTime = 0;
+          flipSoundRef.current.play().catch(() => {}); // Silencia erro se não houver interação prévia do utilizador
+        }
+      };
+
       // Trava de página ("Snap") após arrastar com o dedo
       const handleTouchEnd = () => {
         if (viewMode !== 'page' || !scrollContainerRef.current) return;
@@ -262,6 +277,7 @@
           // Se a rolagem atual estiver "quebrada" no meio, centraliza a página mais próxima
           if (Math.abs(currentScroll - (targetPage * width)) > 5) {
              container.scrollTo({ left: targetPage * width, behavior: 'smooth' });
+             playFlipSound(); // Toca o som ao ajustar a página no celular
           }
         }, 300); 
       };
@@ -275,6 +291,7 @@
             left: direction === 'next' ? scrollAmount : -scrollAmount,
             behavior: 'smooth'
           });
+          playFlipSound(); // Toca o som ao clicar na seta
         }
       };
 
