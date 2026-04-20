@@ -64,7 +64,7 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect, useRef } = React;
+    const { useState, useEffect, useRef, useCallback } = React;
 
     // Configuração dos Temas com Degradês
     const themes = {
@@ -141,14 +141,16 @@
       const [isLoading, setIsLoading] = useState(false); 
       
       const [currentTheme, setCurrentTheme] = useState(themes[prefs.themeId] || themes.polen);
-      const [fontSize, setFontSize] = useState(prefs.fontSize || 18);
-      const [lineSpacing, setLineSpacing] = useState(prefs.lineSpacing || 1.6);
+      const [fontSize, setFontSize] = useState(prefs.fontSize || 20); 
+      const [lineSpacing, setLineSpacing] = useState(prefs.lineSpacing || 2.0); 
       const [viewMode, setViewMode] = useState(prefs.viewMode || 'page'); 
       const [scrollPositions, setScrollPositions] = useState(prefs.scrollPositions || {});
+      const [completedLessons, setCompletedLessons] = useState(prefs.completedLessons || []);
       
       const [isSidebarOpen, setIsSidebarOpen] = useState(false);
       const [showThemeSelector, setShowThemeSelector] = useState(false);
       const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+      const [pageInfo, setPageInfo] = useState({ current: 1, total: 1 });
 
       const activeText = texts.find(t => t.id === activeTextId) || texts[0];
 
@@ -195,17 +197,38 @@
         }
       }, [activeTextId, texts]);
 
-      // Responsividade
+      // Atualizar Paginação (Matemática de Colunas)
+      const updatePageInfo = useCallback(() => {
+        if (viewMode !== 'page' || !scrollContainerRef.current) return;
+        const container = scrollContainerRef.current;
+        const width = container.clientWidth;
+        if (width === 0) return;
+
+        // O scrollWidth total dividido pela largura da janela visível nos dá o total de páginas
+        const total = Math.max(1, Math.ceil((container.scrollWidth - 10) / width));
+        const current = Math.max(1, Math.round(container.scrollLeft / width) + 1);
+        
+        setPageInfo({ current: Math.min(current, total), total });
+      }, [viewMode]);
+
+      // Responsividade e gatilhos de paginação
       useEffect(() => {
         const handleResize = () => {
           setWindowWidth(window.innerWidth);
           if (window.innerWidth >= 768) setIsSidebarOpen(true);
           else setIsSidebarOpen(false);
+          setTimeout(updatePageInfo, 100);
         };
         handleResize();
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
-      }, []);
+      }, [updatePageInfo]);
+
+      // Aciona recalculo de páginas quando texto carrega ou fontes mudam
+      useEffect(() => {
+        const timeoutId = setTimeout(updatePageInfo, 150);
+        return () => clearTimeout(timeoutId);
+      }, [activeTextId, fontSize, lineSpacing, viewMode, isLoading, texts, updatePageInfo]);
 
       // Efeito sonoro de página
       useEffect(() => {
@@ -213,7 +236,7 @@
         flipSoundRef.current.volume = 0.3; // Volume suave para ser agradável
       }, []);
 
-      // Salva Preferências
+      // Salva Preferências (Agora incluindo Lições Concluídas)
       useEffect(() => {
         const prefsToSave = {
           activeTextId,
@@ -221,10 +244,11 @@
           fontSize,
           lineSpacing,
           viewMode,
-          scrollPositions
+          scrollPositions,
+          completedLessons
         };
         localStorage.setItem('leitorWebPrefs', JSON.stringify(prefsToSave));
-      }, [activeTextId, currentTheme, fontSize, lineSpacing, viewMode, scrollPositions]);
+      }, [activeTextId, currentTheme, fontSize, lineSpacing, viewMode, scrollPositions, completedLessons]);
 
       // Restaura Posição do Scroll
       useEffect(() => {
@@ -242,9 +266,19 @@
         return () => synth.cancel();
       }, [synth]);
 
+      // Alternar Conclusão da Lição
+      const toggleLessonCompletion = (id) => {
+        setCompletedLessons(prev => 
+          prev.includes(id) ? prev.filter(lessonId => lessonId !== id) : [...prev, id]
+        );
+      };
+
       // Rastreamento de leitura
       const handleScroll = (e) => {
         const pos = viewMode === 'scroll' ? e.target.scrollTop : e.target.scrollLeft;
+        
+        if (viewMode === 'page') updatePageInfo(); // Atualiza numeração de página ao vivo
+
         if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
         scrollTimeout.current = setTimeout(() => {
           setScrollPositions(prev => ({
@@ -347,7 +381,7 @@
             <div className="p-4 md:p-5 flex items-center justify-between border-b border-inherit shrink-0">
               <div className="flex items-center gap-3 font-bold text-xl opacity-90">
                 <i className="fas fa-bookmark text-xl"></i>
-                <span>Lições</span>
+                <span>Menu de Lições</span>
               </div>
               <button 
                 onClick={() => setIsSidebarOpen(false)} 
@@ -371,6 +405,11 @@
                     ${activeTextId === text.id ? 'bg-black/10 shadow-sm ring-1 ring-inherit font-bold' : 'hover:bg-black/5 active:bg-black/10'}`}
                 >
                   <span className="truncate pr-2 text-[15px]">{text.title}</span>
+                  
+                  {/* Ícone de Check Verde para Lições Concluídas */}
+                  {completedLessons.includes(text.id) && (
+                    <i className="fas fa-check-circle text-green-500 text-lg shadow-sm rounded-full bg-white/30 backdrop-blur-sm"></i>
+                  )}
                 </div>
               ))}
             </div>
@@ -381,15 +420,16 @@
             
             {/* Barra de Ferramentas */}
             <header className={`p-2 sm:p-4 flex items-center justify-between border-b backdrop-blur-md z-20 shrink-0 ${currentTheme.panelClasses}`}>
-              <div className="flex items-center gap-1 sm:gap-3 shrink-0">
+              <div className="flex items-center gap-1 sm:gap-2 shrink-0 max-w-[40%] sm:max-w-[50%]">
                 <button 
                   onClick={() => setIsSidebarOpen(true)} 
-                  className="p-3 rounded-xl hover:bg-black/10 active:scale-95 transition-all md:hidden"
+                  className="p-3 rounded-xl hover:bg-black/10 active:scale-95 transition-all md:hidden shrink-0"
                   aria-label="Abrir menu"
                 >
                   <i className="fas fa-bars text-xl"></i>
                 </button>
-                <h1 className="font-bold text-xs sm:text-sm md:text-base hidden sm:block pl-2 opacity-70 uppercase tracking-widest">
+                {/* Título do App (Visível e Truncado caso falte espaço) */}
+                <h1 className="font-bold text-[10px] sm:text-xs md:text-sm pl-1 sm:pl-2 opacity-80 uppercase tracking-widest truncate">
                   Lições de Vida Plena
                 </h1>
               </div>
@@ -469,11 +509,11 @@
               
               {/* Botões de Navegação Laterais (Translúcidos) */}
               {viewMode === 'page' && !isLoading && activeText && (
-                <div className="absolute inset-0 pointer-events-none flex justify-between z-10">
+                <div className="absolute inset-0 pointer-events-none flex justify-between z-10 pb-8">
                   {/* Seta Esquerda */}
                   <button 
                     onClick={() => turnPage('prev')}
-                    className="pointer-events-auto h-full w-20 sm:w-28 flex items-center justify-start pl-2 sm:pl-6 text-current opacity-10 hover:opacity-40 transition-opacity active:opacity-60"
+                    className="pointer-events-auto h-full w-16 sm:w-28 flex items-center justify-start pl-2 sm:pl-6 text-current opacity-10 hover:opacity-40 transition-opacity active:opacity-60"
                     title="Página Anterior"
                   >
                     <i className="fas fa-chevron-left text-5xl sm:text-7xl"></i>
@@ -481,7 +521,7 @@
                   {/* Seta Direita */}
                   <button 
                     onClick={() => turnPage('next')}
-                    className="pointer-events-auto h-full w-20 sm:w-28 flex items-center justify-end pr-2 sm:pr-6 text-current opacity-10 hover:opacity-40 transition-opacity active:opacity-60"
+                    className="pointer-events-auto h-full w-16 sm:w-28 flex items-center justify-end pr-2 sm:pr-6 text-current opacity-10 hover:opacity-40 transition-opacity active:opacity-60"
                     title="Próxima Página"
                   >
                     <i className="fas fa-chevron-right text-5xl sm:text-7xl"></i>
@@ -506,15 +546,15 @@
                     </div>
                   ) : activeText && (
                     <article 
-                      className="w-full break-words transition-all duration-300"
+                      className="w-full break-words transition-all duration-300 relative"
                       style={viewMode === 'page' ? {
                         /* A mágica do layout de colunas perfeito que não "quebra" as palavras horizontalmente */
                         columnWidth: `calc(100vw - ${pad * 2}px)`,
                         columnGap: `${pad * 2}px`,
                         height: '100%', 
-                        padding: `24px ${pad}px`, 
+                        padding: `24px ${pad}px 40px ${pad}px`, 
                         boxSizing: 'border-box'
-                      } : {}}
+                      } : { paddingBottom: '80px' }}
                     >
                       <h2 
                         className="font-bold mb-6 sm:mb-8 leading-tight opacity-90"
@@ -532,11 +572,36 @@
                       >
                         {activeText.content}
                       </div>
+
+                      {/* Botão de Marcar como Concluído no Final do Texto */}
+                      <div 
+                        className="mt-16 mb-8 flex justify-center w-full"
+                        style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}
+                      >
+                        <button
+                          onClick={() => toggleLessonCompletion(activeText.id)}
+                          className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-bold shadow-lg transition-all active:scale-95 border-2 z-20 relative
+                            ${completedLessons.includes(activeText.id) 
+                              ? 'bg-green-600/90 text-white border-green-500 hover:bg-green-700' 
+                              : 'bg-black/10 border-current hover:bg-black/20'}`}
+                        >
+                          <i className={`fas ${completedLessons.includes(activeText.id) ? 'fa-check-double' : 'fa-check'}`}></i>
+                          {completedLessons.includes(activeText.id) ? 'Lição Concluída!' : 'Marcar como Concluído'}
+                        </button>
+                      </div>
                     </article>
                   )}
-
                 </div>
               </div>
+
+              {/* Marcador Fixo de Numeração de Página (Rodapé) */}
+              {viewMode === 'page' && !isLoading && activeText && (
+                <div className="absolute bottom-2 left-0 right-0 w-full text-center pointer-events-none z-20">
+                  <span className="bg-black/10 backdrop-blur-sm px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-bold opacity-60 tracking-wider">
+                    {activeText.title} • Pág {pageInfo.current} de {pageInfo.total}
+                  </span>
+                </div>
+              )}
 
             </div>
           </main>
