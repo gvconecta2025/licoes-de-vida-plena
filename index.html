@@ -237,6 +237,7 @@
         localStorage.setItem('leitorWebPrefs', JSON.stringify(prefsToSave));
       }, [activeTextId, currentTheme, fontSize, lineSpacing, viewMode, scrollPositions, completedLessons, extractedTitles]);
 
+      // Restaura Posição do Scroll
       useEffect(() => {
         if (scrollContainerRef.current && !isLoading && activeText.type !== 'special') {
           const savedPos = scrollPositions[`${activeTextId}_${viewMode}`] || 0;
@@ -315,6 +316,7 @@
       const handleLineSpacing = () => setLineSpacing(prev => prev === 1.2 ? 1.6 : prev === 1.6 ? 2.0 : 1.2);
       const toggleViewMode = () => setViewMode(prev => prev === 'scroll' ? 'page' : 'scroll');
 
+      // Função de Áudio corrigida e forçada a ser síncrona com o clique
       const toggleSpeech = () => {
         if (isPlaying) {
           window.speechSynthesis.cancel();
@@ -322,18 +324,23 @@
         } else {
           if (!activeText || !activeText.content || activeText.type === 'special') return;
           
+          // Cancela imediatamente para liberar o canal de áudio
           window.speechSynthesis.cancel();
           
-          setTimeout(() => {
-            const utterance = new SpeechSynthesisUtterance(activeText.content);
-            utterance.lang = 'pt-BR'; 
-            utterance.onstart = () => setIsPlaying(true);
-            utterance.onend = () => setIsPlaying(false);
-            utterance.onerror = () => setIsPlaying(false);
-            
-            utteranceRef.current = utterance;
-            window.speechSynthesis.speak(utterance);
-          }, 150);
+          const utterance = new SpeechSynthesisUtterance(activeText.content);
+          utterance.lang = 'pt-BR'; 
+          utterance.onstart = () => setIsPlaying(true);
+          utterance.onend = () => setIsPlaying(false);
+          utterance.onerror = (e) => {
+            console.error("Erro no áudio:", e);
+            setIsPlaying(false);
+          };
+          
+          utteranceRef.current = utterance;
+          
+          // Ação chamada sem setTimeout para o telemóvel aceitar como gesto humano
+          window.speechSynthesis.speak(utterance);
+          setIsPlaying(true); // Atualiza a interface logo no momento do clique
         }
       };
 
@@ -374,6 +381,20 @@
                   key={text.id}
                   onClick={() => {
                     setActiveTextId(text.id);
+                    
+                    // Reinicia a posição de leitura SE utilizador clicou no Menu (força a lição ir para o início)
+                    setScrollPositions(prev => ({
+                      ...prev,
+                      [`${text.id}_scroll`]: 0,
+                      [`${text.id}_page`]: 0
+                    }));
+
+                    // Força a atualização do elemento da tela imediatamente
+                    if (scrollContainerRef.current) {
+                      scrollContainerRef.current.scrollTop = 0;
+                      scrollContainerRef.current.scrollLeft = 0;
+                    }
+
                     if (isPlaying) { window.speechSynthesis.cancel(); setIsPlaying(false); }
                     if (window.innerWidth < 768) setIsSidebarOpen(false);
                   }}
@@ -492,7 +513,10 @@
                           Um guia para a sua evolução interior
                         </p>
                         <button 
-                          onClick={() => setActiveTextId('prologo')}
+                          onClick={() => {
+                            setActiveTextId('prologo');
+                            setScrollPositions(prev => ({ ...prev, ['prologo_scroll']: 0, ['prologo_page']: 0 }));
+                          }}
                           className="mt-16 flex items-center gap-3 px-10 py-5 rounded-full font-bold shadow-lg bg-black/10 hover:bg-black/20 border-2 border-current active:scale-95 transition-all text-lg"
                         >
                           Começar a Ler <i className="fas fa-arrow-right"></i>
