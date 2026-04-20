@@ -451,6 +451,16 @@
         if (window.innerWidth < 768) setIsSidebarOpen(false);
       }
 
+      // === CÁLCULOS DA LARGURA DA PÁGINA (60% NA WEB) ===
+      const isDesktop = windowWidth >= 768; // Tailwind 'md' breakpoint
+      const sidebarWidth = 288; // 72 tailwind units = 288px
+      
+      // Largura da área principal subtraindo o sidebar se estiver aberto no Desktop
+      const mainAreaWidth = (isDesktop && isSidebarOpen) ? windowWidth - sidebarWidth : windowWidth;
+      
+      // Container da leitura ocupa 60% no desktop, e 100% no mobile
+      const containerWidth = isDesktop ? mainAreaWidth * 0.6 : mainAreaWidth;
+      
       const isSm = windowWidth >= 640;
       const pad = isSm ? 32 : 16;
 
@@ -537,7 +547,7 @@
           </aside>
 
           {/* Conteúdo Principal */}
-          <main className="flex-1 flex flex-col h-[100dvh] w-full min-w-0 overflow-hidden relative">
+          <main className="flex-1 flex flex-col h-[100dvh] w-full min-w-0 overflow-hidden relative bg-black/5">
             
             {/* Barra de Ferramentas */}
             <header className={`p-2 sm:p-4 flex items-center justify-between border-b backdrop-blur-md z-30 shrink-0 ${currentTheme.panelClasses}`}>
@@ -617,7 +627,7 @@
             </header>
 
             {/* Container Dinâmico de Leitura / Páginas Especiais */}
-            <div className="flex-1 w-full relative flex overflow-hidden">
+            <div className="flex-1 w-full relative flex justify-center overflow-hidden">
               
               {activeText.type === 'special' ? (
                 <div className="w-full h-full overflow-y-auto">
@@ -692,25 +702,29 @@
                 </div>
               ) : (
                 <React.Fragment>
+                  
+                  {/* Setas Laterais Ocupando TODO o espaço vazio fora dos 60% */}
                   {viewMode === 'page' && !isLoading && (
                     <div className="absolute inset-0 pointer-events-none flex justify-between z-10 pb-8">
-                      <button onClick={() => turnPage('prev')} className="pointer-events-auto h-full w-16 sm:w-28 flex items-center justify-start pl-2 sm:pl-6 text-current opacity-10 hover:opacity-40 transition-opacity active:opacity-60">
+                      <button onClick={() => turnPage('prev')} className="pointer-events-auto h-full w-16 sm:w-28 md:w-[20%] flex items-center justify-start pl-2 sm:pl-6 text-current opacity-10 hover:opacity-40 transition-opacity active:opacity-60">
                         <i className="fas fa-chevron-left text-5xl sm:text-7xl"></i>
                       </button>
-                      <button onClick={() => turnPage('next')} className="pointer-events-auto h-full w-16 sm:w-28 flex items-center justify-end pr-2 sm:pr-6 text-current opacity-10 hover:opacity-40 transition-opacity active:opacity-60">
+                      <button onClick={() => turnPage('next')} className="pointer-events-auto h-full w-16 sm:w-28 md:w-[20%] flex items-center justify-end pr-2 sm:pr-6 text-current opacity-10 hover:opacity-40 transition-opacity active:opacity-60">
                         <i className="fas fa-chevron-right text-5xl sm:text-7xl"></i>
                       </button>
                     </div>
                   )}
 
+                  {/* Wrapper Principal de 60% na Web (Desktop) */}
                   <div 
                     ref={scrollContainerRef}
                     onScroll={handleScroll}
                     onTouchEnd={handleTouchEnd}
-                    className={`flex-1 w-full h-full relative scroll-smooth
-                      ${viewMode === 'scroll' ? 'overflow-y-auto overflow-x-hidden hide-scrollbar' : 'overflow-x-auto overflow-y-hidden hide-scrollbar-completely'}`}
+                    className={`h-full relative scroll-smooth mx-auto shadow-2xl backdrop-blur-3xl w-full md:w-[60%]
+                      ${viewMode === 'scroll' ? 'overflow-y-auto overflow-x-hidden hide-scrollbar' : 'overflow-x-auto overflow-y-hidden hide-scrollbar-completely'}
+                      ${currentTheme.panelClasses}`}
                   >
-                    <div className={`mx-auto w-full ${viewMode === 'scroll' ? 'max-w-3xl p-4 sm:p-6 md:p-12 pb-32' : 'h-full'}`}>
+                    <div className={`mx-auto w-full ${viewMode === 'scroll' ? 'p-4 sm:p-6 md:p-12 pb-32' : 'h-full'}`}>
                       
                       {isLoading ? (
                         <div className="flex flex-col items-center justify-center h-full opacity-60 pt-20">
@@ -721,7 +735,8 @@
                         <article 
                           className="w-full break-words transition-all duration-300 relative"
                           style={viewMode === 'page' ? {
-                            columnWidth: `calc(100vw - ${pad * 2}px)`,
+                            /* A mágica do layout de colunas calcula com exatidão a área em Pixels do Contentor */
+                            columnWidth: `${containerWidth - (pad * 2)}px`,
                             columnGap: `${pad * 2}px`,
                             height: '100%', 
                             padding: `24px ${pad}px 40px ${pad}px`, 
@@ -770,10 +785,10 @@
                     </div>
                   </div>
 
-                  {/* Numeração de Página */}
+                  {/* Numeração de Página Centralizada nos 60% */}
                   {viewMode === 'page' && !isLoading && (
-                    <div className="absolute bottom-2 left-0 right-0 w-full text-center pointer-events-none z-20">
-                      <span className="bg-black/10 backdrop-blur-sm px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-bold opacity-60 tracking-wider">
+                    <div className="absolute bottom-2 left-0 right-0 w-full flex justify-center pointer-events-none z-20">
+                      <span className="bg-black/10 backdrop-blur-sm px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-bold opacity-60 tracking-wider shadow-sm">
                         {extractedTitles[activeText.id] || activeText.title} • Pág {pageInfo.current} de {pageInfo.total}
                       </span>
                     </div>
