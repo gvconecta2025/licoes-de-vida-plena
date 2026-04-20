@@ -22,20 +22,27 @@
       margin: 0;
       padding: 0;
       -webkit-font-smoothing: antialiased;
+      overflow: hidden; /* Previne rolagem no body, delegando para o React */
     }
     /* Evita seleções de texto indesejadas nos botões */
     button {
       user-select: none;
     }
+    /* Esconde a barra de rolagem no modo página mas mantém a funcionalidade */
+    .hide-scrollbar::-webkit-scrollbar {
+      height: 8px;
+    }
+    .hide-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
-  <!-- Onde o App vai ser renderizado -->
   <div id="root"></div>
 
-  <!-- Script Principal da Aplicação -->
   <script type="text/babel">
-    const { useState, useEffect } = React;
+    const { useState, useEffect, useRef } = React;
 
     // Configuração dos Temas com Degradês
     const themes = {
@@ -72,38 +79,58 @@
       vermelho: { 
         id: 'vermelho', 
         name: 'Vermelho', 
-        classes: 'bg-gradient-to-br from-rose-900 to-red-950 text-rose-100',
-        panelClasses: 'bg-black/20 border-rose-800'
+        classes: 'bg-gradient-to-br from-[#4a2424] to-[#2d1414] text-[#e8cfcf]', // Opaco e sem brilho forte
+        panelClasses: 'bg-black/20 border-[#6e3636]'
       }
     };
 
+    // Aqui é onde você colocará os seus textos oficiais. 
+    // O usuário não pode adicionar, apenas ler o que está aqui.
     const initialTexts = [
       {
         id: 1,
-        title: 'Bem-vindo ao Leitor',
-        content: 'Este é o seu novo web app de leitura, otimizado para celulares.\n\nVocê pode adicionar quantos textos quiser clicando no botão "Novo Texto" no menu lateral.\n\nExperimente mudar as cores usando o ícone de paleta acima, e ajuste o tamanho da letra para o que for mais confortável para os seus olhos.\n\nPara ouvir este texto, basta clicar no botão de Ouvir!'
+        title: 'Guia do Leitor',
+        content: 'Bem-vindo ao novo ambiente de leitura!\n\nAgora o aplicativo tem memória: se você fechar a página e voltar amanhã, ele vai lembrar exatamente em qual parágrafo você parou de ler, além de salvar as suas cores e fontes favoritas.\n\nExperimente clicar no ícone de "Livro" ou "Pergaminho" na barra superior. Ele transforma o texto de uma rolagem vertical infinita para o formato de páginas horizontais, exatamente como num livro digital.\n\nVocê também tem um novo botão (com setas para cima e para baixo) para afastar ou aproximar o espaçamento entre as linhas, facilitando muito a leitura prolongada.\n\nBoa leitura!'
+      },
+      {
+        id: 2,
+        title: 'O Pequeno Príncipe - Cap I',
+        content: 'Certa vez, quando tinha seis anos, vi uma imagem magnífica num livro sobre a Floresta Virgem chamado "Histórias Vívidas". A imagem mostrava uma jiboia a engolir uma fera. Eis a cópia do desenho.\n\nDizia o livro: "As jiboias engolem as suas presas inteiras, sem as mastigar. Depois, não se conseguem mexer e dormem durante os seis meses da digestão."\n\nPensei muito, então, sobre as aventuras da selva e, por minha vez, consegui traçar o meu primeiro desenho com um lápis de cor. O meu desenho número 1. Era assim:\n\nMostrei a minha obra-prima às pessoas crescidas e perguntei-lhes se o meu desenho lhes metia medo.\n\nElas responderam-me: "Porque haveria um chapéu de meter medo?"\n\nO meu desenho não representava um chapéu. Representava uma jiboia a digerir um elefante. Desenhei então o interior da jiboia, para que as pessoas crescidas pudessem compreender. Elas precisam sempre de explicações.'
       }
     ];
 
     function App() {
-      // Estados do App
-      const [texts, setTexts] = useState(initialTexts);
-      const [activeTextId, setActiveTextId] = useState(1);
-      const [currentTheme, setCurrentTheme] = useState(themes.claro);
-      const [fontSize, setFontSize] = useState(18); // Tamanho base
-      const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Mobile-first: fechado
-      const [showThemeSelector, setShowThemeSelector] = useState(false);
+      // Carregar preferências salvas do usuário (se existirem)
+      const loadPrefs = () => {
+        try {
+          const saved = JSON.parse(localStorage.getItem('leitorWebPrefs'));
+          return saved || {};
+        } catch(e) { return {}; }
+      };
+      const prefs = loadPrefs();
+
+      // Estados Principais (agora com memória pelo localStorage)
+      const [texts] = useState(initialTexts); // Removido o setTexts, lista é fixa
+      const [activeTextId, setActiveTextId] = useState(prefs.activeTextId || initialTexts[0].id);
       
-      // Estado para modo de adição
-      const [isAddingMode, setIsAddingMode] = useState(false);
-      const [newTitle, setNewTitle] = useState('');
-      const [newContent, setNewContent] = useState('');
+      // Tema Padrão agora é o Pólen
+      const [currentTheme, setCurrentTheme] = useState(themes[prefs.themeId] || themes.polen);
+      
+      const [fontSize, setFontSize] = useState(prefs.fontSize || 18);
+      const [lineSpacing, setLineSpacing] = useState(prefs.lineSpacing || 1.6);
+      const [viewMode, setViewMode] = useState(prefs.viewMode || 'scroll'); // 'scroll' ou 'page'
+      const [scrollPositions, setScrollPositions] = useState(prefs.scrollPositions || {});
+      
+      const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+      const [showThemeSelector, setShowThemeSelector] = useState(false);
 
-      // Estados do Leitor de Áudio
-      const [isPlaying, setIsPlaying] = useState(false);
+      const activeText = texts.find(t => t.id === activeTextId) || texts[0];
+
+      const scrollContainerRef = useRef(null);
+      const scrollTimeout = useRef(null);
+      
       const synth = window.speechSynthesis;
-
-      const activeText = texts.find(t => t.id === activeTextId);
+      const [isPlaying, setIsPlaying] = useState(false);
 
       // Efeito para ajustar o sidebar em telas maiores
       useEffect(() => {
@@ -116,15 +143,70 @@
         return () => window.removeEventListener('resize', handleResize);
       }, []);
 
+      // Efeito para Salvar Preferências e Progresso no LocalStorage
+      useEffect(() => {
+        const prefsToSave = {
+          activeTextId,
+          themeId: currentTheme.id,
+          fontSize,
+          lineSpacing,
+          viewMode,
+          scrollPositions
+        };
+        localStorage.setItem('leitorWebPrefs', JSON.stringify(prefsToSave));
+      }, [activeTextId, currentTheme, fontSize, lineSpacing, viewMode, scrollPositions]);
+
+      // Efeito para Restaurar a Posição de Rolagem ao trocar de texto ou modo
+      useEffect(() => {
+        if (scrollContainerRef.current) {
+          // Usamos uma chave única para a rolagem de cada texto + cada modo de visualização
+          const savedPos = scrollPositions[`${activeTextId}_${viewMode}`] || 0;
+          if (viewMode === 'scroll') {
+            scrollContainerRef.current.scrollTop = savedPos;
+          } else {
+            scrollContainerRef.current.scrollLeft = savedPos;
+          }
+        }
+      }, [activeTextId, viewMode]);
+
       // Limpa o áudio ao desmontar
       useEffect(() => {
         return () => synth.cancel();
       }, [synth]);
 
-      // Controles
+      // Rastreador de Rolagem Inteligente (Salva onde o usuário está lendo)
+      const handleScroll = (e) => {
+        const pos = viewMode === 'scroll' ? e.target.scrollTop : e.target.scrollLeft;
+        
+        // Usa debounce para não travar o app enquanto rola
+        if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+        scrollTimeout.current = setTimeout(() => {
+          setScrollPositions(prev => ({
+            ...prev,
+            [`${activeTextId}_${viewMode}`]: pos
+          }));
+        }, 300);
+      };
+
+      // Controles de Texto
       const handleZoomIn = () => setFontSize(prev => Math.min(prev + 2, 48));
       const handleZoomOut = () => setFontSize(prev => Math.max(prev - 2, 14));
 
+      // Controle de Espaçamento de Linhas
+      const handleLineSpacing = () => {
+        setLineSpacing(prev => {
+          if (prev === 1.2) return 1.6;
+          if (prev === 1.6) return 2.0;
+          return 1.2;
+        });
+      };
+
+      // Controle de Modo de Visualização
+      const toggleViewMode = () => {
+        setViewMode(prev => prev === 'scroll' ? 'page' : 'scroll');
+      };
+
+      // Controle de Áudio
       const toggleSpeech = () => {
         if (isPlaying) {
           synth.cancel();
@@ -139,44 +221,6 @@
           
           synth.speak(utterance);
           setIsPlaying(true);
-        }
-      };
-
-      const handleSaveText = () => {
-        if (!newTitle.trim() || !newContent.trim()) {
-          alert("Por favor, preencha o título e o texto.");
-          return;
-        }
-
-        const newText = {
-          id: Date.now(),
-          title: newTitle,
-          content: newContent
-        };
-
-        setTexts([newText, ...texts]);
-        setActiveTextId(newText.id);
-        setIsAddingMode(false);
-        setNewTitle('');
-        setNewContent('');
-        
-        if (window.innerWidth < 768) setIsSidebarOpen(false);
-      };
-
-      const handleDeleteText = (id, e) => {
-        e.stopPropagation();
-        const confirm = window.confirm("Tem certeza que deseja excluir este texto?");
-        if (!confirm) return;
-
-        const filtered = texts.filter(t => t.id !== id);
-        setTexts(filtered);
-        
-        if (activeTextId === id) {
-          setActiveTextId(filtered.length > 0 ? filtered[0].id : null);
-          if (isPlaying) {
-            synth.cancel();
-            setIsPlaying(false);
-          }
         }
       };
 
@@ -198,7 +242,7 @@
             <div className="p-4 md:p-5 flex items-center justify-between border-b border-inherit">
               <div className="flex items-center gap-3 font-bold text-xl">
                 <i className="fas fa-book-open text-2xl"></i>
-                <span>Biblioteca</span>
+                <span>Textos Disponíveis</span>
               </div>
               <button 
                 onClick={() => setIsSidebarOpen(false)} 
@@ -209,44 +253,19 @@
               </button>
             </div>
 
-            <div className="p-4">
-              <button 
-                onClick={() => {
-                  setIsAddingMode(true);
-                  if (isPlaying) { synth.cancel(); setIsPlaying(false); }
-                  if (window.innerWidth < 768) setIsSidebarOpen(false);
-                }}
-                className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl border-2 border-dashed border-inherit hover:bg-black/5 active:scale-95 transition-all font-semibold text-[15px]"
-              >
-                <i className="fas fa-plus text-lg"></i>
-                Novo Texto
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-4 pt-0 space-y-2">
-              {texts.length === 0 && (
-                <p className="text-center opacity-70 text-sm mt-4">Nenhum texto salvo.</p>
-              )}
+            <div className="flex-1 overflow-y-auto p-4 pt-4 space-y-2">
               {texts.map(text => (
                 <div 
                   key={text.id}
                   onClick={() => {
                     setActiveTextId(text.id);
-                    setIsAddingMode(false);
                     if (isPlaying) { synth.cancel(); setIsPlaying(false); }
                     if (window.innerWidth < 768) setIsSidebarOpen(false);
                   }}
                   className={`p-3.5 rounded-xl cursor-pointer transition-all flex justify-between items-center group
-                    ${activeTextId === text.id && !isAddingMode ? 'bg-black/10 shadow-sm ring-1 ring-inherit' : 'hover:bg-black/5 active:bg-black/10'}`}
+                    ${activeTextId === text.id ? 'bg-black/10 shadow-sm ring-1 ring-inherit font-bold' : 'hover:bg-black/5 active:bg-black/10'}`}
                 >
-                  <span className="font-medium truncate pr-2 text-[15px]">{text.title}</span>
-                  <button 
-                    onClick={(e) => handleDeleteText(text.id, e)}
-                    className="opacity-100 md:opacity-0 group-hover:opacity-100 p-2 md:p-1.5 -m-2 md:m-0 rounded-md hover:bg-red-500/20 text-red-500 active:scale-90 transition-all"
-                    title="Excluir"
-                  >
-                    <i className="fas fa-trash-alt text-lg"></i>
-                  </button>
+                  <span className="truncate pr-2 text-[15px]">{text.title}</span>
                 </div>
               ))}
             </div>
@@ -256,8 +275,8 @@
           <main className="flex-1 flex flex-col h-[100dvh] w-full min-w-0 overflow-hidden relative">
             
             {/* Barra de Ferramentas */}
-            <header className={`p-2 sm:p-4 flex items-center justify-between border-b backdrop-blur-md z-10 ${currentTheme.panelClasses}`}>
-              <div className="flex items-center gap-1 sm:gap-3">
+            <header className={`p-2 sm:p-4 flex items-center justify-between border-b backdrop-blur-md z-10 shrink-0 ${currentTheme.panelClasses}`}>
+              <div className="flex items-center gap-1 sm:gap-3 shrink-0">
                 <button 
                   onClick={() => setIsSidebarOpen(true)} 
                   className="p-3 rounded-xl hover:bg-black/10 active:scale-95 transition-all md:hidden"
@@ -265,34 +284,44 @@
                 >
                   <i className="fas fa-bars text-2xl"></i>
                 </button>
-                <h1 className="font-bold text-lg sm:text-xl md:text-2xl hidden md:block pl-2">Leitor Web</h1>
+                <h1 className="font-bold text-lg sm:text-xl md:text-2xl hidden lg:block pl-2">Leitor</h1>
               </div>
 
-              <div className="flex items-center gap-1 sm:gap-2 pr-1 sm:pr-0">
-                {/* Controles de Áudio */}
-                {!isAddingMode && activeText && (
-                  <button 
-                    onClick={toggleSpeech}
-                    className={`flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-full font-bold transition-all active:scale-95 shadow-sm
-                      ${isPlaying ? 'bg-red-500/20 text-red-600 ring-2 ring-red-500/50' : 'bg-black/10 hover:bg-black/20'}`}
-                  >
-                    {isPlaying ? <i className="fas fa-square text-lg"></i> : <i className="fas fa-play text-lg"></i>}
-                    <span className="hidden sm:inline">{isPlaying ? 'Parar' : 'Ouvir'}</span>
-                  </button>
-                )}
+              {/* Botões de Controle (Habilitam rolagem horizontal se não couberem na tela do celular) */}
+              <div className="flex items-center gap-1 sm:gap-2 pr-1 sm:pr-0 overflow-x-auto hide-scrollbar shrink-0">
+                
+                <button 
+                  onClick={toggleSpeech}
+                  className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-full font-bold transition-all active:scale-95 shadow-sm shrink-0
+                    ${isPlaying ? 'bg-red-500/20 text-red-600 ring-2 ring-red-500/50' : 'bg-black/10 hover:bg-black/20'}`}
+                >
+                  {isPlaying ? <i className="fas fa-square text-lg"></i> : <i className="fas fa-play text-lg"></i>}
+                  <span className="hidden sm:inline">{isPlaying ? 'Parar' : 'Ouvir'}</span>
+                </button>
 
-                <div className="h-8 w-px bg-current opacity-20 mx-1 sm:mx-2 hidden sm:block"></div>
+                <div className="h-8 w-px bg-current opacity-20 mx-1 sm:mx-2 shrink-0"></div>
 
-                {/* Controles de Zoom */}
-                <button onClick={handleZoomOut} className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all" title="Diminuir texto">
+                <button onClick={toggleViewMode} className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all shrink-0" title="Modo de Leitura (Rolagem ou Páginas)">
+                  <i className={`fas ${viewMode === 'scroll' ? 'fa-book-open' : 'fa-scroll'} text-xl`}></i>
+                </button>
+
+                <button onClick={handleLineSpacing} className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all shrink-0" title="Espaçamento das Linhas">
+                  <i className="fas fa-text-height text-xl"></i>
+                </button>
+
+                <div className="h-8 w-px bg-current opacity-20 mx-1 sm:mx-2 shrink-0"></div>
+
+                <button onClick={handleZoomOut} className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all shrink-0" title="Diminuir texto">
                   <i className="fas fa-search-minus text-xl"></i>
                 </button>
-                <button onClick={handleZoomIn} className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all" title="Aumentar texto">
+                <button onClick={handleZoomIn} className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all shrink-0" title="Aumentar texto">
                   <i className="fas fa-search-plus text-xl"></i>
                 </button>
 
+                <div className="h-8 w-px bg-current opacity-20 mx-1 sm:mx-2 shrink-0"></div>
+
                 {/* Seletor de Tema */}
-                <div className="relative">
+                <div className="relative shrink-0">
                   <button 
                     onClick={() => setShowThemeSelector(!showThemeSelector)}
                     className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all flex items-center gap-2"
@@ -303,7 +332,7 @@
                   
                   {showThemeSelector && (
                     <React.Fragment>
-                      <div className="fixed inset-0 z-40 md:hidden" onClick={() => setShowThemeSelector(false)}></div>
+                      <div className="fixed inset-0 z-40" onClick={() => setShowThemeSelector(false)}></div>
                       <div className={`absolute right-0 top-full mt-2 p-2 rounded-2xl shadow-2xl border backdrop-blur-2xl w-48 z-50 origin-top-right animate-in fade-in zoom-in-95 duration-200 ${currentTheme.panelClasses}`}>
                         {Object.values(themes).map(theme => (
                           <button
@@ -326,78 +355,42 @@
               </div>
             </header>
 
-            {/* Área de Leitura / Edição */}
-            <div className="flex-1 overflow-y-auto w-full flex justify-center p-4 sm:p-6 md:p-12 pb-32">
-              <div className="w-full max-w-3xl">
+            {/* Área de Leitura - Comporta Scroll Vertical ou Horizontal (Páginas) */}
+            <div 
+              ref={scrollContainerRef}
+              onScroll={handleScroll}
+              className={`flex-1 w-full relative scroll-smooth hide-scrollbar
+                ${viewMode === 'scroll' ? 'overflow-y-auto overflow-x-hidden' : 'overflow-x-auto overflow-y-hidden'}`}
+            >
+              <div className={`mx-auto ${viewMode === 'scroll' ? 'max-w-3xl p-4 sm:p-6 md:p-12 pb-32' : 'h-full p-4 sm:p-8'}`}>
                 
-                {isAddingMode ? (
-                  <div className="space-y-5 sm:space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-8 opacity-90">Adicionar Novo Texto</h2>
-                    
-                    <div>
-                      <label className="block text-sm font-semibold mb-2 opacity-80 pl-1">Título do Texto</label>
-                      <input 
-                        type="text" 
-                        value={newTitle}
-                        onChange={(e) => setNewTitle(e.target.value)}
-                        placeholder="Ex: O Pequeno Príncipe - Capítulo 1"
-                        className={`w-full p-4 rounded-2xl text-[16px] sm:text-lg bg-transparent border-2 border-inherit focus:ring-4 focus:ring-black/10 outline-none transition-all ${currentTheme.panelClasses}`}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold mb-2 opacity-80 pl-1">Conteúdo para Leitura</label>
-                      <textarea 
-                        value={newContent}
-                        onChange={(e) => setNewContent(e.target.value)}
-                        placeholder="Cole aqui o texto que deseja ler ou ouvir..."
-                        className={`w-full p-4 rounded-2xl text-[16px] sm:text-lg bg-transparent border-2 border-inherit focus:ring-4 focus:ring-black/10 outline-none transition-all resize-y min-h-[30vh] md:min-h-[40vh] ${currentTheme.panelClasses}`}
-                      />
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 pb-12">
-                      <button 
-                        onClick={handleSaveText}
-                        className="w-full sm:flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-bold bg-black/80 text-white hover:bg-black active:scale-95 transition-all text-[16px]"
-                      >
-                        <i className="fas fa-save text-lg"></i>
-                        Salvar Texto
-                      </button>
-                      <button 
-                        onClick={() => {
-                          setIsAddingMode(false);
-                          if (!activeTextId && texts.length > 0) setActiveTextId(texts[0].id);
-                        }}
-                        className={`w-full sm:w-auto px-8 py-4 rounded-2xl font-bold border-2 border-inherit hover:bg-black/5 active:scale-95 transition-all text-[16px]`}
-                      >
-                        Cancelar
-                      </button>
-                    </div>
-                  </div>
-
-                ) : activeText ? (
-                  <article className="animate-in fade-in duration-700 w-full break-words">
+                {activeText && (
+                  <article 
+                    className="w-full break-words transition-all duration-300"
+                    style={viewMode === 'page' ? {
+                      // Configuração CSS para gerar as "páginas" horizontais automaticamente
+                      columnWidth: 'calc(100vw - 3rem)',
+                      columnGap: '3rem',
+                      height: 'calc(100dvh - 140px)', 
+                    } : {}}
+                  >
                     <h2 
                       className="font-bold mb-6 sm:mb-8 leading-tight opacity-90"
-                      style={{ fontSize: `${fontSize * 1.4}px` }}
+                      style={{ fontSize: `${fontSize * 1.4}px`, breakAfter: 'avoid' }}
                     >
                       {activeText.title}
                     </h2>
+                    
                     <div 
-                      className="leading-relaxed opacity-85 whitespace-pre-wrap font-serif"
-                      style={{ fontSize: `${fontSize}px` }}
+                      className="opacity-85 whitespace-pre-wrap font-serif text-justify"
+                      style={{ 
+                        fontSize: `${fontSize}px`, 
+                        lineHeight: lineSpacing 
+                      }}
                     >
                       {activeText.content}
                     </div>
                   </article>
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-full opacity-50 text-center px-4">
-                    <i className="fas fa-book-open text-6xl mb-4"></i>
-                    <h2 className="text-xl sm:text-2xl font-bold">Nenhum texto selecionado</h2>
-                    <p className="mt-2 text-sm sm:text-base max-w-sm">
-                      Toque no menu para acessar a biblioteca ou clique em "Novo Texto" para começar.
-                    </p>
-                  </div>
                 )}
 
               </div>
