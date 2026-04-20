@@ -73,42 +73,48 @@
         name: 'Claro', 
         classes: 'bg-gradient-to-br from-gray-50 to-gray-200 text-gray-800',
         panelClasses: 'bg-white/60 border-gray-300',
-        solidMenuClasses: 'bg-gray-50 border-gray-300'
+        solidMenuClasses: 'bg-gray-50 border-gray-300',
+        preview: 'bg-gray-200'
       },
       polen: { 
         id: 'polen', 
         name: 'Pólen', 
         classes: 'bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-100 text-amber-900',
         panelClasses: 'bg-white/40 border-amber-200',
-        solidMenuClasses: 'bg-amber-50 border-amber-300'
+        solidMenuClasses: 'bg-amber-50 border-amber-300',
+        preview: 'bg-amber-200'
       },
       escuro: { 
         id: 'escuro', 
         name: 'Escuro', 
-        classes: 'bg-gradient-to-br from-gray-700 via-gray-800 to-slate-900 text-gray-100',
-        panelClasses: 'bg-black/30 border-gray-600',
-        solidMenuClasses: 'bg-gray-800 border-gray-600'
+        classes: 'bg-gradient-to-br from-zinc-800 to-black text-zinc-100', // Modificado para um escuro neutro distinto do azul
+        panelClasses: 'bg-zinc-900/50 border-zinc-700',
+        solidMenuClasses: 'bg-zinc-900 border-zinc-700',
+        preview: 'bg-zinc-800'
       },
       cafe: { 
         id: 'cafe', 
         name: 'Café', 
         classes: 'bg-gradient-to-br from-[#4a3b32] to-[#2e231d] text-[#e8dcc4]',
         panelClasses: 'bg-black/20 border-[#6a5647]',
-        solidMenuClasses: 'bg-[#3b2d26] border-[#6a5647]'
+        solidMenuClasses: 'bg-[#3b2d26] border-[#6a5647]',
+        preview: 'bg-[#4a3b32]'
       },
       azul: { 
         id: 'azul', 
         name: 'Azul', 
         classes: 'bg-gradient-to-br from-slate-700 to-slate-900 text-blue-100',
         panelClasses: 'bg-black/20 border-slate-600',
-        solidMenuClasses: 'bg-slate-800 border-slate-600'
+        solidMenuClasses: 'bg-slate-800 border-slate-600',
+        preview: 'bg-slate-700'
       },
       vermelho: { 
         id: 'vermelho', 
         name: 'Vermelho', 
         classes: 'bg-gradient-to-br from-[#4a2424] to-[#2d1414] text-[#e8cfcf]',
         panelClasses: 'bg-black/20 border-[#6e3636]',
-        solidMenuClasses: 'bg-[#3d1e1e] border-[#6e3636]'
+        solidMenuClasses: 'bg-[#3d1e1e] border-[#6e3636]',
+        preview: 'bg-[#4a2424]'
       }
     };
 
@@ -374,20 +380,24 @@
           // Garante que qualquer áudio travado é cancelado primeiro
           window.speechSynthesis.cancel();
           
-          const utterance = new SpeechSynthesisUtterance(activeText.content);
-          utterance.lang = 'pt-BR'; 
-          
-          utterance.onend = () => setIsPlaying(false);
-          utterance.onerror = (e) => {
-            console.error("Erro na leitura de voz: ", e);
-            setIsPlaying(false);
-          };
-          
-          // Salva na referência para o navegador não limpar a memória
-          utteranceRef.current = utterance;
-          
-          window.speechSynthesis.speak(utterance);
-          setIsPlaying(true);
+          // O Timeout resolve o bug crónico dos navegadores onde o cancelamento imediato 
+          // bloqueia o processamento da nova fala.
+          setTimeout(() => {
+            const utterance = new SpeechSynthesisUtterance(activeText.content);
+            utterance.lang = 'pt-BR'; 
+            
+            utterance.onstart = () => setIsPlaying(true);
+            utterance.onend = () => setIsPlaying(false);
+            utterance.onerror = (e) => {
+              console.error("Erro na leitura de voz: ", e);
+              setIsPlaying(false);
+            };
+            
+            // Salva na referência para o navegador não limpar a memória acidentalmente
+            utteranceRef.current = utterance;
+            
+            window.speechSynthesis.speak(utterance);
+          }, 100);
         }
       };
 
@@ -537,7 +547,8 @@
                               className={`flex flex-col items-center gap-2 p-3 rounded-2xl transition-all border border-transparent
                                 ${currentTheme.id === theme.id ? 'bg-black/10 shadow-inner border-black/10' : 'hover:bg-black/5'}`}
                             >
-                              <div className={`w-8 h-8 rounded-full shadow-md ${theme.classes.split(' ')[1]}`}></div>
+                              {/* Atualizado para a cor correta de preview */}
+                              <div className={`w-8 h-8 rounded-full shadow-md ${theme.preview}`}></div>
                               <span className="text-[10px] font-bold opacity-80">{theme.name}</span>
                             </button>
                           ))}
