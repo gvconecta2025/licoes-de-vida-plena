@@ -44,6 +44,21 @@
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
+    
+    /* Estilos preservados do arquivo DOCX (Negrito, Italico, Parágrafos) */
+    .prose-content p {
+      margin-bottom: 1.2em;
+    }
+    .prose-content strong, .prose-content b {
+      font-weight: bold;
+    }
+    .prose-content em, .prose-content i {
+      font-style: italic;
+    }
+    .prose-content u {
+      text-decoration: underline;
+    }
+
     .loader {
       border: 4px solid rgba(255,255,255,0.1);
       border-left-color: currentColor;
@@ -70,9 +85,10 @@
       vermelho: { id: 'vermelho', name: 'Vermelho', classes: 'bg-gradient-to-br from-[#4a2424] to-[#2d1414] text-[#e8cfcf]', panelClasses: 'bg-black/20 border-[#6e3636]', solidMenuClasses: 'bg-[#3d1e1e] border-[#6e3636]', preview: 'bg-[#4a2424]' }
     };
 
-    // Textos e Páginas Especiais (Capa e Autor)
+    // Textos e Páginas Especiais (Adicionado o Sumário)
     const initialTexts = [
       { id: 'capa', title: 'Capa do Livro', type: 'special' }, 
+      { id: 'sumario', title: 'Sumário', type: 'special' }, 
       { id: 'prologo', title: 'Prólogo', docxUrl: './prologo.docx', content: null },
       { id: 'licao0a', title: 'Lição 0a', docxUrl: './licao-0a.docx', content: null },
       { id: 'licao0b', title: 'Lição 0b', docxUrl: './licao-0b.docx', content: null },
@@ -119,8 +135,6 @@
       const [completedLessons, setCompletedLessons] = useState(prefs.completedLessons || []);
       const [extractedTitles, setExtractedTitles] = useState(prefs.extractedTitles || {});
       
-      // Novo estado para guardar os destaques (marca-textos)
-      const [highlights, setHighlights] = useState(prefs.highlights || {});
       const [selectionMenu, setSelectionMenu] = useState(null);
       
       const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -138,6 +152,7 @@
       
       const [isPlaying, setIsPlaying] = useState(false);
 
+      // Função de Carregamento (.DOCX com formatação Original mantida)
       useEffect(() => {
         if (activeText && activeText.docxUrl && !activeText.content && activeText.type !== 'special') {
           
@@ -161,30 +176,28 @@
               
               const firstChild = tempDiv.firstElementChild;
               
+              // Extração do Título
               if (firstChild && firstChild.textContent.trim().length > 0) {
                 const titleText = firstChild.textContent.trim();
                 setExtractedTitles(prev => ({ ...prev, [activeTextId]: titleText }));
                 firstChild.remove(); 
               }
 
-              let rawText = tempDiv.innerHTML
-                .replace(/<\/p><p>/gi, '\n\n')
-                .replace(/<br\s*\/?>/gi, '\n')
-                .replace(/<[^>]+>/g, ''); 
-              
-              if (!rawText.trim()) rawText = "(O arquivo docx está vazio ou não pôde ser lido)";
+              // Agora MANTEMOS as tags de formatação (HTML) ao invés de removê-las
+              let htmlContent = tempDiv.innerHTML;
+              if (!htmlContent.trim()) htmlContent = "<p>(O arquivo docx está vazio ou não pôde ser lido)</p>";
 
-              const updatedOfflineDocs = { ...loadOfflineContent(), [activeTextId]: rawText };
+              const updatedOfflineDocs = { ...loadOfflineContent(), [activeTextId]: htmlContent };
               localStorage.setItem('leitorWebOfflineDocs', JSON.stringify(updatedOfflineDocs));
 
               setTexts(prevTexts => prevTexts.map(t => 
-                t.id === activeTextId ? { ...t, content: rawText } : t
+                t.id === activeTextId ? { ...t, content: htmlContent } : t
               ));
               setIsLoading(false);
             })
             .catch(error => {
               console.error(error);
-              const errorMsg = `O arquivo desta lição ainda não foi disponibilizado ou ocorreu um erro de conexão.\n\nVerifique se tem internet ou se o autor já publicou esta lição.`;
+              const errorMsg = `<p>O arquivo desta lição ainda não foi disponibilizado ou ocorreu um erro de conexão.</p><p>Verifique se tem internet ou se o autor já publicou esta lição.</p>`;
               setTexts(prevTexts => prevTexts.map(t => 
                 t.id === activeTextId ? { ...t, content: errorMsg } : t
               ));
@@ -236,13 +249,11 @@
           viewMode,
           scrollPositions,
           completedLessons,
-          extractedTitles,
-          highlights // Salvando destaques no cache permanentemente
+          extractedTitles
         };
         localStorage.setItem('leitorWebPrefs', JSON.stringify(prefsToSave));
-      }, [activeTextId, currentTheme, fontSize, lineSpacing, viewMode, scrollPositions, completedLessons, extractedTitles, highlights]);
+      }, [activeTextId, currentTheme, fontSize, lineSpacing, viewMode, scrollPositions, completedLessons, extractedTitles]);
 
-      // Restaura Posição do Scroll
       useEffect(() => {
         if (scrollContainerRef.current && !isLoading && activeText.type !== 'special') {
           const savedPos = scrollPositions[`${activeTextId}_${viewMode}`] || 0;
@@ -265,8 +276,7 @@
       };
 
       const handleScroll = (e) => {
-        if (selectionMenu) setSelectionMenu(null); // Esconde o menu de marca-texto ao rolar
-        
+        if (selectionMenu) setSelectionMenu(null); 
         if (activeText.type === 'special') return;
         const pos = viewMode === 'scroll' ? e.target.scrollTop : e.target.scrollLeft;
         
@@ -330,17 +340,16 @@
           setIsPlaying(false);
         } else {
           if (!activeText || !activeText.content || activeText.type === 'special') return;
-          
           window.speechSynthesis.cancel();
           
-          const utterance = new SpeechSynthesisUtterance(activeText.content);
+          // Remove as tags de formatação (HTML) apenas para enviar o texto "limpo" ao leitor de voz
+          const plainText = activeText.content.replace(/<[^>]+>/g, ' ');
+
+          const utterance = new SpeechSynthesisUtterance(plainText);
           utterance.lang = 'pt-BR'; 
           utterance.onstart = () => setIsPlaying(true);
           utterance.onend = () => setIsPlaying(false);
-          utterance.onerror = (e) => {
-            console.error("Erro no áudio:", e);
-            setIsPlaying(false);
-          };
+          utterance.onerror = () => setIsPlaying(false);
           
           utteranceRef.current = utterance;
           window.speechSynthesis.speak(utterance);
@@ -348,13 +357,12 @@
         }
       };
 
-      // === LÓGICA DO MARCA-TEXTOS GLOBAL E ROBUSTA ===
+      // === SISTEMA DE MARCA-TEXTO (Com HTML Original Preservado) ===
       useEffect(() => {
         let timeoutId = null;
         const handleSelectionChange = () => {
           clearTimeout(timeoutId);
           
-          // Debounce para esperar a seleção nativa ser construída
           timeoutId = setTimeout(() => {
             const selection = window.getSelection();
             if (!selection || selection.isCollapsed || !selection.toString().trim()) {
@@ -363,37 +371,21 @@
             }
 
             const wrapper = document.getElementById('text-content-wrapper');
-            // Garante que só reage se a seleção for feita DENTRO do wrapper de leitura
             if (!wrapper || !wrapper.contains(selection.anchorNode) || !wrapper.contains(selection.focusNode)) {
               return;
             }
 
             try {
-              let start = 0, end = 0;
               const range = selection.getRangeAt(0);
-              const preCaretRange = range.cloneRange();
-              
-              // Clona o nó atual e mede todos os caracteres antes da seleção
-              preCaretRange.selectNodeContents(wrapper);
-              preCaretRange.setEnd(range.startContainer, range.startOffset);
-              start = preCaretRange.toString().length;
-              end = start + range.toString().length;
-
               const rect = range.getBoundingClientRect();
               
-              // Se a seleção não tiver dimensões, não faça nada
               if (rect.width === 0 && rect.height === 0) return;
               
               setSelectionMenu({
-                top: rect.top - 55, // Logo acima do texto
-                left: rect.left + (rect.width / 2),
-                start,
-                end,
-                text: selection.toString()
+                top: rect.top - 55,
+                left: rect.left + (rect.width / 2)
               });
-            } catch (e) {
-              console.error("Erro na seleção do texto:", e);
-            }
+            } catch (e) { console.error(e); }
           }, 200); 
         };
 
@@ -402,76 +394,62 @@
           document.removeEventListener('selectionchange', handleSelectionChange);
           clearTimeout(timeoutId);
         };
-      }, [activeTextId]); // Recarrega o escutador ao mudar de página
+      }, [activeTextId]); 
+
+      const saveHtmlToCache = (htmlContent) => {
+        setTexts(prev => prev.map(t => t.id === activeTextId ? { ...t, content: htmlContent } : t));
+        const updatedOfflineDocs = { ...loadOfflineContent(), [activeTextId]: htmlContent };
+        localStorage.setItem('leitorWebOfflineDocs', JSON.stringify(updatedOfflineDocs));
+      };
 
       const addHighlight = (colorCode) => {
-        if (!selectionMenu) return;
-        const newHighlight = {
-          id: Date.now(),
-          start: selectionMenu.start,
-          end: selectionMenu.end,
-          text: selectionMenu.text,
-          color: colorCode
-        };
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) return;
+        const range = selection.getRangeAt(0);
 
-        setHighlights(prev => {
-          const docHighlights = prev[activeTextId] || [];
-          // Remove marcações antigas caso cruzem com a nova, evitando bugs visuais
-          const filtered = docHighlights.filter(h => h.end <= newHighlight.start || h.start >= newHighlight.end);
-          return { ...prev, [activeTextId]: [...filtered, newHighlight] };
-        });
-
-        // Limpa a seleção nativa do browser
-        window.getSelection().removeAllRanges();
+        const mark = document.createElement('mark');
+        mark.className = `${colorCode} text-inherit rounded px-1 cursor-pointer transition-colors hover:brightness-95 shadow-sm highlight-mark`;
+        mark.title = "Clique para remover a marcação";
+        
+        try {
+          range.surroundContents(mark);
+          const wrapper = document.getElementById('text-content-wrapper');
+          if (wrapper) saveHtmlToCache(wrapper.innerHTML);
+        } catch(e) {
+          // surroundContents falha se a seleção cruzar múltiplos parágrafos (<p>)
+          alert('Para marcar, selecione trechos que estejam dentro de um único parágrafo.');
+        }
+        
+        selection.removeAllRanges();
         setSelectionMenu(null);
       };
 
-      const removeHighlight = (hlId) => {
-        if(window.confirm("Deseja remover esta marcação?")) {
-          setHighlights(prev => {
-            const docHighlights = prev[activeTextId] || [];
-            return { ...prev, [activeTextId]: docHighlights.filter(h => h.id !== hlId) };
-          });
+      const handleRemoveHighlight = (e) => {
+        const target = e.target.closest('mark.highlight-mark');
+        if (target) {
+          if (window.confirm("Deseja remover esta marcação?")) {
+            const parent = target.parentNode;
+            while(target.firstChild) {
+              parent.insertBefore(target.firstChild, target);
+            }
+            parent.removeChild(target);
+            
+            const wrapper = document.getElementById('text-content-wrapper');
+            if (wrapper) saveHtmlToCache(wrapper.innerHTML);
+          }
         }
       };
 
-      const renderContentWithHighlights = () => {
-        const text = activeText.content;
-        if (!text) return null;
-
-        const docHighlights = highlights[activeTextId] || [];
-        if (docHighlights.length === 0) return text;
-
-        const sorted = [...docHighlights].sort((a, b) => a.start - b.start);
-        const elements = [];
-        let lastIndex = 0;
-
-        sorted.forEach((hl, i) => {
-          if (hl.start > lastIndex) {
-            elements.push(<span key={`t-${hl.id}`}>{text.substring(lastIndex, hl.start)}</span>);
-          }
-          const hlText = text.substring(Math.max(lastIndex, hl.start), hl.end);
-          if (hlText) {
-            elements.push(
-              <mark 
-                key={`m-${hl.id}`} 
-                className={`${hl.color} text-inherit rounded px-1 cursor-pointer transition-colors hover:brightness-95 shadow-sm`}
-                onClick={(e) => { e.stopPropagation(); removeHighlight(hl.id); }}
-                title="Clique para remover a marcação"
-              >
-                {hlText}
-              </mark>
-            );
-          }
-          lastIndex = Math.max(lastIndex, hl.end);
-        });
-
-        if (lastIndex < text.length) {
-          elements.push(<span key={`t-end`}>{text.substring(lastIndex)}</span>);
+      const navigateToLesson = (id) => {
+        setActiveTextId(id);
+        setScrollPositions(prev => ({ ...prev, [`${id}_scroll`]: 0, [`${id}_page`]: 0 }));
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTop = 0;
+          scrollContainerRef.current.scrollLeft = 0;
         }
-
-        return elements;
-      };
+        if (isPlaying) { window.speechSynthesis.cancel(); setIsPlaying(false); }
+        if (window.innerWidth < 768) setIsSidebarOpen(false);
+      }
 
       const isSm = windowWidth >= 640;
       const pad = isSm ? 32 : 16;
@@ -510,7 +488,7 @@
             onClick={() => setIsSidebarOpen(false)}
           ></div>
 
-          {/* Menu Lateral (Sidebar) */}
+          {/* Menu Lateral (Sidebar) com Botões Duplos */}
           <aside 
             className={`fixed inset-y-0 left-0 z-50 w-4/5 max-w-[280px] md:relative md:max-w-none md:w-72 h-[100dvh] flex flex-col border-r backdrop-blur-xl transition-transform duration-300 ease-in-out ${currentTheme.panelClasses}
               ${isSidebarOpen ? 'translate-x-0 shadow-2xl md:shadow-none' : '-translate-x-full md:translate-x-0'}`}
@@ -532,34 +510,26 @@
               {texts.map(text => (
                 <div 
                   key={text.id}
-                  onClick={() => {
-                    setActiveTextId(text.id);
-                    
-                    // Reinicia a posição de leitura SE utilizador clicou no Menu (força a lição ir para o início)
-                    setScrollPositions(prev => ({
-                      ...prev,
-                      [`${text.id}_scroll`]: 0,
-                      [`${text.id}_page`]: 0
-                    }));
-
-                    if (scrollContainerRef.current) {
-                      scrollContainerRef.current.scrollTop = 0;
-                      scrollContainerRef.current.scrollLeft = 0;
-                    }
-
-                    if (isPlaying) { window.speechSynthesis.cancel(); setIsPlaying(false); }
-                    if (window.innerWidth < 768) setIsSidebarOpen(false);
-                  }}
+                  onClick={() => navigateToLesson(text.id)}
                   className={`p-3.5 rounded-xl cursor-pointer transition-all flex justify-between items-center group
-                    ${activeTextId === text.id ? 'bg-black/10 shadow-sm ring-1 ring-inherit font-bold' : 'hover:bg-black/5 active:bg-black/10'}
+                    ${activeTextId === text.id ? 'bg-black/10 shadow-sm ring-1 ring-inherit' : 'hover:bg-black/5 active:bg-black/10'}
                     ${text.type === 'special' ? 'border border-current opacity-70 mt-4 mb-2' : ''}`}
                 >
-                  <span className="truncate pr-2 text-[15px]">
-                    {text.type === 'special' ? text.title : (extractedTitles[text.id] || text.title)}
-                  </span>
+                  <div className="flex flex-col overflow-hidden text-left w-full pr-2">
+                    {/* Primeira linha: Etiqueta estática (Ex: Lição 1) */}
+                    {text.type !== 'special' && (
+                      <span className="text-[10px] font-bold uppercase tracking-widest opacity-50 mb-0.5">
+                        {text.title}
+                      </span>
+                    )}
+                    {/* Segunda linha: Título extraído do DOCX ou Título Especial */}
+                    <span className="text-[15px] font-semibold truncate">
+                      {text.type === 'special' ? text.title : (extractedTitles[text.id] || 'Carregando Capítulo...')}
+                    </span>
+                  </div>
                   
                   {text.type !== 'special' && completedLessons.includes(text.id) && (
-                    <i className="fas fa-check-circle text-green-500 text-lg shadow-sm rounded-full bg-white/30 backdrop-blur-sm"></i>
+                    <i className="fas fa-check-circle text-green-500 text-lg shadow-sm rounded-full bg-white/30 backdrop-blur-sm shrink-0"></i>
                   )}
                 </div>
               ))}
@@ -585,7 +555,6 @@
               </div>
 
               <div className="flex items-center gap-1 sm:gap-2 shrink-0 relative ml-2 z-50">
-                
                 <button 
                   onClick={() => setShowSettings(!showSettings)}
                   className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all shrink-0 ml-1 relative z-50"
@@ -598,8 +567,8 @@
                 {showSettings && (
                   <React.Fragment>
                     <div className="fixed inset-0 w-screen h-screen z-40" onClick={() => setShowSettings(false)}></div>
-                    
                     <div className={`absolute right-0 top-full mt-3 p-5 rounded-3xl shadow-2xl border w-72 sm:w-80 z-50 origin-top-right animate-in fade-in zoom-in-95 duration-200 flex flex-col gap-6 ${currentTheme.solidMenuClasses}`}>
+                      
                       <div className="flex flex-col gap-3 relative z-50">
                         <span className="text-[11px] font-bold uppercase tracking-wider opacity-60">Tamanho e Espaçamento</span>
                         <div className="flex items-center justify-between bg-black/5 rounded-2xl p-1.5 shadow-inner">
@@ -652,7 +621,9 @@
               
               {activeText.type === 'special' ? (
                 <div className="w-full h-full overflow-y-auto">
-                  {activeText.id === 'capa' ? (
+                  
+                  {/* PÁGINA: CAPA */}
+                  {activeText.id === 'capa' && (
                     <div className="flex flex-col items-center justify-center min-h-full text-center p-8 animate-in fade-in duration-1000">
                       <div className="max-w-xl w-full flex flex-col items-center border-[6px] border-double border-current p-10 sm:p-16 rounded-sm bg-black/5 backdrop-blur-sm shadow-2xl">
                         <i className="fas fa-seedling text-5xl sm:text-6xl mb-8 opacity-80"></i>
@@ -664,17 +635,44 @@
                           Um guia para a sua evolução interior
                         </p>
                         <button 
-                          onClick={() => {
-                            setActiveTextId('prologo');
-                            setScrollPositions(prev => ({ ...prev, ['prologo_scroll']: 0, ['prologo_page']: 0 }));
-                          }}
+                          onClick={() => navigateToLesson('sumario')}
                           className="mt-16 flex items-center gap-3 px-10 py-5 rounded-full font-bold shadow-lg bg-black/10 hover:bg-black/20 border-2 border-current active:scale-95 transition-all text-lg"
                         >
-                          Começar a Ler <i className="fas fa-arrow-right"></i>
+                          Abrir o Livro <i className="fas fa-book-open"></i>
                         </button>
                       </div>
                     </div>
-                  ) : (
+                  )}
+
+                  {/* PÁGINA: SUMÁRIO */}
+                  {activeText.id === 'sumario' && (
+                    <div className="flex flex-col items-center min-h-full p-6 sm:p-12 animate-in fade-in duration-1000 pb-32">
+                      <div className="max-w-2xl w-full flex flex-col p-6 sm:p-10 bg-black/5 rounded-2xl backdrop-blur-sm border border-current shadow-lg">
+                        <h2 className="text-3xl font-black uppercase tracking-widest opacity-90 mb-8 text-center border-b-2 border-current pb-6">Sumário</h2>
+                        <div className="flex flex-col gap-3">
+                          {texts.filter(t => t.type !== 'special').map(t => (
+                            <button 
+                              key={t.id}
+                              onClick={() => navigateToLesson(t.id)}
+                              className="flex justify-between items-center p-4 hover:bg-black/10 rounded-xl transition-all text-left group border border-transparent hover:border-black/10 active:scale-95"
+                            >
+                              <div className="flex flex-col">
+                                <span className="font-bold opacity-60 text-xs tracking-widest uppercase mb-1">{t.title}</span>
+                                <span className="font-serif text-lg opacity-90 group-hover:underline decoration-2 underline-offset-4">{extractedTitles[t.id] || 'Novo Capítulo...'}</span>
+                              </div>
+                              <div className="flex items-center gap-4">
+                                {completedLessons.includes(t.id) && <i className="fas fa-check-circle text-green-500 text-xl shadow-sm rounded-full bg-white/30 backdrop-blur-sm"></i>}
+                                <i className="fas fa-chevron-right opacity-30 group-hover:opacity-100 transition-opacity"></i>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* PÁGINA: AUTOR */}
+                  {activeText.id === 'autor' && (
                     <div className="flex flex-col items-center justify-center min-h-full text-center p-8 animate-in fade-in duration-1000">
                       <div className="max-w-2xl w-full flex flex-col items-center p-8">
                         <div className="w-40 h-40 rounded-full bg-black/10 flex items-center justify-center mb-6 shadow-xl border-4 border-current overflow-hidden">
@@ -683,7 +681,7 @@
                         <h2 className="text-4xl font-black uppercase tracking-wider opacity-90 mb-2">Nome do Autor</h2>
                         <h3 className="text-lg uppercase tracking-widest opacity-60 mb-8">Escritor & Pensador</h3>
                         
-                        <p className="text-lg sm:text-xl font-serif text-justify leading-relaxed opacity-85">
+                        <p className="text-lg sm:text-xl font-serif text-justify leading-relaxed opacity-85 prose-content">
                           Este é o espaço reservado para a sua biografia. Fale um pouco sobre a sua jornada, as suas motivações para escrever as "Lições de Vida Plena" e o que espera despertar no coração dos seus leitores.
                           <br/><br/>
                           Sinta-se à vontade para editar este texto no código do arquivo sempre que pretender.
@@ -731,27 +729,28 @@
                           } : { paddingBottom: '120px' }}
                         >
                           <h2 
-                            className="font-bold mb-6 sm:mb-8 leading-tight opacity-90"
+                            className="font-bold mb-6 sm:mb-8 leading-tight opacity-90 border-b-2 border-current pb-4"
                             style={{ fontSize: `${fontSize * 1.4}px`, breakAfter: 'avoid' }}
                           >
                             {extractedTitles[activeText.id] || activeText.title}
                           </h2>
                           
-                          {/* Área Textual Especial (Desativa Menu de Contexto e Cópia, mas Permite Selecionar para Marca-Texto) */}
+                          {/* Container de Leitura com HTML preservado e proteção anticópia */}
                           <div 
                             id="text-content-wrapper"
-                            className="opacity-85 whitespace-pre-wrap font-serif text-justify select-text"
+                            className="prose-content opacity-85 font-serif text-justify select-text"
                             style={{ 
                               fontSize: `${fontSize}px`, 
                               lineHeight: lineSpacing,
-                              WebkitTouchCallout: 'none' /* Oculta o menu de copiar nativo no iPhone/iPad */
+                              WebkitTouchCallout: 'none' /* Oculta opções nativas de cópia no iOS */
                             }}
                             onCopy={e => e.preventDefault()}
                             onCut={e => e.preventDefault()}
                             onPaste={e => e.preventDefault()}
                             onContextMenu={e => e.preventDefault()}
+                            onClick={handleRemoveHighlight}
+                            dangerouslySetInnerHTML={{ __html: activeText.content }}
                           >
-                            {renderContentWithHighlights()}
                           </div>
 
                           <div className="mt-16 mb-8 flex justify-center w-full" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
@@ -784,7 +783,7 @@
               )}
             </div>
             
-            {/* Botão de Áudio Flutuante Fixo e Pequeno na Base da Tela */}
+            {/* Botão de Áudio Flutuante */}
             {activeText.type !== 'special' && !isLoading && (
               <button
                 onClick={toggleSpeech}
