@@ -1,388 +1,414 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Play, 
-  Square, 
-  Plus, 
-  ZoomIn, 
-  ZoomOut, 
-  Palette, 
-  BookOpen, 
-  Menu,
-  X,
-  Save,
-  Trash2
-} from 'lucide-react';
-
-// Configuração dos Temas com Degradês
-const themes = {
-  claro: { 
-    id: 'claro', 
-    name: 'Claro', 
-    classes: 'bg-gradient-to-br from-gray-50 to-gray-200 text-gray-800',
-    panelClasses: 'bg-white/60 border-gray-300'
-  },
-  polen: { 
-    id: 'polen', 
-    name: 'Pólen', 
-    classes: 'bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-100 text-amber-900',
-    panelClasses: 'bg-white/40 border-amber-200'
-  },
-  escuro: { 
-    id: 'escuro', 
-    name: 'Escuro', 
-    classes: 'bg-gradient-to-br from-gray-700 via-gray-800 to-slate-900 text-gray-100',
-    panelClasses: 'bg-black/30 border-gray-600'
-  },
-  cafe: { 
-    id: 'cafe', 
-    name: 'Café', 
-    classes: 'bg-gradient-to-br from-[#4a3b32] to-[#2e231d] text-[#e8dcc4]',
-    panelClasses: 'bg-black/20 border-[#6a5647]'
-  },
-  azul: { 
-    id: 'azul', 
-    name: 'Azul', 
-    classes: 'bg-gradient-to-br from-slate-700 to-slate-900 text-blue-100',
-    panelClasses: 'bg-black/20 border-slate-600'
-  },
-  vermelho: { 
-    id: 'vermelho', 
-    name: 'Vermelho', 
-    classes: 'bg-gradient-to-br from-rose-900 to-red-950 text-rose-100',
-    panelClasses: 'bg-black/20 border-rose-800'
-  }
-};
-
-const initialTexts = [
-  {
-    id: 1,
-    title: 'Bem-vindo ao Leitor',
-    content: 'Este é o seu novo web app de leitura, otimizado para celulares.\n\nVocê pode adicionar quantos textos quiser clicando no botão "Novo Texto" no menu lateral.\n\nExperimente mudar as cores usando o ícone de paleta acima, e ajuste o tamanho da letra para o que for mais confortável para os seus olhos.\n\nPara ouvir este texto, basta clicar no botão de Ouvir!'
-  }
-];
-
-export default function App() {
-  // Estados do App
-  const [texts, setTexts] = useState(initialTexts);
-  const [activeTextId, setActiveTextId] = useState(1);
-  const [currentTheme, setCurrentTheme] = useState(themes.claro);
-  const [fontSize, setFontSize] = useState(18); // Tamanho base otimizado para mobile
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Mobile-first: menu fechado por padrão
-  const [showThemeSelector, setShowThemeSelector] = useState(false);
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leitor de Textos</title>
   
-  // Estado para modo de adição
-  const [isAddingMode, setIsAddingMode] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const [newContent, setNewContent] = useState('');
+  <!-- Tailwind CSS para Estilização -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome para os Ícones -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Bibliotecas do React carregadas diretamente no navegador -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  // Estados do Leitor de Áudio
-  const [isPlaying, setIsPlaying] = useState(false);
-  const synth = window.speechSynthesis;
-
-  const activeText = texts.find(t => t.id === activeTextId);
-
-  // Efeito para ajustar o sidebar em telas maiores no início
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 768) setIsSidebarOpen(true);
-      else setIsSidebarOpen(false);
-    };
-    handleResize(); // Executa na montagem
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Limpa o áudio ao trocar de texto ou desmontar
-  useEffect(() => {
-    return () => synth.cancel();
-  }, [synth]);
-
-  // Controles de Texto
-  const handleZoomIn = () => setFontSize(prev => Math.min(prev + 2, 48));
-  const handleZoomOut = () => setFontSize(prev => Math.max(prev - 2, 14));
-
-  // Controles de Áudio
-  const toggleSpeech = () => {
-    if (isPlaying) {
-      synth.cancel();
-      setIsPlaying(false);
-    } else {
-      if (!activeText) return;
-      const utterance = new SpeechSynthesisUtterance(activeText.content);
-      // Força o idioma para Português do Brasil
-      utterance.lang = 'pt-BR'; 
-      
-      utterance.onend = () => setIsPlaying(false);
-      utterance.onerror = () => setIsPlaying(false);
-      
-      synth.speak(utterance);
-      setIsPlaying(true);
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
     }
-  };
-
-  // Gerenciamento de Textos
-  const handleSaveText = () => {
-    if (!newTitle.trim() || !newContent.trim()) {
-      alert("Por favor, preencha o título e o texto.");
-      return;
+    /* Evita seleções de texto indesejadas nos botões */
+    button {
+      user-select: none;
     }
+  </style>
+</head>
+<body>
+  <!-- Onde o App vai ser renderizado -->
+  <div id="root"></div>
 
-    const newText = {
-      id: Date.now(),
-      title: newTitle,
-      content: newContent
-    };
+  <!-- Script Principal da Aplicação -->
+  <script type="text/babel">
+    const { useState, useEffect } = React;
 
-    setTexts([newText, ...texts]);
-    setActiveTextId(newText.id);
-    setIsAddingMode(false);
-    setNewTitle('');
-    setNewContent('');
-    
-    if (window.innerWidth < 768) setIsSidebarOpen(false);
-  };
-
-  const handleDeleteText = (id, e) => {
-    e.stopPropagation();
-    const confirm = window.confirm("Tem certeza que deseja excluir este texto?");
-    if (!confirm) return;
-
-    const filtered = texts.filter(t => t.id !== id);
-    setTexts(filtered);
-    
-    if (activeTextId === id) {
-      setActiveTextId(filtered.length > 0 ? filtered[0].id : null);
-      if (isPlaying) {
-        synth.cancel();
-        setIsPlaying(false);
+    // Configuração dos Temas com Degradês
+    const themes = {
+      claro: { 
+        id: 'claro', 
+        name: 'Claro', 
+        classes: 'bg-gradient-to-br from-gray-50 to-gray-200 text-gray-800',
+        panelClasses: 'bg-white/60 border-gray-300'
+      },
+      polen: { 
+        id: 'polen', 
+        name: 'Pólen', 
+        classes: 'bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-100 text-amber-900',
+        panelClasses: 'bg-white/40 border-amber-200'
+      },
+      escuro: { 
+        id: 'escuro', 
+        name: 'Escuro', 
+        classes: 'bg-gradient-to-br from-gray-700 via-gray-800 to-slate-900 text-gray-100',
+        panelClasses: 'bg-black/30 border-gray-600'
+      },
+      cafe: { 
+        id: 'cafe', 
+        name: 'Café', 
+        classes: 'bg-gradient-to-br from-[#4a3b32] to-[#2e231d] text-[#e8dcc4]',
+        panelClasses: 'bg-black/20 border-[#6a5647]'
+      },
+      azul: { 
+        id: 'azul', 
+        name: 'Azul', 
+        classes: 'bg-gradient-to-br from-slate-700 to-slate-900 text-blue-100',
+        panelClasses: 'bg-black/20 border-slate-600'
+      },
+      vermelho: { 
+        id: 'vermelho', 
+        name: 'Vermelho', 
+        classes: 'bg-gradient-to-br from-rose-900 to-red-950 text-rose-100',
+        panelClasses: 'bg-black/20 border-rose-800'
       }
-    }
-  };
+    };
 
-  return (
-    // Utilização de min-h-[100dvh] para suportar mobile viewports perfeitamente
-    <div className={`min-h-[100dvh] flex transition-colors duration-500 ease-in-out ${currentTheme.classes}`}>
+    const initialTexts = [
+      {
+        id: 1,
+        title: 'Bem-vindo ao Leitor',
+        content: 'Este é o seu novo web app de leitura, otimizado para celulares.\n\nVocê pode adicionar quantos textos quiser clicando no botão "Novo Texto" no menu lateral.\n\nExperimente mudar as cores usando o ícone de paleta acima, e ajuste o tamanho da letra para o que for mais confortável para os seus olhos.\n\nPara ouvir este texto, basta clicar no botão de Ouvir!'
+      }
+    ];
+
+    function App() {
+      // Estados do App
+      const [texts, setTexts] = useState(initialTexts);
+      const [activeTextId, setActiveTextId] = useState(1);
+      const [currentTheme, setCurrentTheme] = useState(themes.claro);
+      const [fontSize, setFontSize] = useState(18); // Tamanho base
+      const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Mobile-first: fechado
+      const [showThemeSelector, setShowThemeSelector] = useState(false);
       
-      {/* Overlay Escuro para Mobile */}
-      <div 
-        className={`fixed inset-0 bg-black/40 z-20 transition-opacity duration-300 md:hidden backdrop-blur-sm
-          ${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-        onClick={() => setIsSidebarOpen(false)}
-      ></div>
+      // Estado para modo de adição
+      const [isAddingMode, setIsAddingMode] = useState(false);
+      const [newTitle, setNewTitle] = useState('');
+      const [newContent, setNewContent] = useState('');
 
-      {/* Menu Lateral (Sidebar) */}
-      <aside 
-        className={`fixed inset-y-0 left-0 z-30 w-4/5 max-w-[280px] md:relative md:max-w-none md:w-72 h-[100dvh] flex flex-col border-r backdrop-blur-xl transition-transform duration-300 ease-in-out ${currentTheme.panelClasses}
-          ${isSidebarOpen ? 'translate-x-0 shadow-2xl md:shadow-none' : '-translate-x-full md:translate-x-0'}`}
-      >
-        <div className="p-4 md:p-5 flex items-center justify-between border-b border-inherit">
-          <div className="flex items-center gap-3 font-bold text-xl">
-            <BookOpen size={24} />
-            <span>Biblioteca</span>
-          </div>
-          <button 
-            onClick={() => setIsSidebarOpen(false)} 
-            className="md:hidden p-3 -mr-3 rounded-full hover:bg-black/10 active:scale-95 transition-all"
-            aria-label="Fechar menu"
-          >
-            <X size={22} />
-          </button>
-        </div>
+      // Estados do Leitor de Áudio
+      const [isPlaying, setIsPlaying] = useState(false);
+      const synth = window.speechSynthesis;
 
-        <div className="p-4">
-          <button 
-            onClick={() => {
-              setIsAddingMode(true);
-              if (isPlaying) { synth.cancel(); setIsPlaying(false); }
-              if (window.innerWidth < 768) setIsSidebarOpen(false); // Fecha no mobile ao clicar
-            }}
-            className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl border-2 border-dashed border-inherit hover:bg-black/5 active:scale-95 transition-all font-semibold text-[15px]"
-          >
-            <Plus size={20} />
-            Novo Texto
-          </button>
-        </div>
+      const activeText = texts.find(t => t.id === activeTextId);
 
-        <div className="flex-1 overflow-y-auto p-4 pt-0 space-y-2">
-          {texts.length === 0 && (
-            <p className="text-center opacity-70 text-sm mt-4">Nenhum texto salvo.</p>
-          )}
-          {texts.map(text => (
-            <div 
-              key={text.id}
-              onClick={() => {
-                setActiveTextId(text.id);
-                setIsAddingMode(false);
-                if (isPlaying) { synth.cancel(); setIsPlaying(false); }
-                if (window.innerWidth < 768) setIsSidebarOpen(false);
-              }}
-              className={`p-3.5 rounded-xl cursor-pointer transition-all flex justify-between items-center group
-                ${activeTextId === text.id && !isAddingMode ? 'bg-black/10 shadow-sm ring-1 ring-inherit' : 'hover:bg-black/5 active:bg-black/10'}`}
-            >
-              <span className="font-medium truncate pr-2 text-[15px]">{text.title}</span>
-              <button 
-                onClick={(e) => handleDeleteText(text.id, e)}
-                className="opacity-100 md:opacity-0 group-hover:opacity-100 p-2 md:p-1.5 -m-2 md:m-0 rounded-md hover:bg-red-500/20 text-red-500 active:scale-90 transition-all"
-                title="Excluir"
-              >
-                <Trash2 size={18} />
-              </button>
-            </div>
-          ))}
-        </div>
-      </aside>
+      // Efeito para ajustar o sidebar em telas maiores
+      useEffect(() => {
+        const handleResize = () => {
+          if (window.innerWidth >= 768) setIsSidebarOpen(true);
+          else setIsSidebarOpen(false);
+        };
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+      }, []);
 
-      {/* Conteúdo Principal */}
-      <main className="flex-1 flex flex-col h-[100dvh] w-full min-w-0 overflow-hidden relative">
+      // Limpa o áudio ao desmontar
+      useEffect(() => {
+        return () => synth.cancel();
+      }, [synth]);
+
+      // Controles
+      const handleZoomIn = () => setFontSize(prev => Math.min(prev + 2, 48));
+      const handleZoomOut = () => setFontSize(prev => Math.max(prev - 2, 14));
+
+      const toggleSpeech = () => {
+        if (isPlaying) {
+          synth.cancel();
+          setIsPlaying(false);
+        } else {
+          if (!activeText) return;
+          const utterance = new SpeechSynthesisUtterance(activeText.content);
+          utterance.lang = 'pt-BR'; 
+          
+          utterance.onend = () => setIsPlaying(false);
+          utterance.onerror = () => setIsPlaying(false);
+          
+          synth.speak(utterance);
+          setIsPlaying(true);
+        }
+      };
+
+      const handleSaveText = () => {
+        if (!newTitle.trim() || !newContent.trim()) {
+          alert("Por favor, preencha o título e o texto.");
+          return;
+        }
+
+        const newText = {
+          id: Date.now(),
+          title: newTitle,
+          content: newContent
+        };
+
+        setTexts([newText, ...texts]);
+        setActiveTextId(newText.id);
+        setIsAddingMode(false);
+        setNewTitle('');
+        setNewContent('');
         
-        {/* Barra de Ferramentas */}
-        <header className={`p-2 sm:p-4 flex items-center justify-between border-b backdrop-blur-md z-10 ${currentTheme.panelClasses}`}>
-          <div className="flex items-center gap-1 sm:gap-3">
-            <button 
-              onClick={() => setIsSidebarOpen(true)} 
-              className="p-3 rounded-xl hover:bg-black/10 active:scale-95 transition-all md:hidden"
-              aria-label="Abrir menu"
-            >
-              <Menu size={24} />
-            </button>
-            <h1 className="font-bold text-lg sm:text-xl md:text-2xl hidden md:block pl-2">Leitor Web</h1>
-          </div>
+        if (window.innerWidth < 768) setIsSidebarOpen(false);
+      };
 
-          <div className="flex items-center gap-1 sm:gap-2 pr-1 sm:pr-0">
-            {/* Controles de Áudio */}
-            {!isAddingMode && activeText && (
+      const handleDeleteText = (id, e) => {
+        e.stopPropagation();
+        const confirm = window.confirm("Tem certeza que deseja excluir este texto?");
+        if (!confirm) return;
+
+        const filtered = texts.filter(t => t.id !== id);
+        setTexts(filtered);
+        
+        if (activeTextId === id) {
+          setActiveTextId(filtered.length > 0 ? filtered[0].id : null);
+          if (isPlaying) {
+            synth.cancel();
+            setIsPlaying(false);
+          }
+        }
+      };
+
+      return (
+        <div className={`min-h-[100dvh] flex transition-colors duration-500 ease-in-out ${currentTheme.classes}`}>
+          
+          {/* Overlay Escuro para Mobile */}
+          <div 
+            className={`fixed inset-0 bg-black/40 z-20 transition-opacity duration-300 md:hidden backdrop-blur-sm
+              ${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+            onClick={() => setIsSidebarOpen(false)}
+          ></div>
+
+          {/* Menu Lateral (Sidebar) */}
+          <aside 
+            className={`fixed inset-y-0 left-0 z-30 w-4/5 max-w-[280px] md:relative md:max-w-none md:w-72 h-[100dvh] flex flex-col border-r backdrop-blur-xl transition-transform duration-300 ease-in-out ${currentTheme.panelClasses}
+              ${isSidebarOpen ? 'translate-x-0 shadow-2xl md:shadow-none' : '-translate-x-full md:translate-x-0'}`}
+          >
+            <div className="p-4 md:p-5 flex items-center justify-between border-b border-inherit">
+              <div className="flex items-center gap-3 font-bold text-xl">
+                <i className="fas fa-book-open text-2xl"></i>
+                <span>Biblioteca</span>
+              </div>
               <button 
-                onClick={toggleSpeech}
-                className={`flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-full font-bold transition-all active:scale-95 shadow-sm
-                  ${isPlaying ? 'bg-red-500/20 text-red-600 dark:text-red-400 ring-2 ring-red-500/50' : 'bg-black/10 hover:bg-black/20'}`}
+                onClick={() => setIsSidebarOpen(false)} 
+                className="md:hidden p-3 -mr-3 rounded-full hover:bg-black/10 active:scale-95 transition-all"
+                aria-label="Fechar menu"
               >
-                {isPlaying ? <Square size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" />}
-                <span className="hidden sm:inline">{isPlaying ? 'Parar' : 'Ouvir'}</span>
+                <i className="fas fa-times text-xl"></i>
               </button>
-            )}
-
-            <div className="h-8 w-px bg-current opacity-20 mx-1 sm:mx-2 hidden sm:block"></div>
-
-            {/* Controles de Zoom */}
-            <button onClick={handleZoomOut} className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all" title="Diminuir texto">
-              <ZoomOut size={22} />
-            </button>
-            <button onClick={handleZoomIn} className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all" title="Aumentar texto">
-              <ZoomIn size={22} />
-            </button>
-
-            {/* Seletor de Tema */}
-            <div className="relative">
-              <button 
-                onClick={() => setShowThemeSelector(!showThemeSelector)}
-                className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all flex items-center gap-2"
-                title="Mudar Tema"
-              >
-                <Palette size={22} />
-              </button>
-              
-              {showThemeSelector && (
-                <>
-                  <div className="fixed inset-0 z-40 md:hidden" onClick={() => setShowThemeSelector(false)}></div>
-                  <div className={`absolute right-0 top-full mt-2 p-2 rounded-2xl shadow-2xl border backdrop-blur-2xl w-48 z-50 origin-top-right animate-in fade-in zoom-in-95 duration-200 ${currentTheme.panelClasses}`}>
-                    {Object.values(themes).map(theme => (
-                      <button
-                        key={theme.id}
-                        onClick={() => {
-                          setCurrentTheme(theme);
-                          setShowThemeSelector(false);
-                        }}
-                        className={`w-full text-left px-4 py-3 rounded-xl mb-1 flex items-center gap-3 transition-colors active:scale-95
-                          ${currentTheme.id === theme.id ? 'bg-black/20 font-bold' : 'hover:bg-black/10'}`}
-                      >
-                        <div className={`w-4 h-4 rounded-full shadow-sm ${theme.classes.split(' ')[1]}`}></div>
-                        {theme.name}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
             </div>
-          </div>
-        </header>
 
-        {/* Área de Leitura / Edição */}
-        <div className="flex-1 overflow-y-auto w-full flex justify-center p-4 sm:p-6 md:p-12 pb-32">
-          <div className="w-full max-w-3xl">
-            
-            {isAddingMode ? (
-              <div className="space-y-5 sm:space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-8 opacity-90">Adicionar Novo Texto</h2>
-                
-                <div>
-                  <label className="block text-sm font-semibold mb-2 opacity-80 pl-1">Título do Texto</label>
-                  <input 
-                    type="text" 
-                    value={newTitle}
-                    onChange={(e) => setNewTitle(e.target.value)}
-                    placeholder="Ex: O Pequeno Príncipe - Capítulo 1"
-                    className={`w-full p-4 rounded-2xl text-[16px] sm:text-lg bg-transparent border-2 border-inherit focus:ring-4 focus:ring-black/10 outline-none transition-all ${currentTheme.panelClasses}`}
-                  />
-                </div>
+            <div className="p-4">
+              <button 
+                onClick={() => {
+                  setIsAddingMode(true);
+                  if (isPlaying) { synth.cancel(); setIsPlaying(false); }
+                  if (window.innerWidth < 768) setIsSidebarOpen(false);
+                }}
+                className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl border-2 border-dashed border-inherit hover:bg-black/5 active:scale-95 transition-all font-semibold text-[15px]"
+              >
+                <i className="fas fa-plus text-lg"></i>
+                Novo Texto
+              </button>
+            </div>
 
-                <div>
-                  <label className="block text-sm font-semibold mb-2 opacity-80 pl-1">Conteúdo para Leitura</label>
-                  <textarea 
-                    value={newContent}
-                    onChange={(e) => setNewContent(e.target.value)}
-                    placeholder="Cole aqui o texto que deseja ler ou ouvir..."
-                    className={`w-full p-4 rounded-2xl text-[16px] sm:text-lg bg-transparent border-2 border-inherit focus:ring-4 focus:ring-black/10 outline-none transition-all resize-y min-h-[30vh] md:min-h-[40vh] ${currentTheme.panelClasses}`}
-                  />
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 pb-12">
-                  <button 
-                    onClick={handleSaveText}
-                    className="w-full sm:flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-bold bg-black/80 text-white hover:bg-black active:scale-95 transition-all text-[16px]"
-                  >
-                    <Save size={20} />
-                    Salvar Texto
-                  </button>
-                  <button 
-                    onClick={() => {
-                      setIsAddingMode(false);
-                      if (!activeTextId && texts.length > 0) setActiveTextId(texts[0].id);
-                    }}
-                    className={`w-full sm:w-auto px-8 py-4 rounded-2xl font-bold border-2 border-inherit hover:bg-black/5 active:scale-95 transition-all text-[16px]`}
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              </div>
-
-            ) : activeText ? (
-              <article className="animate-in fade-in duration-700 w-full break-words">
-                <h2 
-                  className="font-bold mb-6 sm:mb-8 leading-tight opacity-90"
-                  style={{ fontSize: `${fontSize * 1.4}px` }}
-                >
-                  {activeText.title}
-                </h2>
+            <div className="flex-1 overflow-y-auto p-4 pt-0 space-y-2">
+              {texts.length === 0 && (
+                <p className="text-center opacity-70 text-sm mt-4">Nenhum texto salvo.</p>
+              )}
+              {texts.map(text => (
                 <div 
-                  className="leading-relaxed opacity-85 whitespace-pre-wrap font-serif"
-                  style={{ fontSize: `${fontSize}px` }}
+                  key={text.id}
+                  onClick={() => {
+                    setActiveTextId(text.id);
+                    setIsAddingMode(false);
+                    if (isPlaying) { synth.cancel(); setIsPlaying(false); }
+                    if (window.innerWidth < 768) setIsSidebarOpen(false);
+                  }}
+                  className={`p-3.5 rounded-xl cursor-pointer transition-all flex justify-between items-center group
+                    ${activeTextId === text.id && !isAddingMode ? 'bg-black/10 shadow-sm ring-1 ring-inherit' : 'hover:bg-black/5 active:bg-black/10'}`}
                 >
-                  {activeText.content}
+                  <span className="font-medium truncate pr-2 text-[15px]">{text.title}</span>
+                  <button 
+                    onClick={(e) => handleDeleteText(text.id, e)}
+                    className="opacity-100 md:opacity-0 group-hover:opacity-100 p-2 md:p-1.5 -m-2 md:m-0 rounded-md hover:bg-red-500/20 text-red-500 active:scale-90 transition-all"
+                    title="Excluir"
+                  >
+                    <i className="fas fa-trash-alt text-lg"></i>
+                  </button>
                 </div>
-              </article>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full opacity-50 text-center px-4">
-                <BookOpen size={64} className="mb-4" />
-                <h2 className="text-xl sm:text-2xl font-bold">Nenhum texto selecionado</h2>
-                <p className="mt-2 text-sm sm:text-base max-w-sm">
-                  Toque no menu para acessar a biblioteca ou clique em "Novo Texto" para começar.
-                </p>
-              </div>
-            )}
+              ))}
+            </div>
+          </aside>
 
-          </div>
+          {/* Conteúdo Principal */}
+          <main className="flex-1 flex flex-col h-[100dvh] w-full min-w-0 overflow-hidden relative">
+            
+            {/* Barra de Ferramentas */}
+            <header className={`p-2 sm:p-4 flex items-center justify-between border-b backdrop-blur-md z-10 ${currentTheme.panelClasses}`}>
+              <div className="flex items-center gap-1 sm:gap-3">
+                <button 
+                  onClick={() => setIsSidebarOpen(true)} 
+                  className="p-3 rounded-xl hover:bg-black/10 active:scale-95 transition-all md:hidden"
+                  aria-label="Abrir menu"
+                >
+                  <i className="fas fa-bars text-2xl"></i>
+                </button>
+                <h1 className="font-bold text-lg sm:text-xl md:text-2xl hidden md:block pl-2">Leitor Web</h1>
+              </div>
+
+              <div className="flex items-center gap-1 sm:gap-2 pr-1 sm:pr-0">
+                {/* Controles de Áudio */}
+                {!isAddingMode && activeText && (
+                  <button 
+                    onClick={toggleSpeech}
+                    className={`flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-full font-bold transition-all active:scale-95 shadow-sm
+                      ${isPlaying ? 'bg-red-500/20 text-red-600 ring-2 ring-red-500/50' : 'bg-black/10 hover:bg-black/20'}`}
+                  >
+                    {isPlaying ? <i className="fas fa-square text-lg"></i> : <i className="fas fa-play text-lg"></i>}
+                    <span className="hidden sm:inline">{isPlaying ? 'Parar' : 'Ouvir'}</span>
+                  </button>
+                )}
+
+                <div className="h-8 w-px bg-current opacity-20 mx-1 sm:mx-2 hidden sm:block"></div>
+
+                {/* Controles de Zoom */}
+                <button onClick={handleZoomOut} className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all" title="Diminuir texto">
+                  <i className="fas fa-search-minus text-xl"></i>
+                </button>
+                <button onClick={handleZoomIn} className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all" title="Aumentar texto">
+                  <i className="fas fa-search-plus text-xl"></i>
+                </button>
+
+                {/* Seletor de Tema */}
+                <div className="relative">
+                  <button 
+                    onClick={() => setShowThemeSelector(!showThemeSelector)}
+                    className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all flex items-center gap-2"
+                    title="Mudar Tema"
+                  >
+                    <i className="fas fa-palette text-xl"></i>
+                  </button>
+                  
+                  {showThemeSelector && (
+                    <React.Fragment>
+                      <div className="fixed inset-0 z-40 md:hidden" onClick={() => setShowThemeSelector(false)}></div>
+                      <div className={`absolute right-0 top-full mt-2 p-2 rounded-2xl shadow-2xl border backdrop-blur-2xl w-48 z-50 origin-top-right animate-in fade-in zoom-in-95 duration-200 ${currentTheme.panelClasses}`}>
+                        {Object.values(themes).map(theme => (
+                          <button
+                            key={theme.id}
+                            onClick={() => {
+                              setCurrentTheme(theme);
+                              setShowThemeSelector(false);
+                            }}
+                            className={`w-full text-left px-4 py-3 rounded-xl mb-1 flex items-center gap-3 transition-colors active:scale-95
+                              ${currentTheme.id === theme.id ? 'bg-black/20 font-bold' : 'hover:bg-black/10'}`}
+                          >
+                            <div className={`w-4 h-4 rounded-full shadow-sm ${theme.classes.split(' ')[1]}`}></div>
+                            {theme.name}
+                          </button>
+                        ))}
+                      </div>
+                    </React.Fragment>
+                  )}
+                </div>
+              </div>
+            </header>
+
+            {/* Área de Leitura / Edição */}
+            <div className="flex-1 overflow-y-auto w-full flex justify-center p-4 sm:p-6 md:p-12 pb-32">
+              <div className="w-full max-w-3xl">
+                
+                {isAddingMode ? (
+                  <div className="space-y-5 sm:space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-8 opacity-90">Adicionar Novo Texto</h2>
+                    
+                    <div>
+                      <label className="block text-sm font-semibold mb-2 opacity-80 pl-1">Título do Texto</label>
+                      <input 
+                        type="text" 
+                        value={newTitle}
+                        onChange={(e) => setNewTitle(e.target.value)}
+                        placeholder="Ex: O Pequeno Príncipe - Capítulo 1"
+                        className={`w-full p-4 rounded-2xl text-[16px] sm:text-lg bg-transparent border-2 border-inherit focus:ring-4 focus:ring-black/10 outline-none transition-all ${currentTheme.panelClasses}`}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold mb-2 opacity-80 pl-1">Conteúdo para Leitura</label>
+                      <textarea 
+                        value={newContent}
+                        onChange={(e) => setNewContent(e.target.value)}
+                        placeholder="Cole aqui o texto que deseja ler ou ouvir..."
+                        className={`w-full p-4 rounded-2xl text-[16px] sm:text-lg bg-transparent border-2 border-inherit focus:ring-4 focus:ring-black/10 outline-none transition-all resize-y min-h-[30vh] md:min-h-[40vh] ${currentTheme.panelClasses}`}
+                      />
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 pb-12">
+                      <button 
+                        onClick={handleSaveText}
+                        className="w-full sm:flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-bold bg-black/80 text-white hover:bg-black active:scale-95 transition-all text-[16px]"
+                      >
+                        <i className="fas fa-save text-lg"></i>
+                        Salvar Texto
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setIsAddingMode(false);
+                          if (!activeTextId && texts.length > 0) setActiveTextId(texts[0].id);
+                        }}
+                        className={`w-full sm:w-auto px-8 py-4 rounded-2xl font-bold border-2 border-inherit hover:bg-black/5 active:scale-95 transition-all text-[16px]`}
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+
+                ) : activeText ? (
+                  <article className="animate-in fade-in duration-700 w-full break-words">
+                    <h2 
+                      className="font-bold mb-6 sm:mb-8 leading-tight opacity-90"
+                      style={{ fontSize: `${fontSize * 1.4}px` }}
+                    >
+                      {activeText.title}
+                    </h2>
+                    <div 
+                      className="leading-relaxed opacity-85 whitespace-pre-wrap font-serif"
+                      style={{ fontSize: `${fontSize}px` }}
+                    >
+                      {activeText.content}
+                    </div>
+                  </article>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full opacity-50 text-center px-4">
+                    <i className="fas fa-book-open text-6xl mb-4"></i>
+                    <h2 className="text-xl sm:text-2xl font-bold">Nenhum texto selecionado</h2>
+                    <p className="mt-2 text-sm sm:text-base max-w-sm">
+                      Toque no menu para acessar a biblioteca ou clique em "Novo Texto" para começar.
+                    </p>
+                  </div>
+                )}
+
+              </div>
+            </div>
+          </main>
         </div>
-      </main>
-    </div>
-  );
-}
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
