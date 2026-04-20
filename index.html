@@ -148,7 +148,7 @@
       const [completedLessons, setCompletedLessons] = useState(prefs.completedLessons || []);
       
       const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-      const [showThemeSelector, setShowThemeSelector] = useState(false);
+      const [showSettings, setShowSettings] = useState(false);
       const [windowWidth, setWindowWidth] = useState(window.innerWidth);
       const [pageInfo, setPageInfo] = useState({ current: 1, total: 1 });
 
@@ -233,10 +233,10 @@
       // Efeito sonoro de página
       useEffect(() => {
         flipSoundRef.current = new Audio('https://assets.codepen.io/16327/page-flip-01a.mp3');
-        flipSoundRef.current.volume = 0.3; // Volume suave para ser agradável
+        flipSoundRef.current.volume = 0.3; 
       }, []);
 
-      // Salva Preferências (Agora incluindo Lições Concluídas)
+      // Salva Preferências
       useEffect(() => {
         const prefsToSave = {
           activeTextId,
@@ -292,7 +292,7 @@
       const playFlipSound = () => {
         if (flipSoundRef.current && viewMode === 'page') {
           flipSoundRef.current.currentTime = 0;
-          flipSoundRef.current.play().catch(() => {}); // Silencia erro se não houver interação prévia do utilizador
+          flipSoundRef.current.play().catch(() => {});
         }
       };
 
@@ -308,10 +308,9 @@
           const currentScroll = container.scrollLeft;
           const targetPage = Math.round(currentScroll / width);
           
-          // Se a rolagem atual estiver "quebrada" no meio, centraliza a página mais próxima
           if (Math.abs(currentScroll - (targetPage * width)) > 5) {
              container.scrollTo({ left: targetPage * width, behavior: 'smooth' });
-             playFlipSound(); // Toca o som ao ajustar a página no celular
+             playFlipSound();
           }
         }, 300); 
       };
@@ -320,12 +319,12 @@
       const turnPage = (direction) => {
         if (scrollContainerRef.current) {
           const container = scrollContainerRef.current;
-          const scrollAmount = container.clientWidth; // Pula exatamente uma tela cheia
+          const scrollAmount = container.clientWidth; 
           container.scrollBy({
             left: direction === 'next' ? scrollAmount : -scrollAmount,
             behavior: 'smooth'
           });
-          playFlipSound(); // Toca o som ao clicar na seta
+          playFlipSound(); 
         }
       };
 
@@ -359,7 +358,6 @@
         }
       };
 
-      // Cálculos Matemáticos precisos para colunas
       const isSm = windowWidth >= 640;
       const pad = isSm ? 32 : 16;
 
@@ -368,14 +366,14 @@
           
           {/* Overlay Escuro para Mobile */}
           <div 
-            className={`fixed inset-0 bg-black/40 z-30 transition-opacity duration-300 md:hidden backdrop-blur-sm
+            className={`fixed inset-0 bg-black/40 z-40 transition-opacity duration-300 md:hidden backdrop-blur-sm
               ${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
             onClick={() => setIsSidebarOpen(false)}
           ></div>
 
           {/* Menu Lateral (Sidebar) */}
           <aside 
-            className={`fixed inset-y-0 left-0 z-40 w-4/5 max-w-[280px] md:relative md:max-w-none md:w-72 h-[100dvh] flex flex-col border-r backdrop-blur-xl transition-transform duration-300 ease-in-out ${currentTheme.panelClasses}
+            className={`fixed inset-y-0 left-0 z-50 w-4/5 max-w-[280px] md:relative md:max-w-none md:w-72 h-[100dvh] flex flex-col border-r backdrop-blur-xl transition-transform duration-300 ease-in-out ${currentTheme.panelClasses}
               ${isSidebarOpen ? 'translate-x-0 shadow-2xl md:shadow-none' : '-translate-x-full md:translate-x-0'}`}
           >
             <div className="p-4 md:p-5 flex items-center justify-between border-b border-inherit shrink-0">
@@ -418,9 +416,11 @@
           {/* Conteúdo Principal */}
           <main className="flex-1 flex flex-col h-[100dvh] w-full min-w-0 overflow-hidden relative">
             
-            {/* Barra de Ferramentas */}
-            <header className={`p-2 sm:p-4 flex items-center justify-between border-b backdrop-blur-md z-20 shrink-0 ${currentTheme.panelClasses}`}>
-              <div className="flex items-center gap-1 sm:gap-2 shrink-0 max-w-[40%] sm:max-w-[50%]">
+            {/* Barra de Ferramentas Modificada */}
+            <header className={`p-2 sm:p-4 flex items-center justify-between border-b backdrop-blur-md z-30 shrink-0 ${currentTheme.panelClasses}`}>
+              
+              {/* Lado Esquerdo - Menu e Título em grande destaque */}
+              <div className="flex items-center gap-2 sm:gap-4 shrink-0 flex-1 min-w-0">
                 <button 
                   onClick={() => setIsSidebarOpen(true)} 
                   className="p-3 rounded-xl hover:bg-black/10 active:scale-95 transition-all md:hidden shrink-0"
@@ -428,79 +428,89 @@
                 >
                   <i className="fas fa-bars text-xl"></i>
                 </button>
-                {/* Título do App (Visível e Truncado caso falte espaço) */}
-                <h1 className="font-bold text-[10px] sm:text-xs md:text-sm pl-1 sm:pl-2 opacity-80 uppercase tracking-widest truncate">
+                <h1 className="font-bold text-sm sm:text-base md:text-lg opacity-90 uppercase tracking-widest truncate">
                   Lições de Vida Plena
                 </h1>
               </div>
 
-              {/* Botões de Controle */}
-              <div className="flex items-center gap-1 sm:gap-2 pr-1 sm:pr-0 overflow-x-auto hide-scrollbar shrink-0">
+              {/* Lado Direito - Apenas Ouvir e Configurações */}
+              <div className="flex items-center gap-1 sm:gap-2 shrink-0 relative ml-2">
                 
+                {/* Botão de Ouvir */}
                 <button 
                   onClick={toggleSpeech}
                   disabled={isLoading}
-                  className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-full font-bold transition-all active:scale-95 shadow-sm shrink-0
+                  className={`flex items-center justify-center gap-2 px-4 py-2 sm:py-2.5 rounded-full font-bold transition-all active:scale-95 shadow-sm shrink-0
                     ${isPlaying ? 'bg-red-500/20 text-red-600 ring-2 ring-red-500/50' : 'bg-black/10 hover:bg-black/20'}
                     ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {isPlaying ? <i className="fas fa-square text-lg"></i> : <i className="fas fa-play text-lg"></i>}
-                  <span className="hidden sm:inline">{isPlaying ? 'Parar' : 'Ouvir'}</span>
+                  <span className="hidden sm:inline text-sm">{isPlaying ? 'Parar' : 'Ouvir'}</span>
                 </button>
 
-                <div className="h-8 w-px bg-current opacity-20 mx-1 sm:mx-2 shrink-0"></div>
-
-                <button onClick={toggleViewMode} className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all shrink-0" title="Modo de Leitura (Rolagem ou Páginas)">
-                  <i className={`fas ${viewMode === 'scroll' ? 'fa-book-open' : 'fa-scroll'} text-xl`}></i>
+                {/* Novo Botão de Configurações (Abre o Dropdown) */}
+                <button 
+                  onClick={() => setShowSettings(!showSettings)}
+                  className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all shrink-0 ml-1"
+                  title="Configurações de Leitura"
+                >
+                  <i className={`fas fa-cog text-xl transition-transform duration-300 ${showSettings ? 'rotate-90' : ''}`}></i>
                 </button>
-
-                <button onClick={handleLineSpacing} className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all shrink-0" title="Espaçamento das Linhas">
-                  <i className="fas fa-text-height text-xl"></i>
-                </button>
-
-                <div className="h-8 w-px bg-current opacity-20 mx-1 sm:mx-2 shrink-0"></div>
-
-                <button onClick={handleZoomOut} className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all shrink-0" title="Diminuir texto">
-                  <i className="fas fa-search-minus text-xl"></i>
-                </button>
-                <button onClick={handleZoomIn} className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all shrink-0" title="Aumentar texto">
-                  <i className="fas fa-search-plus text-xl"></i>
-                </button>
-
-                <div className="h-8 w-px bg-current opacity-20 mx-1 sm:mx-2 shrink-0"></div>
-
-                {/* Seletor de Tema */}
-                <div className="relative shrink-0">
-                  <button 
-                    onClick={() => setShowThemeSelector(!showThemeSelector)}
-                    className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all flex items-center gap-2"
-                    title="Mudar Tema"
-                  >
-                    <i className="fas fa-palette text-xl"></i>
-                  </button>
-                  
-                  {showThemeSelector && (
-                    <React.Fragment>
-                      <div className="fixed inset-0 z-40" onClick={() => setShowThemeSelector(false)}></div>
-                      <div className={`absolute right-0 top-full mt-2 p-2 rounded-2xl shadow-2xl border backdrop-blur-2xl w-48 z-50 origin-top-right animate-in fade-in zoom-in-95 duration-200 ${currentTheme.panelClasses}`}>
-                        {Object.values(themes).map(theme => (
-                          <button
-                            key={theme.id}
-                            onClick={() => {
-                              setCurrentTheme(theme);
-                              setShowThemeSelector(false);
-                            }}
-                            className={`w-full text-left px-4 py-3 rounded-xl mb-1 flex items-center gap-3 transition-colors active:scale-95
-                              ${currentTheme.id === theme.id ? 'bg-black/20 font-bold' : 'hover:bg-black/10'}`}
-                          >
-                            <div className={`w-4 h-4 rounded-full shadow-sm ${theme.classes.split(' ')[1]}`}></div>
-                            {theme.name}
-                          </button>
-                        ))}
+                
+                {/* Novo Menu de Configurações Dropdown */}
+                {showSettings && (
+                  <React.Fragment>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowSettings(false)}></div>
+                    <div className={`absolute right-0 top-full mt-3 p-5 rounded-3xl shadow-2xl border backdrop-blur-3xl w-72 sm:w-80 z-50 origin-top-right animate-in fade-in zoom-in-95 duration-200 flex flex-col gap-6 ${currentTheme.panelClasses}`}>
+                      
+                      {/* Grupo: Fonte e Espaçamento */}
+                      <div className="flex flex-col gap-3">
+                        <span className="text-[11px] font-bold uppercase tracking-wider opacity-60">Tamanho e Espaçamento</span>
+                        <div className="flex items-center justify-between bg-black/5 rounded-2xl p-1.5 shadow-inner">
+                          <button onClick={handleZoomOut} className="p-3 rounded-xl hover:bg-black/10 flex-1 flex justify-center active:scale-95 transition-all"><i className="fas fa-search-minus text-lg"></i></button>
+                          <div className="w-px h-6 bg-current opacity-10"></div>
+                          <button onClick={handleLineSpacing} className="p-3 rounded-xl hover:bg-black/10 flex-1 flex justify-center active:scale-95 transition-all"><i className="fas fa-text-height text-lg"></i></button>
+                          <div className="w-px h-6 bg-current opacity-10"></div>
+                          <button onClick={handleZoomIn} className="p-3 rounded-xl hover:bg-black/10 flex-1 flex justify-center active:scale-95 transition-all"><i className="fas fa-search-plus text-lg"></i></button>
+                        </div>
                       </div>
-                    </React.Fragment>
-                  )}
-                </div>
+
+                      {/* Grupo: Modo de Leitura */}
+                      <div className="flex flex-col gap-3">
+                        <span className="text-[11px] font-bold uppercase tracking-wider opacity-60">Modo de Leitura</span>
+                        <button 
+                          onClick={toggleViewMode} 
+                          className="w-full flex items-center justify-between p-4 rounded-2xl bg-black/5 hover:bg-black/10 active:scale-95 transition-all font-semibold text-sm border border-transparent hover:border-black/5"
+                        >
+                          <span className="flex items-center gap-3">
+                            <i className={`fas ${viewMode === 'scroll' ? 'fa-scroll' : 'fa-book-open'} text-lg opacity-80`}></i>
+                            {viewMode === 'scroll' ? 'Rolagem Contínua' : 'Páginas (Kindle)'}
+                          </span>
+                          <i className="fas fa-sync-alt opacity-40"></i>
+                        </button>
+                      </div>
+
+                      {/* Grupo: Temas */}
+                      <div className="flex flex-col gap-3">
+                        <span className="text-[11px] font-bold uppercase tracking-wider opacity-60">Cores / Temas</span>
+                        <div className="grid grid-cols-3 gap-2">
+                          {Object.values(themes).map(theme => (
+                            <button
+                              key={theme.id}
+                              onClick={() => setCurrentTheme(theme)}
+                              className={`flex flex-col items-center gap-2 p-3 rounded-2xl transition-all border border-transparent
+                                ${currentTheme.id === theme.id ? 'bg-black/10 shadow-inner border-black/10' : 'hover:bg-black/5'}`}
+                            >
+                              <div className={`w-8 h-8 rounded-full shadow-md ${theme.classes.split(' ')[1]}`}></div>
+                              <span className="text-[10px] font-bold opacity-80">{theme.name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                    </div>
+                  </React.Fragment>
+                )}
               </div>
             </header>
 
@@ -548,7 +558,7 @@
                     <article 
                       className="w-full break-words transition-all duration-300 relative"
                       style={viewMode === 'page' ? {
-                        /* A mágica do layout de colunas perfeito que não "quebra" as palavras horizontalmente */
+                        /* A mágica do layout de colunas perfeito */
                         columnWidth: `calc(100vw - ${pad * 2}px)`,
                         columnGap: `${pad * 2}px`,
                         height: '100%', 
