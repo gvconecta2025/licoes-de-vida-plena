@@ -72,37 +72,43 @@
         id: 'claro', 
         name: 'Claro', 
         classes: 'bg-gradient-to-br from-gray-50 to-gray-200 text-gray-800',
-        panelClasses: 'bg-white/60 border-gray-300'
+        panelClasses: 'bg-white/60 border-gray-300',
+        solidMenuClasses: 'bg-gray-50 border-gray-300'
       },
       polen: { 
         id: 'polen', 
         name: 'Pólen', 
         classes: 'bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-100 text-amber-900',
-        panelClasses: 'bg-white/40 border-amber-200'
+        panelClasses: 'bg-white/40 border-amber-200',
+        solidMenuClasses: 'bg-amber-50 border-amber-300'
       },
       escuro: { 
         id: 'escuro', 
         name: 'Escuro', 
         classes: 'bg-gradient-to-br from-gray-700 via-gray-800 to-slate-900 text-gray-100',
-        panelClasses: 'bg-black/30 border-gray-600'
+        panelClasses: 'bg-black/30 border-gray-600',
+        solidMenuClasses: 'bg-gray-800 border-gray-600'
       },
       cafe: { 
         id: 'cafe', 
         name: 'Café', 
         classes: 'bg-gradient-to-br from-[#4a3b32] to-[#2e231d] text-[#e8dcc4]',
-        panelClasses: 'bg-black/20 border-[#6a5647]'
+        panelClasses: 'bg-black/20 border-[#6a5647]',
+        solidMenuClasses: 'bg-[#3b2d26] border-[#6a5647]'
       },
       azul: { 
         id: 'azul', 
         name: 'Azul', 
         classes: 'bg-gradient-to-br from-slate-700 to-slate-900 text-blue-100',
-        panelClasses: 'bg-black/20 border-slate-600'
+        panelClasses: 'bg-black/20 border-slate-600',
+        solidMenuClasses: 'bg-slate-800 border-slate-600'
       },
       vermelho: { 
         id: 'vermelho', 
         name: 'Vermelho', 
         classes: 'bg-gradient-to-br from-[#4a2424] to-[#2d1414] text-[#e8cfcf]',
-        panelClasses: 'bg-black/20 border-[#6e3636]'
+        panelClasses: 'bg-black/20 border-[#6e3636]',
+        solidMenuClasses: 'bg-[#3d1e1e] border-[#6e3636]'
       }
     };
 
@@ -146,6 +152,7 @@
       const [viewMode, setViewMode] = useState(prefs.viewMode || 'page'); 
       const [scrollPositions, setScrollPositions] = useState(prefs.scrollPositions || {});
       const [completedLessons, setCompletedLessons] = useState(prefs.completedLessons || []);
+      const [extractedTitles, setExtractedTitles] = useState(prefs.extractedTitles || {});
       
       const [isSidebarOpen, setIsSidebarOpen] = useState(false);
       const [showSettings, setShowSettings] = useState(false);
@@ -174,7 +181,19 @@
             })
             .then(arrayBuffer => mammoth.convertToHtml({ arrayBuffer: arrayBuffer }))
             .then(result => {
-              let rawText = result.value
+              const tempDiv = document.createElement('div');
+              tempDiv.innerHTML = result.value;
+              
+              const firstChild = tempDiv.firstElementChild;
+              
+              // Extrai o primeiro parágrafo/cabeçalho como título e salva na memória
+              if (firstChild && firstChild.textContent.trim().length > 0) {
+                const titleText = firstChild.textContent.trim();
+                setExtractedTitles(prev => ({ ...prev, [activeTextId]: titleText }));
+                firstChild.remove(); // Remove a primeira linha do conteúdo para não duplicar com o H2
+              }
+
+              let rawText = tempDiv.innerHTML
                 .replace(/<\/p><p>/gi, '\n\n')
                 .replace(/<br\s*\/?>/gi, '\n')
                 .replace(/<[^>]+>/g, ''); 
@@ -245,10 +264,11 @@
           lineSpacing,
           viewMode,
           scrollPositions,
-          completedLessons
+          completedLessons,
+          extractedTitles
         };
         localStorage.setItem('leitorWebPrefs', JSON.stringify(prefsToSave));
-      }, [activeTextId, currentTheme, fontSize, lineSpacing, viewMode, scrollPositions, completedLessons]);
+      }, [activeTextId, currentTheme, fontSize, lineSpacing, viewMode, scrollPositions, completedLessons, extractedTitles]);
 
       // Restaura Posição do Scroll
       useEffect(() => {
@@ -418,7 +438,7 @@
                   className={`p-3.5 rounded-xl cursor-pointer transition-all flex justify-between items-center group
                     ${activeTextId === text.id ? 'bg-black/10 shadow-sm ring-1 ring-inherit font-bold' : 'hover:bg-black/5 active:bg-black/10'}`}
                 >
-                  <span className="truncate pr-2 text-[15px]">{text.title}</span>
+                  <span className="truncate pr-2 text-[15px]">{extractedTitles[text.id] || text.title}</span>
                   
                   {/* Ícone de Check Verde para Lições Concluídas */}
                   {completedLessons.includes(text.id) && (
@@ -477,7 +497,7 @@
                 {showSettings && (
                   <React.Fragment>
                     <div className="fixed inset-0 z-40" onClick={() => setShowSettings(false)}></div>
-                    <div className={`absolute right-0 top-full mt-3 p-5 rounded-3xl shadow-2xl border backdrop-blur-3xl w-72 sm:w-80 z-50 origin-top-right animate-in fade-in zoom-in-95 duration-200 flex flex-col gap-6 ${currentTheme.panelClasses}`}>
+                    <div className={`absolute right-0 top-full mt-3 p-5 rounded-3xl shadow-2xl border w-72 sm:w-80 z-50 origin-top-right animate-in fade-in zoom-in-95 duration-200 flex flex-col gap-6 ${currentTheme.solidMenuClasses}`}>
                       
                       {/* Grupo: Fonte e Espaçamento */}
                       <div className="flex flex-col gap-3">
@@ -586,7 +606,7 @@
                         className="font-bold mb-6 sm:mb-8 leading-tight opacity-90"
                         style={{ fontSize: `${fontSize * 1.4}px`, breakAfter: 'avoid' }}
                       >
-                        {activeText.title}
+                        {extractedTitles[activeText.id] || activeText.title}
                       </h2>
                       
                       <div 
@@ -624,7 +644,7 @@
               {viewMode === 'page' && !isLoading && activeText && (
                 <div className="absolute bottom-2 left-0 right-0 w-full text-center pointer-events-none z-20">
                   <span className="bg-black/10 backdrop-blur-sm px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-bold opacity-60 tracking-wider">
-                    {activeText.title} • Pág {pageInfo.current} de {pageInfo.total}
+                    {extractedTitles[activeText.id] || activeText.title} • Pág {pageInfo.current} de {pageInfo.total}
                   </span>
                 </div>
               )}
