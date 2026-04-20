@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Lições de Vida Plena</title>
   
   <!-- Tailwind CSS para Estilização -->
@@ -237,7 +237,7 @@
           scrollPositions,
           completedLessons,
           extractedTitles,
-          highlights // Salvando destaques no cache
+          highlights // Salvando destaques no cache permanentemente
         };
         localStorage.setItem('leitorWebPrefs', JSON.stringify(prefsToSave));
       }, [activeTextId, currentTheme, fontSize, lineSpacing, viewMode, scrollPositions, completedLessons, extractedTitles, highlights]);
@@ -348,39 +348,61 @@
         }
       };
 
-      // === LÓGICA DO MARCA-TEXTOS (HIGHLIGHTS) ===
-      
-      const handleTextSelection = () => {
-        setTimeout(() => {
-          const selection = window.getSelection();
-          if (!selection || selection.isCollapsed || !selection.toString().trim()) {
-            if (selectionMenu) setSelectionMenu(null);
-            return;
-          }
-
-          const wrapper = document.getElementById('text-content-wrapper');
-          if (!wrapper || !wrapper.contains(selection.anchorNode)) return;
-
-          // Calcula a posição exata da seleção no texto completo
-          let start = 0, end = 0;
-          const range = selection.getRangeAt(0);
-          const preCaretRange = range.cloneRange();
-          preCaretRange.selectNodeContents(wrapper);
-          preCaretRange.setEnd(range.startContainer, range.startOffset);
-          start = preCaretRange.toString().length;
-          end = start + range.toString().length;
-
-          const rect = range.getBoundingClientRect();
+      // === LÓGICA DO MARCA-TEXTOS GLOBAL E ROBUSTA ===
+      useEffect(() => {
+        let timeoutId = null;
+        const handleSelectionChange = () => {
+          clearTimeout(timeoutId);
           
-          setSelectionMenu({
-            top: rect.top - 55, // Aparece logo acima da seleção
-            left: rect.left + (rect.width / 2),
-            start,
-            end,
-            text: selection.toString()
-          });
-        }, 150);
-      };
+          // Debounce para esperar a seleção nativa ser construída
+          timeoutId = setTimeout(() => {
+            const selection = window.getSelection();
+            if (!selection || selection.isCollapsed || !selection.toString().trim()) {
+              setSelectionMenu(null);
+              return;
+            }
+
+            const wrapper = document.getElementById('text-content-wrapper');
+            // Garante que só reage se a seleção for feita DENTRO do wrapper de leitura
+            if (!wrapper || !wrapper.contains(selection.anchorNode) || !wrapper.contains(selection.focusNode)) {
+              return;
+            }
+
+            try {
+              let start = 0, end = 0;
+              const range = selection.getRangeAt(0);
+              const preCaretRange = range.cloneRange();
+              
+              // Clona o nó atual e mede todos os caracteres antes da seleção
+              preCaretRange.selectNodeContents(wrapper);
+              preCaretRange.setEnd(range.startContainer, range.startOffset);
+              start = preCaretRange.toString().length;
+              end = start + range.toString().length;
+
+              const rect = range.getBoundingClientRect();
+              
+              // Se a seleção não tiver dimensões, não faça nada
+              if (rect.width === 0 && rect.height === 0) return;
+              
+              setSelectionMenu({
+                top: rect.top - 55, // Logo acima do texto
+                left: rect.left + (rect.width / 2),
+                start,
+                end,
+                text: selection.toString()
+              });
+            } catch (e) {
+              console.error("Erro na seleção do texto:", e);
+            }
+          }, 200); 
+        };
+
+        document.addEventListener('selectionchange', handleSelectionChange);
+        return () => {
+          document.removeEventListener('selectionchange', handleSelectionChange);
+          clearTimeout(timeoutId);
+        };
+      }, [activeTextId]); // Recarrega o escutador ao mudar de página
 
       const addHighlight = (colorCode) => {
         if (!selectionMenu) return;
@@ -394,11 +416,12 @@
 
         setHighlights(prev => {
           const docHighlights = prev[activeTextId] || [];
-          // Remove qualquer destaque que cruze com o novo para evitar erros de formatação
+          // Remove marcações antigas caso cruzem com a nova, evitando bugs visuais
           const filtered = docHighlights.filter(h => h.end <= newHighlight.start || h.start >= newHighlight.end);
           return { ...prev, [activeTextId]: [...filtered, newHighlight] };
         });
 
+        // Limpa a seleção nativa do browser
         window.getSelection().removeAllRanges();
         setSelectionMenu(null);
       };
@@ -419,7 +442,6 @@
         const docHighlights = highlights[activeTextId] || [];
         if (docHighlights.length === 0) return text;
 
-        // Ordena marcações pela ordem do texto
         const sorted = [...docHighlights].sort((a, b) => a.start - b.start);
         const elements = [];
         let lastIndex = 0;
@@ -471,10 +493,12 @@
               <button onClick={() => addHighlight('bg-green-300/80 dark:bg-green-500/60')} className="w-7 h-7 rounded-full bg-green-400 hover:scale-110 transition-transform shadow-sm"></button>
               <button onClick={() => addHighlight('bg-pink-300/80 dark:bg-pink-500/60')} className="w-7 h-7 rounded-full bg-pink-400 hover:scale-110 transition-transform shadow-sm"></button>
               <div className="w-px h-6 bg-white/20 mx-1"></div>
-              <button onClick={() => setSelectionMenu(null)} className="px-2 py-1 text-sm opacity-80 hover:opacity-100 active:scale-95">
+              <button onClick={() => {
+                setSelectionMenu(null);
+                window.getSelection().removeAllRanges();
+              }} className="px-2 py-1 text-sm opacity-80 hover:opacity-100 active:scale-95">
                 <i className="fas fa-times"></i>
               </button>
-              {/* Seta do Balão */}
               <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-zinc-800"></div>
             </div>
           )}
@@ -713,13 +737,19 @@
                             {extractedTitles[activeText.id] || activeText.title}
                           </h2>
                           
-                          {/* Área Textual que suporta seleção do utilizador */}
+                          {/* Área Textual Especial (Desativa Menu de Contexto e Cópia, mas Permite Selecionar para Marca-Texto) */}
                           <div 
                             id="text-content-wrapper"
-                            className="opacity-85 whitespace-pre-wrap font-serif text-justify"
-                            style={{ fontSize: `${fontSize}px`, lineHeight: lineSpacing }}
-                            onMouseUp={handleTextSelection}
-                            onTouchEndCapture={handleTextSelection} // Captura no mobile logo que o dedo levanta do texto
+                            className="opacity-85 whitespace-pre-wrap font-serif text-justify select-text"
+                            style={{ 
+                              fontSize: `${fontSize}px`, 
+                              lineHeight: lineSpacing,
+                              WebkitTouchCallout: 'none' /* Oculta o menu de copiar nativo no iPhone/iPad */
+                            }}
+                            onCopy={e => e.preventDefault()}
+                            onCut={e => e.preventDefault()}
+                            onPaste={e => e.preventDefault()}
+                            onContextMenu={e => e.preventDefault()}
                           >
                             {renderContentWithHighlights()}
                           </div>
