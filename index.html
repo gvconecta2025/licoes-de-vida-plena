@@ -31,13 +31,21 @@
     button {
       user-select: none;
     }
-    /* Esconde a barra de rolagem no modo página mas mantém a funcionalidade */
+    /* Estilo de scroll para o modo de rolagem vertical */
     .hide-scrollbar::-webkit-scrollbar {
-      height: 8px;
+      width: 8px;
     }
     .hide-scrollbar::-webkit-scrollbar-thumb {
       background: rgba(0, 0, 0, 0.2);
       border-radius: 4px;
+    }
+    /* Oculta completamente a barra no modo Kindle/Páginas */
+    .hide-scrollbar-completely::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar-completely {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
     }
     
     /* Animação de carregamento (Spinner) */
@@ -98,7 +106,7 @@
       }
     };
 
-    // MÁGICA AQUI: Você só precisa colocar o nome do arquivo docx que está no seu GitHub!
+    // Textos do App
     const initialTexts = [
       { id: 'prologo', title: 'Prólogo', docxUrl: './prologo.docx', content: null },
       { id: 'licao0a', title: 'Lição 0a', docxUrl: './licao-0a.docx', content: null },
@@ -130,7 +138,7 @@
 
       const [texts, setTexts] = useState(initialTexts);
       const [activeTextId, setActiveTextId] = useState(prefs.activeTextId || initialTexts[0].id);
-      const [isLoading, setIsLoading] = useState(false); // Estado para mostrar o "carregando"
+      const [isLoading, setIsLoading] = useState(false); 
       
       const [currentTheme, setCurrentTheme] = useState(themes[prefs.themeId] || themes.polen);
       const [fontSize, setFontSize] = useState(prefs.fontSize || 18);
@@ -140,16 +148,18 @@
       
       const [isSidebarOpen, setIsSidebarOpen] = useState(false);
       const [showThemeSelector, setShowThemeSelector] = useState(false);
+      const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
       const activeText = texts.find(t => t.id === activeTextId) || texts[0];
 
       const scrollContainerRef = useRef(null);
       const scrollTimeout = useRef(null);
+      const touchTimeout = useRef(null);
       
       const synth = window.speechSynthesis;
       const [isPlaying, setIsPlaying] = useState(false);
 
-      // Efeito responsável por LER O ARQUIVO .DOCX
+      // Leitor de DOCX
       useEffect(() => {
         if (activeText && activeText.docxUrl && !activeText.content) {
           setIsLoading(true);
@@ -159,20 +169,15 @@
               if (!response.ok) throw new Error('Arquivo não encontrado');
               return response.arrayBuffer();
             })
-            .then(arrayBuffer => {
-              // Converte o DOCX para HTML mantendo os parágrafos
-              return mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
-            })
+            .then(arrayBuffer => mammoth.convertToHtml({ arrayBuffer: arrayBuffer }))
             .then(result => {
-              // Limpa o HTML para virar texto puro com quebras de linha perfeitas
               let rawText = result.value
                 .replace(/<\/p><p>/gi, '\n\n')
                 .replace(/<br\s*\/?>/gi, '\n')
-                .replace(/<[^>]+>/g, ''); // Remove outras tags HTML
+                .replace(/<[^>]+>/g, ''); 
               
               if (!rawText.trim()) rawText = "(O arquivo docx está vazio ou não pôde ser lido)";
 
-              // Atualiza o texto na memória do app
               setTexts(prevTexts => prevTexts.map(t => 
                 t.id === activeTextId ? { ...t, content: rawText } : t
               ));
@@ -180,7 +185,7 @@
             })
             .catch(error => {
               console.error(error);
-              const errorMsg = `Erro ao carregar o texto.\n\nVerifique se você enviou o arquivo "${activeText.docxUrl}" para a mesma pasta do site no GitHub.`;
+              const errorMsg = `Erro ao carregar o texto.\n\nVerifique se enviou o arquivo "${activeText.docxUrl}" corretamente para o servidor.`;
               setTexts(prevTexts => prevTexts.map(t => 
                 t.id === activeTextId ? { ...t, content: errorMsg } : t
               ));
@@ -189,8 +194,10 @@
         }
       }, [activeTextId, texts]);
 
+      // Responsividade
       useEffect(() => {
         const handleResize = () => {
+          setWindowWidth(window.innerWidth);
           if (window.innerWidth >= 768) setIsSidebarOpen(true);
           else setIsSidebarOpen(false);
         };
@@ -199,6 +206,7 @@
         return () => window.removeEventListener('resize', handleResize);
       }, []);
 
+      // Salva Preferências
       useEffect(() => {
         const prefsToSave = {
           activeTextId,
@@ -211,6 +219,7 @@
         localStorage.setItem('leitorWebPrefs', JSON.stringify(prefsToSave));
       }, [activeTextId, currentTheme, fontSize, lineSpacing, viewMode, scrollPositions]);
 
+      // Restaura Posição do Scroll
       useEffect(() => {
         if (scrollContainerRef.current && !isLoading) {
           const savedPos = scrollPositions[`${activeTextId}_${viewMode}`] || 0;
@@ -226,9 +235,9 @@
         return () => synth.cancel();
       }, [synth]);
 
+      // Rastreamento de leitura
       const handleScroll = (e) => {
         const pos = viewMode === 'scroll' ? e.target.scrollTop : e.target.scrollLeft;
-        
         if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
         scrollTimeout.current = setTimeout(() => {
           setScrollPositions(prev => ({
@@ -236,6 +245,37 @@
             [`${activeTextId}_${viewMode}`]: pos
           }));
         }, 300);
+      };
+
+      // Trava de página ("Snap") após arrastar com o dedo
+      const handleTouchEnd = () => {
+        if (viewMode !== 'page' || !scrollContainerRef.current) return;
+        
+        if (touchTimeout.current) clearTimeout(touchTimeout.current);
+        touchTimeout.current = setTimeout(() => {
+          if (!scrollContainerRef.current) return;
+          const container = scrollContainerRef.current;
+          const width = container.clientWidth;
+          const currentScroll = container.scrollLeft;
+          const targetPage = Math.round(currentScroll / width);
+          
+          // Se a rolagem atual estiver "quebrada" no meio, centraliza a página mais próxima
+          if (Math.abs(currentScroll - (targetPage * width)) > 5) {
+             container.scrollTo({ left: targetPage * width, behavior: 'smooth' });
+          }
+        }, 300); 
+      };
+
+      // Virar página (Estilo Kindle)
+      const turnPage = (direction) => {
+        if (scrollContainerRef.current) {
+          const container = scrollContainerRef.current;
+          const scrollAmount = container.clientWidth; // Pula exatamente uma tela cheia
+          container.scrollBy({
+            left: direction === 'next' ? scrollAmount : -scrollAmount,
+            behavior: 'smooth'
+          });
+        }
       };
 
       const handleZoomIn = () => setFontSize(prev => Math.min(prev + 2, 48));
@@ -261,31 +301,33 @@
           if (!activeText || !activeText.content) return;
           const utterance = new SpeechSynthesisUtterance(activeText.content);
           utterance.lang = 'pt-BR'; 
-          
           utterance.onend = () => setIsPlaying(false);
           utterance.onerror = () => setIsPlaying(false);
-          
           synth.speak(utterance);
           setIsPlaying(true);
         }
       };
+
+      // Cálculos Matemáticos precisos para colunas
+      const isSm = windowWidth >= 640;
+      const pad = isSm ? 32 : 16;
 
       return (
         <div className={`min-h-[100dvh] flex transition-colors duration-500 ease-in-out ${currentTheme.classes}`}>
           
           {/* Overlay Escuro para Mobile */}
           <div 
-            className={`fixed inset-0 bg-black/40 z-20 transition-opacity duration-300 md:hidden backdrop-blur-sm
+            className={`fixed inset-0 bg-black/40 z-30 transition-opacity duration-300 md:hidden backdrop-blur-sm
               ${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
             onClick={() => setIsSidebarOpen(false)}
           ></div>
 
           {/* Menu Lateral (Sidebar) */}
           <aside 
-            className={`fixed inset-y-0 left-0 z-30 w-4/5 max-w-[280px] md:relative md:max-w-none md:w-72 h-[100dvh] flex flex-col border-r backdrop-blur-xl transition-transform duration-300 ease-in-out ${currentTheme.panelClasses}
+            className={`fixed inset-y-0 left-0 z-40 w-4/5 max-w-[280px] md:relative md:max-w-none md:w-72 h-[100dvh] flex flex-col border-r backdrop-blur-xl transition-transform duration-300 ease-in-out ${currentTheme.panelClasses}
               ${isSidebarOpen ? 'translate-x-0 shadow-2xl md:shadow-none' : '-translate-x-full md:translate-x-0'}`}
           >
-            <div className="p-4 md:p-5 flex items-center justify-between border-b border-inherit">
+            <div className="p-4 md:p-5 flex items-center justify-between border-b border-inherit shrink-0">
               <div className="flex items-center gap-3 font-bold text-xl opacity-90">
                 <i className="fas fa-bookmark text-xl"></i>
                 <span>Lições</span>
@@ -321,7 +363,7 @@
           <main className="flex-1 flex flex-col h-[100dvh] w-full min-w-0 overflow-hidden relative">
             
             {/* Barra de Ferramentas */}
-            <header className={`p-2 sm:p-4 flex items-center justify-between border-b backdrop-blur-md z-10 shrink-0 ${currentTheme.panelClasses}`}>
+            <header className={`p-2 sm:p-4 flex items-center justify-between border-b backdrop-blur-md z-20 shrink-0 ${currentTheme.panelClasses}`}>
               <div className="flex items-center gap-1 sm:gap-3 shrink-0">
                 <button 
                   onClick={() => setIsSidebarOpen(true)} 
@@ -330,7 +372,6 @@
                 >
                   <i className="fas fa-bars text-xl"></i>
                 </button>
-                {/* Título do App Pequeno e Elegante */}
                 <h1 className="font-bold text-xs sm:text-sm md:text-base hidden sm:block pl-2 opacity-70 uppercase tracking-widest">
                   Lições de Vida Plena
                 </h1>
@@ -406,50 +447,80 @@
               </div>
             </header>
 
-            {/* Área de Leitura */}
-            <div 
-              ref={scrollContainerRef}
-              onScroll={handleScroll}
-              className={`flex-1 w-full relative scroll-smooth hide-scrollbar
-                ${viewMode === 'scroll' ? 'overflow-y-auto overflow-x-hidden' : 'overflow-x-auto overflow-y-hidden'}`}
-            >
-              <div className={`mx-auto ${viewMode === 'scroll' ? 'max-w-3xl p-4 sm:p-6 md:p-12 pb-32' : 'h-full p-4 sm:p-8'}`}>
-                
-                {isLoading ? (
-                  /* Tela de Carregamento enquanto baixa o DOCX */
-                  <div className="flex flex-col items-center justify-center h-full opacity-60 pt-20">
-                    <div className="loader mb-4"></div>
-                    <p className="font-bold tracking-widest uppercase text-sm">Extraindo do Word...</p>
-                  </div>
-                ) : activeText && (
-                  <article 
-                    className="w-full break-words transition-all duration-300"
-                    style={viewMode === 'page' ? {
-                      columnWidth: 'calc(100vw - 3rem)',
-                      columnGap: '3rem',
-                      height: 'calc(100dvh - 140px)', 
-                    } : {}}
+            {/* Container Dinâmico com as Setas Virtuais do Kindle */}
+            <div className="flex-1 w-full relative flex overflow-hidden">
+              
+              {/* Botões de Navegação Laterais (Translúcidos) */}
+              {viewMode === 'page' && !isLoading && activeText && (
+                <div className="absolute inset-0 pointer-events-none flex justify-between z-10">
+                  {/* Seta Esquerda */}
+                  <button 
+                    onClick={() => turnPage('prev')}
+                    className="pointer-events-auto h-full w-20 sm:w-28 flex items-center justify-start pl-2 sm:pl-6 text-current opacity-10 hover:opacity-40 transition-opacity active:opacity-60"
+                    title="Página Anterior"
                   >
-                    <h2 
-                      className="font-bold mb-6 sm:mb-8 leading-tight opacity-90"
-                      style={{ fontSize: `${fontSize * 1.4}px`, breakAfter: 'avoid' }}
-                    >
-                      {activeText.title}
-                    </h2>
-                    
-                    <div 
-                      className="opacity-85 whitespace-pre-wrap font-serif text-justify"
-                      style={{ 
-                        fontSize: `${fontSize}px`, 
-                        lineHeight: lineSpacing 
-                      }}
-                    >
-                      {activeText.content}
-                    </div>
-                  </article>
-                )}
+                    <i className="fas fa-chevron-left text-5xl sm:text-7xl"></i>
+                  </button>
+                  {/* Seta Direita */}
+                  <button 
+                    onClick={() => turnPage('next')}
+                    className="pointer-events-auto h-full w-20 sm:w-28 flex items-center justify-end pr-2 sm:pr-6 text-current opacity-10 hover:opacity-40 transition-opacity active:opacity-60"
+                    title="Próxima Página"
+                  >
+                    <i className="fas fa-chevron-right text-5xl sm:text-7xl"></i>
+                  </button>
+                </div>
+              )}
 
+              {/* Área de Leitura com Scroll nativo */}
+              <div 
+                ref={scrollContainerRef}
+                onScroll={handleScroll}
+                onTouchEnd={handleTouchEnd}
+                className={`flex-1 w-full h-full relative scroll-smooth
+                  ${viewMode === 'scroll' ? 'overflow-y-auto overflow-x-hidden hide-scrollbar' : 'overflow-x-auto overflow-y-hidden hide-scrollbar-completely'}`}
+              >
+                <div className={`mx-auto w-full ${viewMode === 'scroll' ? 'max-w-3xl p-4 sm:p-6 md:p-12 pb-32' : 'h-full'}`}>
+                  
+                  {isLoading ? (
+                    <div className="flex flex-col items-center justify-center h-full opacity-60 pt-20">
+                      <div className="loader mb-4"></div>
+                      <p className="font-bold tracking-widest uppercase text-sm">Extraindo do Word...</p>
+                    </div>
+                  ) : activeText && (
+                    <article 
+                      className="w-full break-words transition-all duration-300"
+                      style={viewMode === 'page' ? {
+                        /* A mágica do layout de colunas perfeito que não "quebra" as palavras horizontalmente */
+                        columnWidth: `calc(100vw - ${pad * 2}px)`,
+                        columnGap: `${pad * 2}px`,
+                        height: '100%', 
+                        padding: `24px ${pad}px`, 
+                        boxSizing: 'border-box'
+                      } : {}}
+                    >
+                      <h2 
+                        className="font-bold mb-6 sm:mb-8 leading-tight opacity-90"
+                        style={{ fontSize: `${fontSize * 1.4}px`, breakAfter: 'avoid' }}
+                      >
+                        {activeText.title}
+                      </h2>
+                      
+                      <div 
+                        className="opacity-85 whitespace-pre-wrap font-serif text-justify"
+                        style={{ 
+                          fontSize: `${fontSize}px`, 
+                          lineHeight: lineSpacing 
+                        }}
+                      >
+                        {activeText.content}
+                      </div>
+                    </article>
+                  )}
+
+                </div>
               </div>
+
             </div>
           </main>
         </div>
