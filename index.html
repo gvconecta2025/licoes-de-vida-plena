@@ -47,7 +47,7 @@
     
     /* Estilos preservados do arquivo DOCX (Negrito, Italico, Parágrafos) */
     .prose-content p {
-      margin-bottom: 1.2em;
+      margin-bottom: 1.5em; /* Espaçamento de 1.5 linhas entre parágrafos garantido */
     }
     .prose-content strong, .prose-content b {
       font-weight: bold;
@@ -92,7 +92,7 @@
       vermelho: { id: 'vermelho', name: 'Vermelho', classes: 'bg-gradient-to-br from-[#4a2424] to-[#2d1414] text-[#e8cfcf]', panelClasses: 'bg-black/20 border-[#6e3636]', solidMenuClasses: 'bg-[#3d1e1e] border-[#6e3636]', preview: 'bg-[#4a2424]' }
     };
 
-    // Textos e Páginas Especiais (Adicionado "Conclusão")
+    // Textos e Páginas Especiais (Conclusão adicionada no final)
     const initialTexts = [
       { id: 'capa', title: 'Capa do Livro', type: 'special' }, 
       { id: 'sumario', title: 'Sumário', type: 'special' }, 
@@ -156,9 +156,6 @@
       const scrollTimeout = useRef(null);
       const touchTimeout = useRef(null);
       const flipSoundRef = useRef(null);
-      const utteranceRef = useRef(null); 
-      
-      const [isPlaying, setIsPlaying] = useState(false);
 
       // Função de Carregamento e Extração Dinâmica do DOCX
       useEffect(() => {
@@ -288,10 +285,6 @@
         }
       }, [activeTextId, viewMode, isLoading, activeText.type]);
 
-      useEffect(() => {
-        return () => window.speechSynthesis.cancel();
-      }, []);
-
       const toggleLessonCompletion = (id) => {
         setCompletedLessons(prev => 
           prev.includes(id) ? prev.filter(lessonId => lessonId !== id) : [...prev, id]
@@ -356,28 +349,6 @@
       const handleZoomOut = () => setFontSize(prev => Math.max(prev - 2, 14));
       const handleLineSpacing = () => setLineSpacing(prev => prev === 1.2 ? 1.6 : prev === 1.6 ? 2.0 : 1.2);
       const toggleViewMode = () => setViewMode(prev => prev === 'scroll' ? 'page' : 'scroll');
-
-      const toggleSpeech = () => {
-        if (isPlaying) {
-          window.speechSynthesis.cancel();
-          setIsPlaying(false);
-        } else {
-          if (!activeText || !activeText.content || activeText.type === 'special') return;
-          window.speechSynthesis.cancel();
-          
-          const plainText = activeText.content.replace(/<[^>]+>/g, ' ');
-
-          const utterance = new SpeechSynthesisUtterance(plainText);
-          utterance.lang = 'pt-BR'; 
-          utterance.onstart = () => setIsPlaying(true);
-          utterance.onend = () => setIsPlaying(false);
-          utterance.onerror = () => setIsPlaying(false);
-          
-          utteranceRef.current = utterance;
-          window.speechSynthesis.speak(utterance);
-          setIsPlaying(true); 
-        }
-      };
 
       // === SISTEMA DE MARCA-TEXTO ===
       useEffect(() => {
@@ -468,7 +439,6 @@
           scrollContainerRef.current.scrollTop = 0;
           scrollContainerRef.current.scrollLeft = 0;
         }
-        if (isPlaying) { window.speechSynthesis.cancel(); setIsPlaying(false); }
         if (window.innerWidth < 768) setIsSidebarOpen(false);
       }
 
@@ -816,21 +786,6 @@
                 </React.Fragment>
               )}
             </div>
-            
-            {/* Botão de Áudio Flutuante */}
-            {activeText.type !== 'special' && !isLoading && (
-              <button
-                onClick={toggleSpeech}
-                className={`fixed bottom-12 right-4 sm:bottom-12 sm:right-8 z-[90] flex items-center justify-center gap-2 px-3 py-2 rounded-full shadow-lg border border-current transition-all active:scale-90
-                  ${isPlaying ? 'bg-red-600/90 text-white border-red-500 animate-pulse' : 'bg-black/20 hover:bg-black/30 backdrop-blur-md'}`}
-                title={isPlaying ? 'Parar Áudio' : 'Ouvir Lição'}
-              >
-                <i className={`fas ${isPlaying ? 'fa-square' : 'fa-headphones'} text-xs pointer-events-none`}></i>
-                <span className="text-[10px] font-bold uppercase tracking-wider pointer-events-none">
-                  {isPlaying ? 'Parar' : 'Ouvir'}
-                </span>
-              </button>
-            )}
 
           </main>
         </div>
