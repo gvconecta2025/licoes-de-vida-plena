@@ -1,723 +1,602 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Lições de Vida Plena</title>
-  
-  <!-- Tailwind CSS para Estilização -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- FontAwesome para os Ícones -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <!-- Bibliotecas do React carregadas diretamente no navegador -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { 
+  ZoomIn, ZoomOut, BookOpen, 
+  Menu, X, Check, CheckCheck, Bookmark, Settings, 
+  ChevronLeft, ChevronRight, Lock, Library, 
+  MessageCircle, Heart, Send, BookMarked,
+  Monitor, Smartphone, Home, GraduationCap
+} from 'lucide-react';
 
-  <style>
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      margin: 0;
-      padding: 0;
-      -webkit-font-smoothing: antialiased;
-      overflow: hidden; 
-    }
-    button {
-      user-select: none;
-    }
-    .hide-scrollbar::-webkit-scrollbar {
-      width: 8px;
-    }
-    .hide-scrollbar::-webkit-scrollbar-thumb {
-      background: rgba(0, 0, 0, 0.2);
-      border-radius: 4px;
-    }
-    .hide-scrollbar-completely::-webkit-scrollbar {
-      display: none;
-    }
-    .hide-scrollbar-completely {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-    
-    /* Estilos para o conteúdo HTML injetado (Forçados com !important) */
-    .prose-content p {
-      margin-top: 0 !important;
-      margin-bottom: 1.5em !important; /* Espaçamento de 1.5 linhas garantido */
-      display: block !important;
-    }
-    .prose-content strong, .prose-content b {
-      font-weight: bold !important;
-    }
-    .prose-content em, .prose-content i {
-      font-style: italic !important;
-    }
-    .prose-content u {
-      text-decoration: underline !important;
-    }
-    
-    /* Limpeza de estilos extras que o Word possa gerar no HTML */
-    .prose-content span {
-      font-size: inherit !important;
-      font-family: inherit !important;
-      line-height: inherit !important;
-      color: inherit !important;
-      background: transparent !important;
-    }
+// =========================================================================
+// 1. CONFIGURAÇÃO DE TEMAS
+// =========================================================================
+const themes = {
+  claro: { id: 'claro', name: 'Claro', classes: 'bg-gradient-to-br from-gray-50 to-gray-200 text-gray-800', panelClasses: 'bg-white/70 backdrop-blur-xl border-gray-300', solidMenuClasses: 'bg-gray-50 border-gray-300', preview: 'bg-gray-200' },
+  polen: { id: 'polen', name: 'Pólen', classes: 'bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-100 text-amber-900', panelClasses: 'bg-white/50 backdrop-blur-xl border-amber-200', solidMenuClasses: 'bg-amber-50 border-amber-300', preview: 'bg-amber-200' },
+  escuro: { id: 'escuro', name: 'Escuro', classes: 'bg-gradient-to-br from-zinc-900 to-black text-zinc-300', panelClasses: 'bg-zinc-900/70 backdrop-blur-xl border-zinc-800', solidMenuClasses: 'bg-zinc-900 border-zinc-800', preview: 'bg-zinc-800' },
+  cafe: { id: 'cafe', name: 'Café', classes: 'bg-gradient-to-br from-[#3b2d26] to-[#1c1410] text-[#e8dcc4]', panelClasses: 'bg-[#2a1f1a]/70 backdrop-blur-xl border-[#4a3b32]', solidMenuClasses: 'bg-[#3b2d26] border-[#4a3b32]', preview: 'bg-[#4a3b32]' },
+  azul: { id: 'azul', name: 'Azul', classes: 'bg-gradient-to-br from-slate-800 to-slate-950 text-blue-100', panelClasses: 'bg-slate-900/70 backdrop-blur-xl border-slate-700', solidMenuClasses: 'bg-slate-800 border-slate-700', preview: 'bg-slate-700' }
+};
 
-    /* Hifenização Automática Cross-Browser */
-    .hyphens-auto {
-      -webkit-hyphens: auto;
-      -ms-hyphens: auto;
-      hyphens: auto;
-    }
-
-    .loader {
-      border: 4px solid rgba(255,255,255,0.1);
-      border-left-color: currentColor;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-  </style>
-</head>
-<body>
-  <div id="root"></div>
-
-  <script type="text/babel">
-    const { useState, useEffect, useRef, useCallback } = React;
-
-    const themes = {
-      claro: { id: 'claro', name: 'Claro', classes: 'bg-gradient-to-br from-gray-50 to-gray-200 text-gray-800', panelClasses: 'bg-white/60 border-gray-300', solidMenuClasses: 'bg-gray-50 border-gray-300', preview: 'bg-gray-200' },
-      polen: { id: 'polen', name: 'Pólen', classes: 'bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-100 text-amber-900', panelClasses: 'bg-white/40 border-amber-200', solidMenuClasses: 'bg-amber-50 border-amber-300', preview: 'bg-amber-200' },
-      escuro: { id: 'escuro', name: 'Escuro', classes: 'bg-gradient-to-br from-zinc-800 to-black text-zinc-100', panelClasses: 'bg-zinc-900/50 border-zinc-700', solidMenuClasses: 'bg-zinc-900 border-zinc-700', preview: 'bg-zinc-800' },
-      cafe: { id: 'cafe', name: 'Café', classes: 'bg-gradient-to-br from-[#4a3b32] to-[#2e231d] text-[#e8dcc4]', panelClasses: 'bg-black/20 border-[#6a5647]', solidMenuClasses: 'bg-[#3b2d26] border-[#6a5647]', preview: 'bg-[#4a3b32]' },
-      azul: { id: 'azul', name: 'Azul', classes: 'bg-gradient-to-br from-slate-700 to-slate-900 text-blue-100', panelClasses: 'bg-black/20 border-slate-600', solidMenuClasses: 'bg-slate-800 border-slate-600', preview: 'bg-slate-700' },
-      vermelho: { id: 'vermelho', name: 'Vermelho', classes: 'bg-gradient-to-br from-[#4a2424] to-[#2d1414] text-[#e8cfcf]', panelClasses: 'bg-black/20 border-[#6e3636]', solidMenuClasses: 'bg-[#3d1e1e] border-[#6e3636]', preview: 'bg-[#4a2424]' }
-    };
-
-    // Nova Arquitetura: Referenciando arquivos .html em vez de .docx
-    const initialTexts = [
-      { id: 'capa', title: 'Capa do Livro', type: 'special' }, 
+// =========================================================================
+// 2. CONTEÚDO NATIVO DO LIVRO
+// =========================================================================
+const bookCatalog = [
+  {
+    id: 'vida-plena',
+    title: 'Lições de Vida Plena',
+    author: 'Autor',
+    coverImage: '🌱',
+    isLocked: false,
+    chapters: [
       { id: 'sumario', title: 'Sumário', type: 'special' }, 
-      { id: 'prologo', title: 'Prólogo', htmlUrl: './prologo.html', content: null },
-      { id: 'licao0a', title: 'Lição 0a', htmlUrl: './licao-0a.html', content: null },
-      { id: 'licao0b', title: 'Lição 0b', htmlUrl: './licao-0b.html', content: null },
-      { id: 'licao0c', title: 'Lição 0c', htmlUrl: './licao-0c.html', content: null },
-      { id: 'licao0d', title: 'Lição 0d', htmlUrl: './licao-0d.html', content: null },
-      { id: 'licao1', title: 'Lição 1', htmlUrl: './licao-1.html', content: null },
-      { id: 'licao2', title: 'Lição 2', htmlUrl: './licao-2.html', content: null },
-      { id: 'licao3', title: 'Lição 3', htmlUrl: './licao-3.html', content: null },
-      { id: 'licao4', title: 'Lição 4', htmlUrl: './licao-4.html', content: null },
-      { id: 'licao5', title: 'Lição 5', htmlUrl: './licao-5.html', content: null },
-      { id: 'licao6', title: 'Lição 6', htmlUrl: './licao-6.html', content: null },
-      { id: 'licao7', title: 'Lição 7', htmlUrl: './licao-7.html', content: null },
-      { id: 'licao8', title: 'Lição 8', htmlUrl: './licao-8.html', content: null },
-      { id: 'licao9', title: 'Lição 9', htmlUrl: './licao-9.html', content: null },
-      { id: 'licao10', title: 'Lição 10', htmlUrl: './licao-10.html', content: null },
-      { id: 'licao11', title: 'Lição 11', htmlUrl: './licao-11.html', content: null },
-      { id: 'licao12', title: 'Lição 12', htmlUrl: './licao-12.html', content: null },
-      { id: 'conclusao', title: 'Conclusão', htmlUrl: './conclusao.html', content: null },
-      { id: 'autor', title: 'Sobre o Autor', type: 'special' } 
-    ];
+      { id: 'prologo', label: 'Prólogo', title: 'O Abraço que Adão Não Deu', content: `
+        <p>Se você abriu este livro esperando encontrar mais um manual de como ser um cristão melhor, preciso ser honesto com você logo nas primeiras linhas: este não é esse livro.</p>
+        <p>Não vamos falar sobre como orar mais, dar mais, servir mais ou resistir mais ao pecado. Se é isso que você está procurando, há prateleiras inteiras esperando por você.</p>
+        <p>Este livro tem um único objetivo. Ele quer te mostrar um jardim que existe dentro de você — e que está aberto há mais tempo do que você imagina.</p>
+        <p>Existe uma cena no Gênesis que a religiosidade nos treinou a ler como um tribunal. A serpente, o fruto, a desobediência, a sentença. Um crime e um castigo. Mas se você pausar nessa leitura e prestar atenção no que acontece logo depois, vai encontrar algo que nenhum sistema de regras consegue reproduzir. Você vai encontrar Deus caminhando.</p>
+        <p><b>"E ouviram a voz do Senhor Deus, que passeava no jardim pela viração do dia."</b> (Gênesis 3:8)</p>
+        <p>O homem havia acabado de falhar de uma forma que, segundo toda a lógica da justiça, merecia resposta imediata. Mas Deus não aparece com um martelo. Não aparece com uma lista de punições. Aparece caminhando, na hora mais suave do dia, chamando pelo nome de quem havia se escondido.</p>
+        <p><b>"Adão, onde estás?"</b> (Gênesis 3:9)</p>
+        <p>Essa pergunta mudou tudo para mim. Porque ela não é a pergunta de um juiz buscando um réu. É a pergunta de um Pai buscando um filho.</p>
+        <p>E o filho estava escondido.</p>
+        <p>Passei muitos anos da minha vida dentro da religião sem nunca perceber que estava fazendo exatamente o que Adão fez. Não estava fugindo de Deus literalmente, claro. Estava na igreja toda semana. Lia a Bíblia. Orava. Servia. Mas o padrão era o mesmo. A visão estava doente. E com a visão doente, você via Deus como ameaça, não como Anfitrião.</p>
+        <p>Deus fez todo o trabalho pesado. Ele suportou a traição do Éden sem abandonar a busca. Ele caminhou entre nós na pessoa de Jesus para desfazer, de uma vez por todas, a imagem do Deus cobrador que a suspeita da serpente plantou. Ele abriu mão do pagamento na Cruz para que as suas mãos ficassem livres. Ele instalou o Espírito Santo dentro de você como Anfitrião de um jardim replantado no seu interior.</p>
+        <p>Tudo isso foi feito. O convite está na porta. O único gesto que resta é seu.</p>
+        <p>O abraço que Adão não deu está disponível para você agora. Em qualquer circunstância. Com qualquer histórico. Com qualquer quantidade de dívidas nas mãos. Basta girar a maçaneta por dentro.</p>` 
+      },
+      { id: 'licao0a', label: 'Lição 0a', title: 'Jesus como a Lente Absoluta', content: `
+        <p>Existe uma confissão que eu precisei fazer para mim mesmo antes de conseguir escrever este livro. Durante anos, eu li a Bíblia sem nunca ter encontrado a Bíblia de verdade. Eu encontrei fragmentos, promessas soltas, ameaças que me mantinham acordado à noite e versículos que eu guardava como armas para usar nas discussões de domingo. Eu tinha o mapa na mão e nunca havia encontrado o jardim.</p>
+        <p>O que faltava não era dedicação. O que faltava era a lente certa.</p>
+        <p>Existe uma linha que atravessa a Bíblia do primeiro capítulo ao último. Não é uma linha doutrinal, não é um conjunto de regras que progride do mais simples para o mais complexo. É uma linha relacional. É o rastro de um Deus que se recusa a deixar o homem perdido. Neste livro chamamos esse rastro de <b>Fio de Ouro</b>.</p>
+        <p>O autor de Hebreus descreve essa trajetória de uma forma que, depois que você entende, não consegue mais ignorar. Ele diz que Deus falou muitas vezes e de muitas maneiras pelos profetas, e que agora, nestes últimos dias, falou pelo Filho. (Hebreus 1:1-2) Não é uma informação de protocolo no início de uma carta. É a chave que abre tudo. A revelação de Deus não é um bloco uniforme onde cada parte tem o mesmo peso. Ela tem uma direção, ela tem um destino, ela tem um rosto.</p>
+        <p><b>Esse rosto é Jesus.</b></p>
+        <p>Cristo interpreta a Bíblia. A Bíblia não interpreta Cristo.</p>
+        <p>Na prática, isso nos dá um critério simples e poderoso para cada texto que lemos. Se a interpretação que estamos fazendo de uma passagem produz uma imagem de Deus diferente do Pai revelado por Jesus, a interpretação está errada. O texto está certo. Mas alguma coisa está distorcendo a lente. Pode ser o contexto que foi ignorado, pode ser a época que foi desconsiderada, pode ser o peso de uma tradição que foi colocado sobre as palavras antes mesmo de elas serem lidas.</p>
+        <p>Nós não lemos a Bíblia para ter razão. Nós a lemos para encontrar o rastro de quem nunca parou de nos procurar. E quando você começa a ler com essa lente, algo acontece que nenhuma quantidade de versículos memorizados jamais produziu: o livro começa a falar de um Deus que você reconhece. Um Deus que você consegue confiar. Um Deus diante de quem você não precisa mais se esconder.</p>` 
+      },
+      { id: 'licao0b', label: 'Lição 0b', title: 'O Conhecimento Suficiente', content: `
+        <p>Há um tipo de fé que cansa mais do que a ausência dela. É a fé que exige de você respostas para tudo antes de permitir que você descanse. A fé que transforma o relacionamento com Deus numa prova permanente, onde cada dúvida que persiste é evidência de que você ainda não chegou lá. Muita gente carrega esse peso por anos sem perceber que ele não veio de Deus. Veio de um sistema que confundiu conhecimento com confiança.</p>
+        <p>A verdade é mais simples e mais generosa do que isso.</p>
+        <p>Você não precisa entender tudo para confiar em Deus. Nunca vai entender tudo. E isso não é uma fraqueza da sua fé. É a natureza de qualquer relacionamento real entre uma criatura e o Criador que a fez.</p>
+        <p>A pergunta que importa não é quanto você sabe. É <b>quem você conhece</b>.</p>
+        <p>Quando Jesus disse a Filipe "quem me vê a mim vê o Pai" (João 14:9), ele estava respondendo a pergunta mais antiga da humanidade. Como é Deus de verdade? O que ele sente? Como ele reage quando alguém falha? A resposta não está num argumento filosófico nem num tratado doutrinal. Está numa vida. Está nas escolhas que Jesus fez, nas pessoas que ele tocou, nos momentos em que ele chorou na frente do túmulo de um amigo, nos momentos em que ele se sentou para comer com quem ninguém queria por perto.</p>
+        <p>Isso não significa que as perguntas difíceis devem ser enterradas. Significa que elas têm um lugar melhor para serem feitas, e esse lugar é dentro do relacionamento, não antes dele.</p>
+        <p>Jesus não exigiu que ninguém entendesse tudo antes de chamá-los para perto. Ele chamou pescadores que não sabiam o que era graça. Chamou um cobrador de impostos que entendia tudo de números e nada de perdão. Chamou um perseguidor da fé que precisou cair do cavalo para enxergar o que estava na sua frente. Em nenhum momento a condição para se aproximar foi o domínio de um conjunto de crenças.</p>
+        <p>No início do seu ministério, quando os primeiros discípulos perguntaram onde ele morava, Jesus não respondeu com um endereço nem com uma explicação. Respondeu com um convite: <b>"Vinde e vede."</b> (João 1:39)</p>
+        <p>Essa é a condição para começar. Não o entendimento completo. Não a fé sem dúvidas. Não a vida organizada e sem pendências. Apenas a disposição de vir e ver.</p>
+        <p>O conhecimento suficiente é esse.</p>` 
+      },
+      { id: 'licao0c', label: 'Lição 0c', title: 'A Matemática do Plantio', content: `
+        <p>Paulo escreveu algo que parece simples mas carrega um peso enorme: <b>"não vos enganeis: de Deus não se zomba; pois aquilo que o homem semear, isso também ceifará."</b> (Gálatas 6:7)</p>
+        <p>O que você está vivendo hoje é, em boa parte, o resultado das sementes que foram plantadas antes. O que você vai viver amanhã depende, em boa parte, do que está sendo plantado agora.</p>
+        <p>Essa não é uma sentença de condenação. É a descrição de como o mundo que Deus criou funciona. Um mundo onde as escolhas têm consequências reais é um mundo que leva a liberdade humana a sério. Se o que plantamos hoje não produzisse colheita amanhã, a nossa soberania sobre a nossa própria vida seria apenas uma ficção bem intencionada.</p>
+        <p>A Graça que perdoa a dívida eterna não cancela as consequências das nossas escolhas no tempo. São duas coisas diferentes, e confundi-las custa caro.</p>
+        <p>Um pai que perdoa o filho que quebrou o vidro não paga o vidro no lugar do filho. O perdão é verdadeiro e completo. E o vidro ainda precisa ser reposto.</p>
+        <p>Antes de continuar, porém, é preciso dizer algo com honestidade, porque sem isso essa verdade vira acusação onde deveria ser convite: Nem tudo que você colhe hoje nasceu de sementes que você plantou. Nós chegamos ao mundo num campo que já tinha história antes de nós. Decisões de gerações anteriores produziram colheitas que herdamos sem escolha.</p>
+        <p>Mas mesmo dentro da complexidade, a sua responsabilidade sobre as suas próprias sementes permanece intacta. Você não escolheu o campo que herdou. Você escolhe o que planta nele a partir de hoje.</p>
+        <p>Entender a lei da semeadura não diminui a Graça. Revela o quanto ela é generosa. Deus não apenas perdoa a dívida que você nunca conseguiria pagar. Ele caminha ao seu lado enquanto você aprende a semear diferente.</p>
+        <p>A lei da colheita não é uma prisão. É o ambiente onde a transformação acontece.</p>
+        <p>O que você planta hoje, você colhe amanhã. <b>O que você quer colher amanhã, plante hoje.</b></p>` 
+      },
+      { id: 'licao0d', label: 'Lição 0d', title: 'A Dinâmica das Pedras', content: `
+        <p>Imagine um garimpeiro que passa a vida inteira quebrando pedregulhos.</p>
+        <p>Ele acorda cedo, trabalha até escurecer, conhece cada detalhe do terreno, discute com outros garimpeiros sobre a melhor técnica de quebrar pedra. Tem um conhecimento impressionante sobre o assunto. Mas ao final da vida, o que ele tem nas mãos são pedaços de pedra comum. Enquanto isso, a alguns metros de distância, havia diamantes que ele nunca se deu ao trabalho de procurar porque estava ocupado demais com os pedregulhos.</p>
+        <p>Doutrinas funcionam da mesma forma.</p>
+        <p>Existem verdades que são absolutamente centrais. Sem elas, o relacionamento com Deus perde o eixo. Jesus como único mediador. A Graça como fonte do relacionamento. O Perdão como cancelamento real de uma dívida real. A ressurreição como fundação histórica de tudo que se crê. Essas são as pedras preciosas.</p>
+        <p>Mas o sistema religioso, com uma frequência que assusta, direciona sua energia para outro lugar. Disputa a forma correta do batismo. O dia exato do culto. A versão certa da Bíblia. O estilo legítimo de adoração. A sequência dos eventos do fim dos tempos. Cada um desses temas tem uma comunidade apaixonada que trata a sua posição como questão de vida ou morte espiritual, e trata quem discorda como inimigo da fé.</p>
+        <p>São pedregulhos. Têm algum valor, como toda pedra tem. Mas não se comparam aos diamantes.</p>
+        <p>O desarmamento que esta lição propõe não é ingenuidade. Não é abandonar a verdade nem tratar tudo como igualmente válido. É a decisão consciente de guardar a sua energia para o que é precioso. De reconhecer que você tem uma quantidade finita de atenção, de tempo e de força, e que o que você escolhe estudar, defender e construir vai definir o tipo de fé que você terá ao final do caminho.</p>
+        <p><b>Pedras preciosas não precisam de você para defender o valor delas. Elas provam o próprio valor quando você as segura na mão.</b></p>` 
+      },
+      { id: 'licao1', label: 'Lição 1', title: 'A Queda: o Pecado da Visão', content: `
+        <p>As quatro lições anteriores foram preparatórias. Elas limparam a lente, estabeleceram o ponto de partida, e criaram o espaço necessário para que o que vem agora possa ser recebido da forma certa.</p>
+        <p>O que você encontrará aqui é o eixo central de uma visão de vida plena e de relacionamento com Deus. Não esgotamos o assunto nestas páginas, e por isso há um site onde esse conteúdo é expandido, aprofundado e defendido para quem quer ir mais longe. Mas o essencial está aqui. E o essencial começa onde o problema começou.</p>
+        <p>No jardim.</p>
+        <p>A serpente disse à mulher: <b>"Certamente não morrereis. Porque Deus sabe que no dia em que dele comerdes se abrirão os vossos olhos, e sereis como Deus..."</b> (Gênesis 3:4-5)</p>
+        <p>O que a maioria de nós aprendeu sobre esse texto é que Adão e Eva desobedeceram a Deus e por isso foram expulsos do jardim. A narrativa foi ensinada como uma história de mãos que tocaram o que não deviam tocar.</p>
+        <p>Mas o problema da humanidade não começou nas mãos.</p>
+        <p>Antes de Eva tocar no fruto, algo aconteceu dentro dela. A serpente não propôs uma ação errada em primeiro lugar. Propôs uma revisão da forma de ver Deus. O argumento foi cirúrgico e devastador: será que a sabedoria de Deus é realmente boa? Será que Ele não está escondendo algo de vocês? Será que a soberania Dele é uma forma de limitação e não de proteção?</p>
+        <p><b>O Pecado da Visão é a raiz. O Pecado das Mãos é o fruto.</b></p>
+        <p>O Pecado da Visão, é a desconfiança instalada no coração humano de que Deus não é bom, de que a Sua soberania é uma ameaça, de que a Sua sabedoria é questionável. Mas o que pouco se percebe é que a cura já estava disponível no mesmo instante em que a doença se instalou. "Adão, onde estás?" (Gênesis 3:9) Essa pergunta era um convite. Era o Criador percorrendo o jardim, abrindo espaço para que o homem saísse de trás das árvores e simplesmente viesse.</p>
+        <p>O plano de restauração já estava consumado na mente de um Deus que conhece o fim desde o princípio e que, portanto, nunca foi surpreendido por nenhuma das nossas fugas.</p>
+        <p>O abraço que Adão não deu estava disponível desde sempre. E continua disponível agora. Antes de falar sobre o que fazer, é preciso curar o que ver.</p>` 
+      },
+      { id: 'licao3', label: 'Lição 3', title: 'Graça: a Pressão que Não Arromba', content: `
+        <p>A Misericórdia é a fonte. A Graça é a Misericórdia em movimento.</p>
+        <p>Aprendemos que Deus opera a partir da jurisdição da Misericórdia. Agora é hora de mostrar como Ele chegou até nós com essa oferta. Porque não adianta o Credor estar disposto a rasgar a nota promissória se o devedor continua escondido atrás das árvores acreditando que o Credor veio cobrar.</p>
+        <p>A Queda produziu distância. O Pecado da Visão fez o homem acreditar que Deus era uma ameaça, e a primeira reação foi fugir. "E ouviram a voz do Senhor Deus, que passeava no jardim pela viração do dia; e escondeu-se Adão e sua mulher da presença do Senhor Deus, entre as árvores do jardim." (Gênesis 3:8) Se Deus ficasse parado esperando que o homem voltasse por conta própria, ninguém voltaria. Um cego não mapeia o caminho de volta para a luz sozinho. Alguém precisa buscá-lo.</p>
+        <p>A Graça é a voz de Deus percorrendo o jardim perguntando: <b>"Onde você está?"</b> É a busca ativa pelo filho que se escondeu. É Deus atravessando a distância que o homem criou, não porque o homem mereceu, mas porque o Pai decidiu que o relacionamento valia o esforço.</p>
+        <p>A melhor definição de Graça que pude imaginar é que ela é o convite amoroso, insistente e contínuo de um Pai que não desiste de resgatar o filho que ama. Deus não desiste de nos convidar ao abraço!</p>
+        <p>Mas existe um detalhe na forma como a Graça opera. <i>"Eis que estou à porta, e bato..."</i> (Apocalipse 3:20)</p>
+        <p><b>A Graça bate. Não arromba.</b> A maçaneta está do lado de dentro da porta. O último movimento, o giro da maçaneta, é do homem.</p>
+        <p>Deus tem poder para derrubar qualquer porta. Tem poder para forçar a vontade humana, para reprogramar o coração, para transformar a rebeldia em obediência instantânea sem pedir permissão. Mas Ele não faz isso. Porque arrombar a vontade de alguém destrói a possibilidade de amor verdadeiro. E o que Deus quer não é obediência de robôs. É relacionamento com filhos.</p>
+        <p>A Graça ensina. Ela não é uma licença para continuar vivendo da mesma forma sem consequências. Não é um bilhete de impunidade onde o homem pode pecar livremente porque Deus vai perdoar de qualquer jeito. Quando a porta é aberta e a Graça entra, ela começa a reorganizar a casa.</p>
+        <p>A Graça não é passiva. Não é Deus esperando de braços cruzados que você finalmente acerte a vida para então aceitar você de volta. Ela é ativa. É um Pai percorrendo o jardim chamando pelo filho.</p>
+        <p>Descobrir isso não é apenas informação. É cura. É a visão sendo restaurada. E é sobre essa cura que a próxima lição trata.</p>` 
+      },
+      { id: 'licao4', label: 'Lição 4', title: 'Fé: o Antídoto Ontológico', content: `
+        <p>A Graça bateu à porta. A maçaneta está do lado de dentro. Mas existe um problema que a Lição 1 já diagnosticou e que precisa ser resolvido antes que a mão gire a maçaneta.</p>
+        <p>A visão está doente.</p>
+        <p>O Pecado da Visão instalou no coração humano uma desconfiança tão profunda na sabedoria e soberania de Deus que mesmo quando a Graça chega batendo, o homem olha para a porta com medo. Ele ouve a voz do lado de fora e acredita que é um credor vindo cobrar. Ele vê a sombra sob a porta e imagina um juiz vindo sentenciar. A serpente fez um trabalho tão completo que mesmo depois que a Misericórdia foi revelada, mesmo depois que a Graça veio buscando, o homem ainda vê Deus como uma ameaça.</p>
+        <p>A Fé é a cura dessa doença.</p>
+        <p>Se o Pecado da Visão é a desconfiança absoluta no caráter de Deus, a Fé é o seu oposto exato. É o restabelecimento da confiança na sabedoria e soberania do Criador. É a visão sendo restaurada ao ponto de finalmente enxergar Deus como Ele realmente é, e não como a mentira da serpente O pintou.</p>
+        <p>Paulo escreveu aos Efésios com uma clareza que não deixa margem para confusão: <i>"Porque pela graça sois salvos, por meio da fé; e isto não vem de vós, é dom de Deus."</i> (Efésios 2:8)</p>
+        <p>A Fé não vem de você.</p>
+        <p>A Fé não é pensamento positivo. Não é moeda de troca. <b>A Fé é confiança racional baseada em evidência histórica.</b> Deus revelou quem Ele é em Jesus. A Fé é olhar para essa revelação e decidir que você vai acreditar nela.</p>
+        <p>Quando a visão é curada pela Fé, você não precisa mais tentar produzir sentimentos. Não precisa mais fingir que confia quando não confia. Não precisa mais carregar a culpa de ter dúvidas. Porque a Fé não é a ausência de dúvidas. É a decisão de confiar no caráter de Deus mesmo quando as dúvidas ainda estão presentes.</p>
+        <p>A Fé é descansar na sabedoria de um Anfitrião que já provou que sabe o que está fazendo.</p>
+        <p>E quando você finalmente descansa, quando a visão está curada o suficiente para ver Deus como Ele realmente é, o comportamento muda como consequência natural. Não porque você está se esforçando mais. Mas porque quem realmente vê a luz não precisa de manual de instruções para parar de viver no escuro.</p>
+        <p>Mas existe algo estranho que acontece quando alguém descobre essa liberdade. Quase sempre, alguém aparece para dizer que você ainda precisa de mais alguma coisa além de Jesus.</p>` 
+      },
+      { id: 'conclusao', label: 'Conclusão', title: 'O Abraço que Consuma o Propósito', content: `
+        <p>Você começou esta jornada atrás de uma árvore.</p>
+        <p>Como Adão, você estava escondido. Talvez não soubesse disso. Talvez chamasse o esconderijo de outra coisa. Igreja. Doutrina. Devoção. Serviço. Mas o padrão era o mesmo. A visão estava doente. E com a visão doente, você via Deus como ameaça, não como Anfitrião. Via a Sua soberania como controle, não como cuidado. Via a Sua sabedoria como restrição, não como proteção.</p>
+        <p>E então você tentou se cobrir. Folhas de figueira espirituais. Desempenho religioso. Listas de regras cumpridas. Sacrifícios oferecidos. Mediadores contratados. Tudo para se tornar apresentável antes de enfrentar Aquele que você acreditava estar irado.</p>
+        <p>Mas enquanto você se escondia, Ele caminhava no jardim chamando: <b>"Onde estás?"</b></p>
+        <p>E agora, doze lições depois, você sabe a verdade.</p>
+        <p>Sabe que o Pecado da Visão foi o verdadeiro colapso. Que a Queda não foi quebra de regra externa, mas quebra de confiança interna. Que a serpente não ofereceu fruto proibido, ofereceu dúvida letal sobre o caráter de Deus.</p>
+        <p>Sabe que Deus opera no Sistema da Misericórdia, não no Sistema da Dívida. Que Ele escolheu cancelar a conta em vez de cobrar eternamente.</p>
+        <p>Sabe que a Graça não é fraqueza divina tolerando rebelião humana. É a pressão gentil e insistente de um Pai que se recusa a desistir dos filhos. Que bate à porta sem arrombar. Que oferece sem forçar. Que convida sem coagir.</p>
+        <p>Sabe que a Fé não é esforço para acreditar no improvável. É descansar na sabedoria de um Anfitrião que já provou que sabe o que está fazendo. É curar a visão para ver que Deus sempre foi bom. É girar a maçaneta por dentro e sair de trás da árvore.</p>
+        <p>Mas existe uma pergunta que ainda pode estar no ar. Se tudo foi resolvido na cruz, se o véu foi rasgado, se o Jardim Interior está aberto, por que ainda sofremos?</p>
+        <p>Porque você ainda está entre o Éden e a Eternidade.</p>
+        <p>A Vida Plena não promete ausência de sofrimento. Promete presença no sofrimento.</p>
+        <p>A diferença não é que você não sofre. A diferença é que você não sofre sozinho. E não sofre sem propósito.</p>
+        <p>Quando a dor chega, e ela vai chegar, você não precisa se esconder de Deus achando que Ele está punindo você. Não precisa tentar merecer alívio através de desempenho religioso. Não precisa carregar o peso sozinho enquanto finge que está tudo bem.</p>
+        <p>Você pode caminhar no Jardim Interior e dizer: "Pai, isso dói. E eu não entendo. Mas eu confio em Você." E Ele, que habita permanentemente em você, não te dá respostas mágicas que fazem a dor desaparecer. Mas te dá presença que te sustenta enquanto atravessa.</p>
+        <p>Cada dia é uma nova oportunidade de viver o que Adão perdeu e Cristo restaurou.</p>
+        <p>E quando a última micro vida desta existência terminar, quando o sol se puser pela última vez e você fechar os olhos neste corpo quebrado, você vai acordar na Eternidade.</p>
+        <p>E lá, na consumação final do Propósito, não vai haver mais templo. Não vai haver mais véu. Não vai haver mais mediação. Não vai haver mais sofrimento. Não vai haver mais medo. Não vai haver mais esconderijo.</p>
+        <p>Vai haver apenas o abraço.</p>
+        <p>O abraço que começou quando você saiu de trás da árvore. O abraço que se fortaleceu a cada micro vida que você escolheu renovar a mente. O abraço que se aprofundou a cada vez que você perdoou, consertou, transbordou.</p>
+        <p>O abraço que Adão não deu, mas que você deu. E que agora, finalmente, se consuma em transparência absoluta, em relacionamento sem fim, em vida plena eternamente plena.</p>
+        <p>Então não espere. Não adie. Não se esconda mais.</p>
+        <p>O Anfitrião está caminhando no jardim na viração do dia. Ele está chamando: <b>"Onde estás?"</b></p>
+        <p>E a única coisa que separa você dEle é a árvore que você escolheu para se esconder.</p>
+        <p>Saia.</p>
+        <p>Abra as mãos.</p>
+        <p>Corra em direção à voz.</p>
+        <p>E dê o abraço que Adão não deu.</p>
+        <p>Bem-vindo de volta ao Jardim.</p>` 
+      },
+    ]
+  },
+  { id: 'livro-2', title: 'O Jardim Interior (Breve)', author: 'Autor', coverImage: '📖', isLocked: true, chapters: [] }
+];
 
-    function App() {
-      const loadPrefs = () => {
-        try { return JSON.parse(localStorage.getItem('leitorWebPrefs')) || {}; } 
-        catch(e) { return {}; }
-      };
-      
-      const loadOfflineContent = () => {
-        try { return JSON.parse(localStorage.getItem('leitorWebOfflineDocs')) || {}; } 
-        catch(e) { return {}; }
-      };
+const mockFeedPosts = [
+  { id: 1, author: 'Autor', isAuthor: true, content: 'Bem-vindos à nossa nova Plataforma! Aqui no Início poderemos conversar, tirar dúvidas sobre os capítulos e acompanhar as novidades. Já começaram a ler as "Lições de Vida Plena"?', likes: 145, comments: 32, time: 'Há 2 horas' },
+  { id: 2, author: 'Maria S.', isAuthor: false, content: 'A Lição 0a mudou completamente a forma como eu leio a Bíblia. Jesus como Lente Absoluta faz todo o sentido. Fiquei muito impactada!', likes: 42, comments: 5, time: 'Há 5 horas' },
+  { id: 3, author: 'Autor', isAuthor: true, content: 'Dica de leitura: Utilize o ícone da engrenagem para ajustar o espaçamento das linhas e o modo de página. Também podem destacar partes do texto para guardar nas "Minhas Notas"!', likes: 89, comments: 14, time: 'Ontem' },
+];
 
-      const prefs = loadPrefs();
-      const offlineDocs = loadOfflineContent();
+// =========================================================================
+// 3. APLICATIVO PRINCIPAL
+// =========================================================================
+export default function App() {
+  const loadPrefs = () => { try { return JSON.parse(localStorage.getItem('leitorWebPrefs')) || {}; } catch(e) { return {}; } };
 
-      const [texts, setTexts] = useState(initialTexts);
-      const [activeTextId, setActiveTextId] = useState(prefs.activeTextId || 'capa');
-      const [isLoading, setIsLoading] = useState(false); 
-      
-      const [currentTheme, setCurrentTheme] = useState(themes[prefs.themeId] || themes.polen);
-      const [fontSize, setFontSize] = useState(prefs.fontSize || 20); 
-      const [lineSpacing, setLineSpacing] = useState(prefs.lineSpacing || 1.8); 
-      const [viewMode, setViewMode] = useState(prefs.viewMode || 'page'); 
-      const [scrollPositions, setScrollPositions] = useState(prefs.scrollPositions || {});
-      const [completedLessons, setCompletedLessons] = useState(prefs.completedLessons || []);
-      const [extractedTitles, setExtractedTitles] = useState(prefs.extractedTitles || {});
-      
-      const [selectionMenu, setSelectionMenu] = useState(null);
-      const [highlights, setHighlights] = useState(prefs.highlights || {});
-      const [bookmarks, setBookmarks] = useState(prefs.bookmarks || { 1: null, 2: null, 3: null });
-      const [showBookmarks, setShowBookmarks] = useState(false);
+  const prefs = loadPrefs();
 
-      const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-      const [showSettings, setShowSettings] = useState(false);
-      const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-      const [pageInfo, setPageInfo] = useState({ current: 1, total: 1 });
+  // Abertura Direta no Feed
+  const [currentScreen, setCurrentScreen] = useState('feed');
+  const [selectedBook, setSelectedBook] = useState(bookCatalog[0]);
+  const [activeChapterId, setActiveChapterId] = useState(null);
+  
+  const [currentTheme, setCurrentTheme] = useState(themes[prefs.themeId] || themes.claro);
+  const [fontSize, setFontSize] = useState(prefs.fontSize || 20);
+  const [lineSpacing, setLineSpacing] = useState(prefs.lineSpacing || 1.8);
+  const [viewMode, setViewMode] = useState(prefs.viewMode || 'page');
+  const [completedChapters, setCompletedChapters] = useState(prefs.completedChapters || []);
+  const [bookmarks, setBookmarks] = useState(prefs.bookmarks || { 1: null, 2: null, 3: null });
+  const [scrollPositions, setScrollPositions] = useState(prefs.scrollPositions || {});
+  
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isStudyPanelOpen, setIsStudyPanelOpen] = useState(false); 
+  const [showSettings, setShowSettings] = useState(false);
+  const [showBookmarks, setShowBookmarks] = useState(false);
+  const [activeStudyTab, setActiveStudyTab] = useState('feed'); 
+  const [selectionMenu, setSelectionMenu] = useState(null);
+  
+  const [layoutMode, setLayoutMode] = useState('auto');
+  const scrollContainerRef = useRef(null);
+  const scrollTimeout = useRef(null);
 
-      const activeText = texts.find(t => t.id === activeTextId) || texts[0];
+  const isDesktopLayout = layoutMode === 'pc' || (layoutMode === 'auto' && windowWidth >= 1024);
 
-      const scrollContainerRef = useRef(null);
-      const scrollTimeout = useRef(null);
-      const touchTimeout = useRef(null);
-      const flipSoundRef = useRef(null);
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
-      // Nova Lógica de Carregamento para Arquivos HTML diretos
-      useEffect(() => {
-        if (activeText && activeText.htmlUrl && !activeText.content && activeText.type !== 'special') {
-          
-          if (offlineDocs[activeText.id]) {
-             setTexts(prevTexts => prevTexts.map(t => 
-                t.id === activeTextId ? { ...t, content: offlineDocs[activeText.id] } : t
-             ));
-             return; 
-          }
+  useEffect(() => {
+    localStorage.setItem('leitorWebPrefs', JSON.stringify({
+      themeId: currentTheme.id, fontSize, lineSpacing, viewMode, 
+      completedChapters, bookmarks, scrollPositions
+    }));
+  }, [currentTheme, fontSize, lineSpacing, viewMode, completedChapters, bookmarks, scrollPositions]);
 
-          setIsLoading(true);
-          fetch(activeText.htmlUrl)
-            .then(response => {
-              if (!response.ok) throw new Error('Arquivo HTML não encontrado');
-              return response.text(); // Lê como texto HTML puro
-            })
-            .then(htmlContent => {
-              const tempDiv = document.createElement('div');
-              tempDiv.innerHTML = htmlContent;
-              
-              // Tenta extrair o título dos cabeçalhos comuns ou do primeiro negrito
-              const titleElement = tempDiv.querySelector('h1, h2, h3, strong, b');
-              const firstChild = tempDiv.firstElementChild;
-              let titleText = '';
-              let elementToRemove = null;
+  useEffect(() => {
+    if (currentScreen === 'reader' && scrollContainerRef.current) {
+      const savedPos = scrollPositions[`${activeChapterId}_${viewMode}`] || 0;
+      if (viewMode === 'scroll') scrollContainerRef.current.scrollTop = savedPos;
+      else scrollContainerRef.current.scrollLeft = savedPos;
+    }
+  }, [activeChapterId, viewMode, currentScreen]);
 
-              if (titleElement && titleElement.textContent.trim().length > 0) {
-                titleText = titleElement.textContent.trim();
-                elementToRemove = titleElement;
-                if (titleElement.parentElement && titleElement.parentElement.textContent.trim() === titleText && titleElement.parentElement.tagName === 'P') {
-                  elementToRemove = titleElement.parentElement;
-                }
-              } else if (firstChild && firstChild.textContent.trim().length > 0) {
-                titleText = firstChild.textContent.trim();
-                elementToRemove = firstChild;
-              }
+  const handleScroll = (e) => {
+    if (selectionMenu) setSelectionMenu(null);
+    const pos = viewMode === 'scroll' ? e.target.scrollTop : e.target.scrollLeft;
+    
+    if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+    scrollTimeout.current = setTimeout(() => {
+      setScrollPositions(prev => ({ ...prev, [`${activeChapterId}_${viewMode}`]: pos }));
+    }, 300);
+  };
 
-              if (titleText) {
-                setExtractedTitles(prev => ({ ...prev, [activeTextId]: titleText }));
-                if (elementToRemove) elementToRemove.remove(); 
-              }
+  const navigateToChapter = (id) => {
+    setActiveChapterId(id);
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+      scrollContainerRef.current.scrollLeft = 0;
+    }
+    if (!isDesktopLayout) setIsSidebarOpen(false); 
+  };
 
-              // Extrai o que sobrou no body (caso o word tenha salvo html com head, body, etc)
-              const bodyMatch = tempDiv.querySelector('body');
-              let finalHtml = bodyMatch ? bodyMatch.innerHTML : tempDiv.innerHTML;
+  const toggleChapterCompletion = (id) => {
+    setCompletedChapters(prev => prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]);
+  };
 
-              if (!finalHtml.trim()) finalHtml = "<p>(O arquivo HTML está vazio)</p>";
+  const handleZoomIn = () => setFontSize(p => Math.min(p + 2, 48));
+  const handleZoomOut = () => setFontSize(p => Math.max(p - 2, 14));
+  const handleLineSpacing = () => setLineSpacing(p => p === 1.2 ? 1.6 : p === 1.6 ? 2.0 : 1.2);
+  const toggleViewMode = () => setViewMode(p => p === 'scroll' ? 'page' : 'scroll');
+  const toggleLayoutMode = () => setLayoutMode(p => p === 'pc' ? 'mobile' : 'pc');
 
-              const updatedOfflineDocs = { ...loadOfflineContent(), [activeTextId]: finalHtml };
-              localStorage.setItem('leitorWebOfflineDocs', JSON.stringify(updatedOfflineDocs));
+  // === MARCADORES ===
+  const handleSaveBookmark = (slot) => {
+    if (!scrollContainerRef.current) return;
+    const pos = viewMode === 'scroll' ? scrollContainerRef.current.scrollTop : scrollContainerRef.current.scrollLeft;
+    const chapter = selectedBook.chapters.find(c => c.id === activeChapterId);
+    setBookmarks(prev => ({ ...prev, [slot]: { textId: activeChapterId, title: chapter.title, viewMode, position: pos } }));
+  };
 
-              setTexts(prevTexts => prevTexts.map(t => 
-                t.id === activeTextId ? { ...t, content: finalHtml } : t
-              ));
-              setIsLoading(false);
-            })
-            .catch(error => {
-              console.error(error);
-              const errorMsg = `<p>O arquivo <strong>${activeText.htmlUrl}</strong> ainda não foi disponibilizado no servidor ou ocorreu um erro de conexão.</p>`;
-              setTexts(prevTexts => prevTexts.map(t => 
-                t.id === activeTextId ? { ...t, content: errorMsg } : t
-              ));
-              setIsLoading(false);
-            });
-        }
-      }, [activeTextId, texts]);
-
-      const updatePageInfo = useCallback(() => {
-        if (viewMode !== 'page' || !scrollContainerRef.current || activeText.type === 'special') return;
-        const container = scrollContainerRef.current;
-        const width = container.clientWidth;
-        if (width === 0) return;
-
-        const total = Math.max(1, Math.ceil((container.scrollWidth - 10) / width));
-        const current = Math.max(1, Math.round(container.scrollLeft / width) + 1);
-        
-        setPageInfo({ current: Math.min(current, total), total });
-      }, [viewMode, activeText.type]);
-
-      useEffect(() => {
-        const handleResize = () => {
-          setWindowWidth(window.innerWidth);
-          if (window.innerWidth >= 768) setIsSidebarOpen(true);
-          else setIsSidebarOpen(false);
-          setTimeout(updatePageInfo, 100);
-        };
-        handleResize();
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-      }, [updatePageInfo]);
-
-      useEffect(() => {
-        const timeoutId = setTimeout(updatePageInfo, 150);
-        return () => clearTimeout(timeoutId);
-      }, [activeTextId, fontSize, lineSpacing, viewMode, isLoading, texts, updatePageInfo]);
-
-      useEffect(() => {
-        flipSoundRef.current = new Audio('https://assets.codepen.io/16327/page-flip-01a.mp3');
-        flipSoundRef.current.volume = 0.3; 
-      }, []);
-
-      useEffect(() => {
-        const prefsToSave = {
-          activeTextId,
-          themeId: currentTheme.id,
-          fontSize,
-          lineSpacing,
-          viewMode,
-          scrollPositions,
-          completedLessons,
-          extractedTitles,
-          highlights,
-          bookmarks
-        };
-        localStorage.setItem('leitorWebPrefs', JSON.stringify(prefsToSave));
-      }, [activeTextId, currentTheme, fontSize, lineSpacing, viewMode, scrollPositions, completedLessons, extractedTitles, highlights, bookmarks]);
-
-      useEffect(() => {
-        if (scrollContainerRef.current && !isLoading && activeText.type !== 'special') {
-          const savedPos = scrollPositions[`${activeTextId}_${viewMode}`] || 0;
-          if (viewMode === 'scroll') scrollContainerRef.current.scrollTop = savedPos;
-          else scrollContainerRef.current.scrollLeft = savedPos;
-        } else if (scrollContainerRef.current && activeText.type === 'special') {
-          scrollContainerRef.current.scrollTop = 0;
-          scrollContainerRef.current.scrollLeft = 0;
-        }
-      }, [activeTextId, viewMode, isLoading, activeText.type]);
-
-      const toggleLessonCompletion = (id) => {
-        setCompletedLessons(prev => 
-          prev.includes(id) ? prev.filter(lessonId => lessonId !== id) : [...prev, id]
-        );
-      };
-
-      const handleScroll = (e) => {
-        if (selectionMenu) setSelectionMenu(null); 
-        if (activeText.type === 'special') return;
-        const pos = viewMode === 'scroll' ? e.target.scrollTop : e.target.scrollLeft;
-        
-        if (viewMode === 'page') updatePageInfo(); 
-
-        if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
-        scrollTimeout.current = setTimeout(() => {
-          setScrollPositions(prev => ({
-            ...prev,
-            [`${activeTextId}_${viewMode}`]: pos
-          }));
-        }, 300);
-      };
-
-      const playFlipSound = () => {
-        if (flipSoundRef.current && viewMode === 'page' && activeText.type !== 'special') {
-          flipSoundRef.current.currentTime = 0;
-          flipSoundRef.current.play().catch(() => {});
-        }
-      };
-
-      const handleTouchEnd = () => {
-        if (viewMode !== 'page' || !scrollContainerRef.current || activeText.type === 'special') return;
-        
-        if (touchTimeout.current) clearTimeout(touchTimeout.current);
-        touchTimeout.current = setTimeout(() => {
-          if (!scrollContainerRef.current) return;
-          const container = scrollContainerRef.current;
-          const width = container.clientWidth;
-          const currentScroll = container.scrollLeft;
-          const targetPage = Math.round(currentScroll / width);
-          
-          if (Math.abs(currentScroll - (targetPage * width)) > 5) {
-             container.scrollTo({ left: targetPage * width, behavior: 'smooth' });
-             playFlipSound();
-          }
-        }, 300); 
-      };
-
-      const turnPage = (direction) => {
-        if (selectionMenu) setSelectionMenu(null);
-        if (scrollContainerRef.current && activeText.type !== 'special') {
-          const container = scrollContainerRef.current;
-          const scrollAmount = container.clientWidth; 
-          container.scrollBy({
-            left: direction === 'next' ? scrollAmount : -scrollAmount,
-            behavior: 'smooth'
-          });
-          playFlipSound(); 
-        }
-      };
-
-      const handleSaveBookmark = (slot) => {
-        if (activeText.type === 'special' || !scrollContainerRef.current) return;
-
-        const pos = viewMode === 'scroll' ? scrollContainerRef.current.scrollTop : scrollContainerRef.current.scrollLeft;
-        const newBookmark = {
-          textId: activeTextId,
-          title: extractedTitles[activeTextId] || activeText.title,
-          viewMode: viewMode,
-          position: pos,
-          page: pageInfo.current
-        };
-        
-        setBookmarks(prev => ({ ...prev, [slot]: newBookmark }));
-      };
-
-      const handleGoToBookmark = (slot) => {
-        const bm = bookmarks[slot];
-        if (!bm) return;
-
-        setScrollPositions(prev => ({
-          ...prev,
-          [`${bm.textId}_${bm.viewMode}`]: bm.position
-        }));
-
-        if (bm.textId !== activeTextId || bm.viewMode !== viewMode) {
-          if (bm.viewMode !== viewMode) setViewMode(bm.viewMode);
-          if (bm.textId !== activeTextId) setActiveTextId(bm.textId);
-        } else {
-          if (scrollContainerRef.current) {
-              if (bm.viewMode === 'scroll') scrollContainerRef.current.scrollTop = bm.position;
-              else scrollContainerRef.current.scrollLeft = bm.position;
-          }
-        }
-        setShowBookmarks(false);
-      };
-
-      const handleClearBookmark = (slot, e) => {
-        e.stopPropagation();
-        setBookmarks(prev => ({ ...prev, [slot]: null }));
-      };
-
-      const handleZoomIn = () => setFontSize(prev => Math.min(prev + 2, 48));
-      const handleZoomOut = () => setFontSize(prev => Math.max(prev - 2, 14));
-      const handleLineSpacing = () => setLineSpacing(prev => prev === 1.2 ? 1.6 : prev === 1.6 ? 2.0 : 1.2);
-      const toggleViewMode = () => setViewMode(prev => prev === 'scroll' ? 'page' : 'scroll');
-
-      // === SISTEMA DE MARCA-TEXTO ===
-      useEffect(() => {
-        let timeoutId = null;
-        const handleSelectionChange = () => {
-          clearTimeout(timeoutId);
-          
-          timeoutId = setTimeout(() => {
-            const selection = window.getSelection();
-            if (!selection || selection.isCollapsed || !selection.toString().trim()) {
-              setSelectionMenu(null);
-              return;
-            }
-
-            const wrapper = document.getElementById('text-content-wrapper');
-            if (!wrapper || !wrapper.contains(selection.anchorNode) || !wrapper.contains(selection.focusNode)) {
-              return;
-            }
-
-            try {
-              const range = selection.getRangeAt(0);
-              const rect = range.getBoundingClientRect();
-              
-              if (rect.width === 0 && rect.height === 0) return;
-              
-              setSelectionMenu({
-                top: rect.top - 55,
-                left: rect.left + (rect.width / 2)
-              });
-            } catch (e) { console.error(e); }
-          }, 200); 
-        };
-
-        document.addEventListener('selectionchange', handleSelectionChange);
-        return () => {
-          document.removeEventListener('selectionchange', handleSelectionChange);
-          clearTimeout(timeoutId);
-        };
-      }, [activeTextId]); 
-
-      const saveHtmlToCache = (htmlContent) => {
-        setTexts(prev => prev.map(t => t.id === activeTextId ? { ...t, content: htmlContent } : t));
-        const updatedOfflineDocs = { ...loadOfflineContent(), [activeTextId]: htmlContent };
-        localStorage.setItem('leitorWebOfflineDocs', JSON.stringify(updatedOfflineDocs));
-      };
-
-      const addHighlight = (colorCode) => {
-        const selection = window.getSelection();
-        if (!selection || selection.rangeCount === 0) return;
-        const range = selection.getRangeAt(0);
-
-        const mark = document.createElement('mark');
-        mark.className = `${colorCode} text-inherit rounded px-1 cursor-pointer transition-colors hover:brightness-95 shadow-sm highlight-mark`;
-        mark.title = "Clique para remover a marcação";
-        
-        try {
-          range.surroundContents(mark);
-          const wrapper = document.getElementById('text-content-wrapper');
-          if (wrapper) saveHtmlToCache(wrapper.innerHTML);
-        } catch(e) {
-          alert('Para marcar, selecione trechos que estejam dentro de um único parágrafo HTML.');
-        }
-        
-        selection.removeAllRanges();
-        setSelectionMenu(null);
-      };
-
-      const handleRemoveHighlight = (e) => {
-        const target = e.target.closest('mark.highlight-mark');
-        if (target) {
-          if (window.confirm("Deseja remover esta marcação?")) {
-            const parent = target.parentNode;
-            while(target.firstChild) {
-              parent.insertBefore(target.firstChild, target);
-            }
-            parent.removeChild(target);
-            
-            const wrapper = document.getElementById('text-content-wrapper');
-            if (wrapper) saveHtmlToCache(wrapper.innerHTML);
-          }
-        }
-      };
-
-      const navigateToLesson = (id) => {
-        setActiveTextId(id);
-        setScrollPositions(prev => ({ ...prev, [`${id}_scroll`]: 0, [`${id}_page`]: 0 }));
-        if (scrollContainerRef.current) {
-          scrollContainerRef.current.scrollTop = 0;
-          scrollContainerRef.current.scrollLeft = 0;
-        }
-        if (window.innerWidth < 768) setIsSidebarOpen(false);
+  const handleGoToBookmark = (slot) => {
+    const bm = bookmarks[slot];
+    if (!bm) return;
+    if (bm.textId !== activeChapterId) setActiveChapterId(bm.textId);
+    if (bm.viewMode !== viewMode) setViewMode(bm.viewMode);
+    setTimeout(() => {
+      if (scrollContainerRef.current) {
+        if (bm.viewMode === 'scroll') scrollContainerRef.current.scrollTop = bm.position;
+        else scrollContainerRef.current.scrollLeft = bm.position;
       }
+    }, 100);
+    setShowBookmarks(false);
+  };
 
-      // === CÁLCULOS DE MARGEM ===
-      const isDesktop = windowWidth >= 768; 
-      const sidebarWidth = 288;
-      
-      const mainAreaWidth = (isDesktop && isSidebarOpen) ? windowWidth - sidebarWidth : windowWidth;
-      const containerWidth = isDesktop ? mainAreaWidth * 0.6 : mainAreaWidth;
-      
-      const marginPx = containerWidth * 0.05;
-      
-      const hasBookmarksSaved = Object.values(bookmarks).some(b => b !== null);
+  const handleClearBookmark = (slot, e) => {
+    e.stopPropagation();
+    setBookmarks(prev => ({ ...prev, [slot]: null }));
+  };
 
-      return (
-        <div className={`min-h-[100dvh] flex transition-colors duration-500 ease-in-out ${currentTheme.classes}`}>
+  // === MARCA-TEXTO ===
+  useEffect(() => {
+    let timeoutId = null;
+    const handleSelectionChange = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        const selection = window.getSelection();
+        if (!selection || selection.isCollapsed || !selection.toString().trim()) {
+          setSelectionMenu(null);
+          return;
+        }
+        const wrapper = document.getElementById('text-content-wrapper');
+        if (!wrapper || !wrapper.contains(selection.anchorNode)) return;
+
+        try {
+          const range = selection.getRangeAt(0);
+          const rect = range.getBoundingClientRect();
+          if (rect.width === 0 && rect.height === 0) return;
+          setSelectionMenu({ top: rect.top - 55, left: rect.left + (rect.width / 2) });
+        } catch (e) { console.error(e); }
+      }, 200); 
+    };
+    document.addEventListener('selectionchange', handleSelectionChange);
+    return () => document.removeEventListener('selectionchange', handleSelectionChange);
+  }, [activeChapterId]);
+
+  const addHighlight = (colorCode) => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+    const range = selection.getRangeAt(0);
+    const mark = document.createElement('mark');
+    mark.className = `${colorCode} text-inherit rounded px-1 cursor-pointer transition-colors hover:brightness-95 shadow-sm highlight-mark`;
+    
+    try {
+      range.surroundContents(mark);
+    } catch(e) {
+      alert('Para marcar corretamente, selecione trechos dentro de um único parágrafo.');
+    }
+    selection.removeAllRanges();
+    setSelectionMenu(null);
+  };
+
+  const handleRemoveHighlight = (e) => {
+    const target = e.target.closest('mark.highlight-mark');
+    if (target && window.confirm("Deseja remover esta marcação?")) {
+      const parent = target.parentNode;
+      while(target.firstChild) parent.insertBefore(target.firstChild, target);
+      parent.removeChild(target);
+    }
+  };
+
+  // =========================================================================
+  // COMPONENTES REUTILIZÁVEIS
+  // =========================================================================
+  const GlobalNavBar = () => (
+    <nav className={`fixed bottom-0 left-0 right-0 z-40 border-t sm:relative sm:border-t-0 sm:border-b sm:shadow-sm flex items-center justify-around pb-6 pt-2 sm:py-2 sm:justify-center sm:gap-12 ${currentTheme.panelClasses}`}>
+      <button onClick={() => setCurrentScreen('feed')} className={`flex flex-col items-center gap-1 transition-all p-2 w-20 ${currentScreen === 'feed' ? 'text-emerald-600 opacity-100 scale-105' : 'opacity-50 hover:opacity-80'}`}>
+        <Home size={22} />
+        <span className="text-[10px] font-bold uppercase tracking-widest">Início</span>
+      </button>
+      <button onClick={() => setCurrentScreen('library')} className={`flex flex-col items-center gap-1 transition-all p-2 w-20 ${currentScreen === 'library' ? 'text-emerald-600 opacity-100 scale-105' : 'opacity-50 hover:opacity-80'}`}>
+        <Library size={22} />
+        <span className="text-[10px] font-bold uppercase tracking-widest">Estante</span>
+      </button>
+      <button className="flex flex-col items-center gap-1 transition-all p-2 w-20 opacity-30 cursor-not-allowed" title="Em Breve">
+        <GraduationCap size={22} />
+        <span className="text-[10px] font-bold uppercase tracking-widest">Cursos</span>
+      </button>
+    </nav>
+  );
+
+  const FeedContent = () => (
+    <div className="flex flex-col gap-4 animate-in fade-in duration-300 w-full max-w-2xl mx-auto pb-24">
+      <div className={`p-4 rounded-2xl border shadow-sm ${currentTheme.panelClasses}`}>
+        <textarea placeholder="Partilhe a sua reflexão com a comunidade..." className="w-full bg-transparent outline-none resize-none text-sm placeholder:text-current/40 mb-3" rows="3"></textarea>
+        <div className="flex justify-end">
+          <button className="bg-current text-white dark:text-black px-4 py-2 rounded-full text-xs font-bold flex items-center gap-2 active:scale-95 transition-all">
+            <Send size={14} /> Publicar
+          </button>
+        </div>
+      </div>
+      {mockFeedPosts.map(post => (
+        <div key={post.id} className={`p-5 rounded-2xl border shadow-sm ${post.isAuthor ? 'bg-amber-500/10 border-amber-500/20' : currentTheme.panelClasses}`}>
+          <div className="flex justify-between items-center mb-3">
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shadow-inner ${post.isAuthor ? 'bg-amber-500 text-white' : 'bg-black/10'}`}>
+                {post.author.charAt(0)}
+              </div>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-sm">{post.author}</span>
+                  {post.isAuthor && <span className="bg-amber-500 text-white text-[9px] px-1.5 py-0.5 rounded-full uppercase tracking-wider font-bold">Autor</span>}
+                </div>
+                <span className="text-[10px] opacity-50">{post.time}</span>
+              </div>
+            </div>
+          </div>
+          <p className="text-sm opacity-80 mb-5 font-serif leading-relaxed">{post.content}</p>
+          <div className="flex items-center gap-6 border-t border-current/10 pt-3">
+            <button className="flex items-center gap-2 text-xs font-bold opacity-60 hover:opacity-100 hover:text-rose-500 transition-all"><Heart size={16} /> {post.likes}</button>
+            <button className="flex items-center gap-2 text-xs font-bold opacity-60 hover:opacity-100 hover:text-blue-500 transition-all"><MessageCircle size={16} /> {post.comments}</button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  // =========================================================================
+  // RENDERIZAÇÃO DAS TELAS PRINCIPAIS (Home e Library)
+  // =========================================================================
+  if (currentScreen === 'feed' || currentScreen === 'library') {
+    return (
+      <div className={`min-h-[100dvh] flex flex-col transition-colors duration-1000 ${themes.claro.classes}`}>
+        <GlobalNavBar />
+        <div className="flex-1 overflow-y-auto px-4 py-8 sm:p-8">
+          
+          {currentScreen === 'feed' && (
+            <div className="w-full max-w-2xl mx-auto animate-in slide-in-from-bottom-4 duration-500">
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight mb-8">Comunidade O Jardim</h1>
+              <FeedContent />
+            </div>
+          )}
+
+          {currentScreen === 'library' && (
+            <div className="w-full max-w-5xl mx-auto animate-in slide-in-from-bottom-4 duration-500 pb-24">
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight mb-8">A Sua Estante</h1>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                {bookCatalog.map(book => (
+                  <div 
+                    key={book.id} 
+                    onClick={() => {
+                      if (!book.isLocked) {
+                        setSelectedBook(book);
+                        setActiveChapterId(book.chapters[0].id);
+                        setCurrentScreen('reader');
+                      } else {
+                        alert("Sistema de Login e Pagamento será integrado na próxima fase para desbloquear novos livros e cursos!");
+                      }
+                    }}
+                    className={`relative rounded-[2rem] p-8 border shadow-lg transition-all duration-300 flex flex-col items-center text-center
+                      ${book.isLocked ? `${themes.escuro.panelClasses} opacity-60 cursor-not-allowed` : `${themes.claro.panelClasses} cursor-pointer hover:-translate-y-2 hover:shadow-2xl`}`}
+                  >
+                    {book.isLocked && (
+                      <div className="absolute top-5 right-5 bg-black/20 p-2.5 rounded-full text-white">
+                        <Lock size={18} />
+                      </div>
+                    )}
+                    <div className="text-7xl mb-6 opacity-90 select-none drop-shadow-md">{book.coverImage}</div>
+                    <h2 className="text-2xl font-black leading-tight mb-2 tracking-tight">{book.title}</h2>
+                    <p className="text-xs font-bold uppercase tracking-widest opacity-50 font-serif">{book.author}</p>
+                    
+                    {!book.isLocked ? (
+                      <div className="mt-8 w-full bg-emerald-50 text-emerald-700 font-black py-3 rounded-xl text-sm border border-emerald-100 hover:bg-emerald-100 transition-colors">
+                        Ler Agora
+                      </div>
+                    ) : (
+                      <div className="mt-8 w-full bg-black/20 text-white/50 font-black py-3 rounded-xl text-sm">
+                        Bloqueado
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // RENDERIZAÇÃO DO LEITOR (Modo Imersivo e Scholar)
+  // =========================================================================
+  if (currentScreen === 'reader') {
+    const sidebarWidth = 320;
+    const studyPanelWidth = 380;
+    const desktopMinWidth = sidebarWidth + 600 + studyPanelWidth; 
+    const containerClass = `min-h-[100dvh] flex flex-col md:flex-row overflow-x-auto transition-colors duration-500 ease-in-out ${currentTheme.classes}`;
+    const wrapperStyle = isDesktopLayout && windowWidth < desktopMinWidth ? { minWidth: `${desktopMinWidth}px` } : { width: '100%' };
+
+    const mainAreaWidth = isDesktopLayout ? Math.max(windowWidth, desktopMinWidth) - sidebarWidth - studyPanelWidth : windowWidth;
+    const marginPx = mainAreaWidth * 0.05; 
+    const columnWidth = mainAreaWidth - (marginPx * 2);
+
+    const chapter = selectedBook?.chapters.find(c => c.id === activeChapterId);
+
+    return (
+      <div className={containerClass}>
+        <div style={wrapperStyle} className="flex h-full relative">
           
           {/* Popup Flutuante do Marca-Textos */}
           {selectionMenu && (
-            <div 
-              className="fixed z-[100] bg-zinc-800 text-white rounded-xl shadow-2xl flex items-center p-2 gap-2 animate-in zoom-in-95 duration-100"
-              style={{ 
-                  top: `${Math.max(10, selectionMenu.top)}px`, 
-                  left: `${selectionMenu.left}px`, 
-                  transform: 'translateX(-50%)' 
-              }}
-            >
-              <button onClick={() => addHighlight('bg-yellow-300/80 dark:bg-yellow-500/60')} className="w-7 h-7 rounded-full bg-yellow-400 hover:scale-110 transition-transform shadow-sm"></button>
-              <button onClick={() => addHighlight('bg-green-300/80 dark:bg-green-500/60')} className="w-7 h-7 rounded-full bg-green-400 hover:scale-110 transition-transform shadow-sm"></button>
-              <button onClick={() => addHighlight('bg-pink-300/80 dark:bg-pink-500/60')} className="w-7 h-7 rounded-full bg-pink-400 hover:scale-110 transition-transform shadow-sm"></button>
+            <div className="fixed z-[100] bg-zinc-800 text-white rounded-xl shadow-2xl flex items-center p-2 gap-2 animate-in zoom-in-95 duration-100" style={{ top: `${Math.max(10, selectionMenu.top)}px`, left: `${selectionMenu.left}px`, transform: 'translateX(-50%)' }}>
+              <button onClick={() => addHighlight('bg-yellow-300/80 dark:bg-yellow-500/60')} className="w-7 h-7 rounded-full bg-yellow-400 hover:scale-110 shadow-sm"></button>
+              <button onClick={() => addHighlight('bg-green-300/80 dark:bg-green-500/60')} className="w-7 h-7 rounded-full bg-green-400 hover:scale-110 shadow-sm"></button>
+              <button onClick={() => addHighlight('bg-pink-300/80 dark:bg-pink-500/60')} className="w-7 h-7 rounded-full bg-pink-400 hover:scale-110 shadow-sm"></button>
               <div className="w-px h-6 bg-white/20 mx-1"></div>
-              <button onClick={() => {
-                setSelectionMenu(null);
-                window.getSelection().removeAllRanges();
-              }} className="px-2 py-1 text-sm opacity-80 hover:opacity-100 active:scale-95">
-                <i className="fas fa-times"></i>
-              </button>
+              <button onClick={() => { setSelectionMenu(null); window.getSelection().removeAllRanges(); }} className="px-2 py-1 text-sm opacity-80 hover:opacity-100"><X size={16} /></button>
               <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-zinc-800"></div>
             </div>
           )}
 
-          {/* Overlay Escuro para Mobile Sidebar */}
-          <div 
-            className={`fixed inset-0 bg-black/40 z-40 transition-opacity duration-300 md:hidden backdrop-blur-sm
-              ${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-            onClick={() => setIsSidebarOpen(false)}
-          ></div>
+          {/* COLUNA 1: SUMÁRIO E NAVEGAÇÃO */}
+          {!isDesktopLayout && (
+            <div className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 backdrop-blur-sm ${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsSidebarOpen(false)}></div>
+          )}
 
-          {/* Menu Lateral (Sidebar) */}
-          <aside 
-            className={`fixed inset-y-0 left-0 z-50 w-4/5 max-w-[280px] md:relative md:max-w-none md:w-72 h-[100dvh] flex flex-col border-r backdrop-blur-xl transition-transform duration-300 ease-in-out ${currentTheme.panelClasses}
-              ${isSidebarOpen ? 'translate-x-0 shadow-2xl md:shadow-none' : '-translate-x-full md:translate-x-0'}`}
-          >
-            <div className="p-4 md:p-5 flex items-center justify-between border-b border-inherit shrink-0">
-              <div className="flex items-center gap-3 font-bold text-xl opacity-90">
-                <i className="fas fa-bookmark text-xl"></i>
-                <span>Menu de Lições</span>
-              </div>
-              <button 
-                onClick={() => setIsSidebarOpen(false)} 
-                className="md:hidden p-3 -mr-3 rounded-full hover:bg-black/10 active:scale-95 transition-all"
-              >
-                <i className="fas fa-times text-xl"></i>
+          <aside className={`${isDesktopLayout ? 'w-[320px] shrink-0 border-r border-current/10' : 'fixed inset-y-0 left-0 z-50 w-4/5 max-w-[320px] border-r border-current/10 shadow-2xl'} flex flex-col h-[100dvh] transition-transform duration-300 ease-in-out ${currentTheme.panelClasses} ${!isDesktopLayout && !isSidebarOpen ? '-translate-x-full' : 'translate-x-0'}`}>
+            <div className="p-5 flex items-center justify-between border-b border-current/10 shrink-0">
+              <button onClick={() => setCurrentScreen('library')} className="flex items-center gap-2 font-bold opacity-70 hover:opacity-100 transition-opacity text-sm bg-black/5 px-4 py-2 rounded-full active:scale-95">
+                <ChevronLeft size={16} /> Estante
               </button>
+              {!isDesktopLayout && <button onClick={() => setIsSidebarOpen(false)} className="p-2 rounded-full hover:bg-black/10"><X size={20} /></button>}
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 pt-4 space-y-2 pb-24">
-              {texts.map(text => (
-                <div 
-                  key={text.id}
-                  onClick={() => navigateToLesson(text.id)}
-                  className={`p-3.5 rounded-xl cursor-pointer transition-all flex justify-between items-center group
-                    ${activeTextId === text.id ? 'bg-black/10 shadow-sm ring-1 ring-inherit' : 'hover:bg-black/5 active:bg-black/10'}
-                    ${text.type === 'special' ? 'border border-current opacity-70 mt-4 mb-2' : ''}`}
-                >
-                  <div className="flex flex-col overflow-hidden text-left w-full pr-2">
-                    {/* Primeira linha: Etiqueta estática */}
-                    {text.type !== 'special' && (
-                      <span className="text-[10px] font-bold uppercase tracking-widest opacity-50 mb-0.5">
-                        {text.title}
-                      </span>
-                    )}
-                    {/* Segunda linha: Título extraído */}
-                    <span className="text-[15px] font-semibold truncate">
-                      {text.type === 'special' ? text.title : (extractedTitles[text.id] || 'Carregando Capítulo...')}
-                    </span>
+            <div className="p-5 border-b border-current/10 shrink-0 flex flex-col items-center text-center">
+              <div className="w-16 h-16 rounded-2xl bg-black/5 flex items-center justify-center text-3xl mb-3 shadow-inner">{selectedBook.coverImage}</div>
+              <h2 className="font-black text-lg leading-tight tracking-tight">{selectedBook.title}</h2>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 space-y-1.5 hide-scrollbar pb-24">
+              {selectedBook.chapters.map(c => (
+                <div key={c.id} onClick={() => navigateToChapter(c.id)} className={`p-3.5 rounded-2xl cursor-pointer transition-all flex justify-between items-center group ${activeChapterId === c.id ? 'bg-current text-white dark:text-black shadow-md' : 'hover:bg-black/5'} ${c.type === 'special' ? 'border border-current opacity-70 mt-4 mb-2' : ''}`}>
+                  <div className="flex flex-col text-left overflow-hidden pr-2">
+                    {c.type !== 'special' && <span className={`text-[9px] font-black uppercase tracking-widest mb-0.5 ${activeChapterId === c.id ? 'opacity-80' : 'opacity-40'}`}>{c.label}</span>}
+                    <span className={`text-sm font-semibold truncate ${activeChapterId === c.id ? '' : 'opacity-80'}`}>{c.title}</span>
                   </div>
-                  
-                  {text.type !== 'special' && completedLessons.includes(text.id) && (
-                    <i className="fas fa-check-circle text-green-500 text-lg shadow-sm rounded-full bg-white/30 backdrop-blur-sm shrink-0"></i>
-                  )}
+                  {completedChapters.includes(c.id) && <Check className={`shrink-0 ${activeChapterId === c.id ? 'opacity-100' : 'text-emerald-500'}`} size={16} />}
                 </div>
               ))}
             </div>
           </aside>
 
-          {/* Conteúdo Principal */}
-          <main className="flex-1 flex flex-col h-[100dvh] w-full min-w-0 overflow-hidden relative bg-black/5">
-            
-            {/* Barra de Ferramentas */}
-            <header className={`p-2 sm:p-4 flex items-center justify-between border-b backdrop-blur-md z-30 shrink-0 ${currentTheme.panelClasses}`}>
-              
-              <div className="flex items-center gap-2 sm:gap-4 shrink-0 flex-1 min-w-0">
-                <button 
-                  onClick={() => setIsSidebarOpen(true)} 
-                  className="p-3 rounded-xl hover:bg-black/10 active:scale-95 transition-all md:hidden shrink-0"
-                >
-                  <i className="fas fa-bars text-xl"></i>
-                </button>
-                <h1 className="font-bold text-sm sm:text-base md:text-lg opacity-90 uppercase tracking-widest truncate">
-                  Lições de Vida Plena
-                </h1>
+          {/* COLUNA 2: ÁREA DE LEITURA E DEFINIÇÕES */}
+          <main className="flex-1 flex flex-col h-[100dvh] min-w-0 relative">
+            <header className={`p-3 flex items-center justify-between border-b border-current/10 shrink-0 z-20 ${currentTheme.panelClasses}`}>
+              <div className="flex items-center gap-2">
+                {!isDesktopLayout && <button onClick={() => setIsSidebarOpen(true)} className="p-2 rounded-xl hover:bg-black/10 bg-black/5"><Menu size={20} /></button>}
+                <h1 className="font-bold text-xs sm:text-sm md:text-base opacity-90 uppercase tracking-widest truncate ml-2">{chapter?.title}</h1>
               </div>
-
-              <div className="flex items-center gap-1 sm:gap-2 shrink-0 relative ml-2 z-50">
-                
-                {/* Botão de Fitas / Marcadores */}
-                <button 
-                  onClick={() => { setShowBookmarks(!showBookmarks); setShowSettings(false); }}
-                  className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all shrink-0 relative z-50"
-                  title="Fitas de Marcação"
-                >
-                  <i className="fas fa-bookmark text-xl pointer-events-none"></i>
-                  {hasBookmarksSaved && (
-                     <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full shadow-sm"></span>
-                  )}
+              
+              <div className="flex items-center gap-1">
+                <button onClick={() => { setShowBookmarks(!showBookmarks); setShowSettings(false); }} className="p-2 rounded-xl hover:bg-black/10 relative">
+                  <Bookmark size={20} />
+                  {Object.values(bookmarks).some(b => b !== null) && <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full"></span>}
                 </button>
 
-                {/* Menu Dropdown de Marcadores */}
                 {showBookmarks && (
                   <React.Fragment>
-                    <div className="fixed inset-0 w-screen h-screen z-40" onClick={() => setShowBookmarks(false)}></div>
-                    <div className={`absolute right-12 top-full mt-3 p-5 rounded-3xl shadow-2xl border w-72 sm:w-80 z-50 origin-top-right animate-in fade-in zoom-in-95 duration-200 flex flex-col gap-4 ${currentTheme.solidMenuClasses}`}>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowBookmarks(false)}></div>
+                    <div className={`absolute right-12 top-full mt-2 p-5 rounded-3xl shadow-2xl border w-72 z-50 animate-in fade-in zoom-in-95 flex flex-col gap-4 ${currentTheme.solidMenuClasses}`}>
                       <span className="text-[11px] font-bold uppercase tracking-wider opacity-60">Fitas de Marcação</span>
-                      
                       {[1, 2, 3].map(slot => {
-                         const bm = bookmarks[slot];
-                         const colorClass = slot === 1 ? 'bg-rose-500' : slot === 2 ? 'bg-blue-500' : 'bg-emerald-500';
-                         const isSpecial = activeText.type === 'special';
-
-                         return (
-                           <div key={slot} className="flex items-center gap-2">
+                          const bm = bookmarks[slot];
+                          const colorClass = slot === 1 ? 'bg-rose-500' : slot === 2 ? 'bg-blue-500' : 'bg-emerald-500';
+                          const isSpecial = chapter?.type === 'special';
+                          return (
+                            <div key={slot} className="flex items-center gap-2">
                               {bm ? (
-                                 <div className="flex-1 flex items-center justify-between p-3 rounded-2xl bg-black/5 hover:bg-black/10 transition-all border border-transparent hover:border-black/5 group cursor-pointer" onClick={() => handleGoToBookmark(slot)}>
+                                  <div className="flex-1 flex items-center justify-between p-3 rounded-2xl bg-black/5 hover:bg-black/10 cursor-pointer group" onClick={() => handleGoToBookmark(slot)}>
                                     <div className="flex items-center gap-3 overflow-hidden">
-                                       <div className={`w-6 h-6 rounded-full text-white flex items-center justify-center text-xs font-bold ${colorClass} shrink-0 shadow-md`}>{slot}</div>
-                                       <div className="flex flex-col truncate">
-                                         <span className="text-[10px] uppercase opacity-50 tracking-widest">{bm.viewMode === 'page' ? `Pág ${bm.page}` : 'Rolagem'}</span>
-                                         <span className="text-sm font-bold truncate">{bm.title}</span>
-                                       </div>
+                                        <div className={`w-6 h-6 rounded-full text-white flex items-center justify-center text-xs font-bold ${colorClass} shrink-0`}>{slot}</div>
+                                        <div className="flex flex-col truncate"><span className="text-[10px] uppercase opacity-50 tracking-widest">{bm.viewMode === 'page' ? 'Página' : 'Rolagem'}</span><span className="text-sm font-bold truncate">{bm.title}</span></div>
                                     </div>
-                                    <button onClick={(e) => handleClearBookmark(slot, e)} className="opacity-0 group-hover:opacity-100 p-2 hover:text-red-500 transition-all" title="Remover Fita">
-                                       <i className="fas fa-trash-alt text-sm"></i>
-                                    </button>
-                                 </div>
+                                    <button onClick={(e) => handleClearBookmark(slot, e)} className="opacity-0 group-hover:opacity-100 p-2 hover:text-red-500"><X size={14}/></button>
+                                  </div>
                               ) : (
-                                 <button 
-                                    disabled={isSpecial}
-                                    onClick={() => handleSaveBookmark(slot)} 
-                                    className={`w-full flex items-center gap-3 p-3 rounded-2xl border-2 border-dashed transition-all
-                                      ${isSpecial ? 'border-current opacity-20 cursor-not-allowed' : `${colorClass} border-transparent bg-black/5 hover:opacity-100 hover:shadow-md`}`}
-                                 >
-                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${isSpecial ? 'border-2 border-current' : 'bg-white/20 text-inherit'}`}>{slot}</div>
-                                    <span className="text-sm font-bold opacity-80">{isSpecial ? 'Indisponível nesta página' : 'Guardar Posição Atual'}</span>
-                                 </button>
+                                  <button disabled={isSpecial} onClick={() => handleSaveBookmark(slot)} className={`w-full flex items-center gap-3 p-3 rounded-2xl border-2 border-dashed ${isSpecial ? 'opacity-20' : 'hover:bg-black/5 border-transparent'} transition-all`}>
+                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${colorClass}`}>{slot}</div>
+                                    <span className="text-sm font-bold opacity-80">{isSpecial ? 'Indisponível aqui' : 'Guardar Posição'}</span>
+                                  </button>
                               )}
-                           </div>
-                         )
+                            </div>
+                          )
                       })}
                     </div>
                   </React.Fragment>
                 )}
 
-                {/* Botão de Configurações */}
-                <button 
-                  onClick={() => { setShowSettings(!showSettings); setShowBookmarks(false); }}
-                  className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all shrink-0 ml-1 relative z-50"
-                  title="Configurações"
-                >
-                  <i className={`fas fa-cog text-xl transition-transform duration-300 pointer-events-none ${showSettings ? 'rotate-90' : ''}`}></i>
+                <button onClick={toggleLayoutMode} className="p-2 rounded-xl hover:bg-black/10" title="Modo Scholar / Mobile">
+                  {layoutMode === 'pc' ? <Smartphone size={20} /> : <Monitor size={20} />}
+                </button>
+
+                {!isDesktopLayout && <button onClick={() => setIsStudyPanelOpen(true)} className="p-2 rounded-xl hover:bg-black/10 relative"><MessageCircle size={20} /></button>}
+                
+                <button onClick={() => { setShowSettings(!showSettings); setShowBookmarks(false); }} className="p-2 rounded-xl hover:bg-black/10">
+                  <Settings size={20} className={showSettings ? 'rotate-90 transition-transform' : 'transition-transform'} />
                 </button>
                 
-                {/* Menu de Configurações Dropdown */}
                 {showSettings && (
                   <React.Fragment>
-                    <div className="fixed inset-0 w-screen h-screen z-40" onClick={() => setShowSettings(false)}></div>
-                    <div className={`absolute right-0 top-full mt-3 p-5 rounded-3xl shadow-2xl border w-72 sm:w-80 z-50 origin-top-right animate-in fade-in zoom-in-95 duration-200 flex flex-col gap-6 ${currentTheme.solidMenuClasses}`}>
-                      
-                      <div className="flex flex-col gap-3 relative z-50">
-                        <span className="text-[11px] font-bold uppercase tracking-wider opacity-60">Tamanho e Espaçamento</span>
-                        <div className="flex items-center justify-between bg-black/5 rounded-2xl p-1.5 shadow-inner">
-                          <button onClick={handleZoomOut} className="p-3 rounded-xl hover:bg-black/10 flex-1 flex justify-center active:scale-95 transition-all"><i className="fas fa-search-minus text-lg"></i></button>
-                          <div className="w-px h-6 bg-current opacity-10"></div>
-                          <button onClick={handleLineSpacing} className="p-3 rounded-xl hover:bg-black/10 flex-1 flex justify-center active:scale-95 transition-all"><i className="fas fa-text-height text-lg"></i></button>
-                          <div className="w-px h-6 bg-current opacity-10"></div>
-                          <button onClick={handleZoomIn} className="p-3 rounded-xl hover:bg-black/10 flex-1 flex justify-center active:scale-95 transition-all"><i className="fas fa-search-plus text-lg"></i></button>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowSettings(false)}></div>
+                    <div className={`absolute right-4 top-full mt-2 p-5 rounded-3xl shadow-2xl border w-72 z-50 animate-in fade-in zoom-in-95 flex flex-col gap-6 ${currentTheme.solidMenuClasses}`}>
+                      <div>
+                        <span className="text-[11px] font-bold uppercase tracking-wider opacity-60 mb-2 block">Tipografia & Espaçamento</span>
+                        <div className="flex justify-between bg-black/5 rounded-xl p-1 shadow-inner">
+                          <button onClick={handleZoomOut} className="p-3 hover:bg-black/10 rounded-lg flex-1 flex justify-center"><ZoomOut size={18}/></button>
+                          <div className="w-px bg-current opacity-10 mx-1"></div>
+                          <button onClick={handleLineSpacing} className="p-3 hover:bg-black/10 rounded-lg flex-1 flex justify-center"><Menu size={18}/></button>
+                          <div className="w-px bg-current opacity-10 mx-1"></div>
+                          <button onClick={handleZoomIn} className="p-3 hover:bg-black/10 rounded-lg flex-1 flex justify-center"><ZoomIn size={18}/></button>
                         </div>
                       </div>
-
-                      <div className="flex flex-col gap-3 relative z-50">
-                        <span className="text-[11px] font-bold uppercase tracking-wider opacity-60">Modo de Leitura</span>
-                        <button 
-                          onClick={toggleViewMode} 
-                          className="w-full flex items-center justify-between p-4 rounded-2xl bg-black/5 hover:bg-black/10 active:scale-95 transition-all font-semibold text-sm border border-transparent hover:border-black/5"
-                        >
-                          <span className="flex items-center gap-3">
-                            <i className={`fas ${viewMode === 'scroll' ? 'fa-scroll' : 'fa-book-open'} text-lg opacity-80`}></i>
-                            {viewMode === 'scroll' ? 'Rolagem Contínua' : 'Páginas (Kindle)'}
-                          </span>
-                          <i className="fas fa-sync-alt opacity-40"></i>
+                      <div>
+                        <span className="text-[11px] font-bold uppercase tracking-wider opacity-60 mb-2 block">Modo de Leitura</span>
+                        <button onClick={toggleViewMode} className="w-full flex items-center justify-between p-3 rounded-xl bg-black/5 hover:bg-black/10 active:scale-95 transition-all text-sm font-bold">
+                          <span className="flex items-center gap-2"><BookOpen size={16} /> {viewMode === 'scroll' ? 'Rolagem Contínua' : 'Páginas'}</span>
                         </button>
                       </div>
-
-                      <div className="flex flex-col gap-3 relative z-50">
-                        <span className="text-[11px] font-bold uppercase tracking-wider opacity-60">Cores / Temas</span>
-                        <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <span className="text-[11px] font-bold uppercase tracking-wider opacity-60 mb-2 block">Temas</span>
+                        <div className="grid grid-cols-5 gap-2">
                           {Object.values(themes).map(theme => (
-                            <button
-                              key={theme.id}
-                              onClick={() => setCurrentTheme(theme)}
-                              className={`flex flex-col items-center gap-2 p-3 rounded-2xl transition-all border border-transparent
-                                ${currentTheme.id === theme.id ? 'bg-black/10 shadow-inner border-black/10' : 'hover:bg-black/5'}`}
-                            >
-                              <div className={`w-8 h-8 rounded-full shadow-md ${theme.preview}`}></div>
-                              <span className="text-[10px] font-bold opacity-80">{theme.name}</span>
-                            </button>
+                            <button key={theme.id} onClick={() => setCurrentTheme(theme)} className={`w-8 h-8 rounded-full shadow-inner border-2 ${currentTheme.id === theme.id ? 'border-current' : 'border-transparent'} ${theme.preview}`}></button>
                           ))}
                         </div>
                       </div>
@@ -727,211 +606,157 @@
               </div>
             </header>
 
-            {/* Container Dinâmico de Leitura / Páginas Especiais */}
-            <div className="flex-1 w-full relative flex justify-center overflow-hidden">
-              
-              {activeText.type === 'special' ? (
-                <div className="w-full h-full overflow-y-auto">
-                  
-                  {/* PÁGINA: CAPA */}
-                  {activeText.id === 'capa' && (
-                    <div className="flex flex-col items-center justify-center min-h-full text-center p-8 animate-in fade-in duration-1000">
-                      <div className="max-w-xl w-full flex flex-col items-center border-[6px] border-double border-current p-10 sm:p-16 rounded-sm bg-black/5 backdrop-blur-sm shadow-2xl">
-                        <i className="fas fa-seedling text-5xl sm:text-6xl mb-8 opacity-80"></i>
-                        <h1 className="text-4xl sm:text-6xl font-black uppercase tracking-widest leading-tight opacity-90 mb-6">
-                          Lições de<br/>Vida Plena
-                        </h1>
-                        <div className="w-32 h-1 bg-current opacity-40 mb-6"></div>
-                        <p className="text-xl sm:text-2xl font-serif italic opacity-80">
-                          Um guia para a sua evolução interior
-                        </p>
-                        <button 
-                          onClick={() => navigateToLesson('sumario')}
-                          className="mt-16 flex items-center gap-3 px-10 py-5 rounded-full font-bold shadow-lg bg-black/10 hover:bg-black/20 border-2 border-current active:scale-95 transition-all text-lg"
-                        >
-                          Abrir o Livro <i className="fas fa-book-open"></i>
+            <div className="flex-1 w-full relative flex justify-center overflow-hidden bg-black/5">
+              {chapter?.id === 'sumario' ? (
+                <div className="w-full h-full overflow-y-auto p-6 sm:p-12 pb-32 flex justify-center">
+                  <div className={`max-w-2xl w-full p-8 rounded-[2rem] border shadow-xl h-fit ${currentTheme.panelClasses}`}>
+                    <h2 className="text-3xl font-black uppercase tracking-widest opacity-90 mb-8 text-center border-b-2 border-current/10 pb-6">Sumário</h2>
+                    <div className="flex flex-col gap-2">
+                      {selectedBook.chapters.filter(c => c.type !== 'special').map(c => (
+                        <button key={c.id} onClick={() => navigateToChapter(c.id)} className="flex justify-between items-center p-5 bg-black/5 hover:bg-black/10 rounded-2xl transition-all text-left group">
+                          <div className="flex flex-col">
+                            <span className="font-bold opacity-50 text-xs tracking-widest uppercase mb-1">{c.label}</span>
+                            <span className="font-serif text-lg opacity-90">{c.title}</span>
+                          </div>
+                          {completedChapters.includes(c.id) && <CheckCheck size={24} className="text-emerald-500" />}
                         </button>
-                      </div>
+                      ))}
                     </div>
-                  )}
-
-                  {/* PÁGINA: SUMÁRIO */}
-                  {activeText.id === 'sumario' && (
-                    <div className="flex flex-col items-center min-h-full p-6 sm:p-12 animate-in fade-in duration-1000 pb-32">
-                      <div className="max-w-2xl w-full flex flex-col p-6 sm:p-10 bg-black/5 rounded-2xl backdrop-blur-sm border border-current shadow-lg">
-                        <h2 className="text-3xl font-black uppercase tracking-widest opacity-90 mb-8 text-center border-b-2 border-current pb-6">Sumário</h2>
-                        <div className="flex flex-col gap-3">
-                          {texts.filter(t => t.type !== 'special').map(t => (
-                            <button 
-                              key={t.id}
-                              onClick={() => navigateToLesson(t.id)}
-                              className="flex justify-between items-center p-4 hover:bg-black/10 rounded-xl transition-all text-left group border border-transparent hover:border-black/10 active:scale-95"
-                            >
-                              <div className="flex flex-col">
-                                <span className="font-bold opacity-60 text-xs tracking-widest uppercase mb-1">{t.title}</span>
-                                <span className="font-serif text-lg opacity-90 group-hover:underline decoration-2 underline-offset-4">{extractedTitles[t.id] || 'Novo Capítulo...'}</span>
-                              </div>
-                              <div className="flex items-center gap-4">
-                                {completedLessons.includes(t.id) && <i className="fas fa-check-circle text-green-500 text-xl shadow-sm rounded-full bg-white/30 backdrop-blur-sm"></i>}
-                                <i className="fas fa-chevron-right opacity-30 group-hover:opacity-100 transition-opacity"></i>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* PÁGINA: AUTOR */}
-                  {activeText.id === 'autor' && (
-                    <div className="flex flex-col items-center justify-center min-h-full text-center p-8 animate-in fade-in duration-1000">
-                      <div className="max-w-2xl w-full flex flex-col items-center p-8">
-                        <div className="w-40 h-40 rounded-full bg-black/10 flex items-center justify-center mb-6 shadow-xl border-4 border-current overflow-hidden">
-                           <i className="fas fa-user-edit text-6xl opacity-50"></i>
-                        </div>
-                        <h2 className="text-4xl font-black uppercase tracking-wider opacity-90 mb-2">Nome do Autor</h2>
-                        <h3 className="text-lg uppercase tracking-widest opacity-60 mb-8">Escritor & Pensador</h3>
-                        
-                        <p className="text-lg sm:text-xl font-serif text-justify leading-relaxed opacity-85 prose-content">
-                          Este é o espaço reservado para a sua biografia. Fale um pouco sobre a sua jornada, as suas motivações para escrever as "Lições de Vida Plena" e o que espera despertar no coração dos seus leitores.
-                          <br/><br/>
-                          Sinta-se à vontade para editar este texto no código do arquivo sempre que pretender.
-                        </p>
-                      </div>
-                    </div>
-                  )}
+                  </div>
                 </div>
               ) : (
-                <React.Fragment>
-                  
-                  {/* Setas Laterais Ocupando TODO o espaço vazio fora dos 60% */}
-                  {viewMode === 'page' && !isLoading && (
-                    <div className="absolute inset-0 pointer-events-none flex justify-between z-10 pb-8">
-                      <button onClick={() => turnPage('prev')} className="pointer-events-auto h-full w-16 sm:w-28 md:w-[20%] flex items-center justify-start pl-2 sm:pl-6 text-current opacity-10 hover:opacity-40 transition-opacity active:opacity-60">
-                        <i className="fas fa-chevron-left text-5xl sm:text-7xl"></i>
-                      </button>
-                      <button onClick={() => turnPage('next')} className="pointer-events-auto h-full w-16 sm:w-28 md:w-[20%] flex items-center justify-end pr-2 sm:pr-6 text-current opacity-10 hover:opacity-40 transition-opacity active:opacity-60">
-                        <i className="fas fa-chevron-right text-5xl sm:text-7xl"></i>
-                      </button>
+                <div className="flex w-full h-full relative">
+                  {viewMode === 'page' && (
+                    <div className="absolute inset-0 pointer-events-none flex justify-between z-10">
+                      <button onClick={() => {
+                         if (scrollContainerRef.current.scrollLeft === 0) {
+                            const currentIdx = selectedBook.chapters.findIndex(c => c.id === activeChapterId);
+                            if (currentIdx > 0) navigateToChapter(selectedBook.chapters[currentIdx - 1].id);
+                         } else {
+                            scrollContainerRef.current.scrollBy({ left: -scrollContainerRef.current.clientWidth, behavior: 'smooth' });
+                         }
+                      }} className="pointer-events-auto h-full w-[15%] flex items-center justify-start pl-2 sm:pl-6 text-current opacity-10 hover:opacity-40 transition-opacity"><ChevronLeft size={48} /></button>
+                      <button onClick={() => {
+                         const container = scrollContainerRef.current;
+                         if (Math.ceil(container.scrollLeft + container.clientWidth) >= container.scrollWidth) {
+                            const currentIdx = selectedBook.chapters.findIndex(c => c.id === activeChapterId);
+                            if (currentIdx < selectedBook.chapters.length - 1) navigateToChapter(selectedBook.chapters[currentIdx + 1].id);
+                         } else {
+                            container.scrollBy({ left: container.clientWidth, behavior: 'smooth' });
+                         }
+                      }} className="pointer-events-auto h-full w-[15%] flex items-center justify-end pr-2 sm:pr-6 text-current opacity-10 hover:opacity-40 transition-opacity"><ChevronRight size={48} /></button>
                     </div>
                   )}
 
-                  {/* Wrapper Principal de 60% na Web (Desktop) */}
                   <div 
                     ref={scrollContainerRef}
                     onScroll={handleScroll}
-                    onTouchEnd={handleTouchEnd}
-                    className={`h-full relative scroll-smooth mx-auto shadow-2xl backdrop-blur-3xl w-full md:w-[60%]
-                      ${viewMode === 'scroll' ? 'overflow-y-auto overflow-x-hidden hide-scrollbar' : 'overflow-x-auto overflow-y-hidden hide-scrollbar-completely'}
-                      ${currentTheme.panelClasses}`}
+                    className={`h-full w-full relative scroll-smooth shadow-2xl backdrop-blur-3xl mx-auto ${viewMode === 'scroll' ? 'overflow-y-auto overflow-x-hidden hide-scrollbar' : 'overflow-x-auto overflow-y-hidden hide-scrollbar-completely'} ${currentTheme.panelClasses}`}
                   >
-                    <div className={`mx-auto w-full ${viewMode === 'scroll' ? 'h-auto' : 'h-full'}`}
-                         style={viewMode === 'scroll' ? { padding: `24px ${marginPx}px 120px ${marginPx}px` } : {}}>
-                      
-                      {isLoading ? (
-                        <div className="flex flex-col items-center justify-center h-full opacity-60 pt-20">
-                          <div className="loader mb-4"></div>
-                          <p className="font-bold tracking-widest uppercase text-sm">Carregando Lição...</p>
-                        </div>
-                      ) : activeText && (
-                        <article 
-                          className="w-full break-words transition-all duration-300 relative"
-                          style={viewMode === 'page' ? {
-                            /* Margens precisas de 5% ativadas no modo leitura horizontal e vertical */
-                            columnWidth: `${containerWidth - (marginPx * 2)}px`,
-                            columnGap: `${marginPx * 2}px`,
-                            height: '100%', 
-                            padding: `24px ${marginPx}px 40px ${marginPx}px`, 
-                            boxSizing: 'border-box'
-                          } : {}}
-                        >
-                          <h2 
-                            className="font-bold mb-6 sm:mb-8 leading-tight opacity-90 border-b-2 border-current pb-4"
-                            style={{ fontSize: `${fontSize * 1.4}px`, breakAfter: 'avoid' }}
-                          >
-                            {extractedTitles[activeText.id] || activeText.title}
-                          </h2>
-                          
-                          {/* Container de Leitura (Alinhado à Esquerda + Hifenização Ativada + HTML Preservado) */}
-                          <div 
-                            id="text-content-wrapper"
-                            className="prose-content opacity-85 font-serif text-left hyphens-auto select-text"
-                            style={{ 
-                              fontSize: `${fontSize}px`, 
-                              lineHeight: lineSpacing,
-                              WebkitTouchCallout: 'none' 
-                            }}
-                            onCopy={e => e.preventDefault()}
-                            onCut={e => e.preventDefault()}
-                            onPaste={e => e.preventDefault()}
-                            onContextMenu={e => e.preventDefault()}
-                            onClick={handleRemoveHighlight}
-                            dangerouslySetInnerHTML={{ __html: activeText.content }}
-                          >
-                          </div>
+                    <div style={viewMode === 'scroll' ? { padding: `40px ${marginPx}px 120px ${marginPx}px` } : { height: '100%' }}>
+                      <article 
+                        className="w-full break-words relative animate-in fade-in duration-500"
+                        style={viewMode === 'page' ? { columnWidth: `${columnWidth}px`, columnGap: `${marginPx * 2}px`, height: '100%', padding: `40px ${marginPx}px 60px ${marginPx}px`, boxSizing: 'border-box' } : {}}
+                      >
+                        <h2 className="font-black mb-10 leading-tight opacity-90 border-b-2 border-current/20 pb-4" style={{ fontSize: `${fontSize * 1.6}px`, breakAfter: 'avoid' }}>
+                          {chapter?.title}
+                        </h2>
+                        
+                        <div 
+                          id="text-content-wrapper"
+                          className="prose-content opacity-90 font-serif text-left hyphens-auto select-text"
+                          style={{ fontSize: `${fontSize}px`, lineHeight: lineSpacing, WebkitTouchCallout: 'none' }}
+                          onContextMenu={e => e.preventDefault()}
+                          dangerouslySetInnerHTML={{ __html: chapter?.content }}
+                        ></div>
 
-                          {/* Bloco de Conclusão com Explicação e Botão */}
-                          <div className="mt-16 mb-8 flex flex-col items-center justify-center w-full" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
-                            <p className="text-sm italic opacity-70 mb-4 text-center max-w-sm font-sans">
-                              Marque este capítulo como concluído para acompanhar a sua evolução na barra de progresso e no sumário.
-                            </p>
-                            <button
-                              onClick={() => toggleLessonCompletion(activeText.id)}
-                              className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-bold shadow-lg transition-all active:scale-95 border-2 z-20 relative
-                                ${completedLessons.includes(activeText.id) 
-                                  ? 'bg-green-600/90 text-white border-green-500 hover:bg-green-700' 
-                                  : 'bg-black/10 border-current hover:bg-black/20'}`}
-                            >
-                              <i className={`fas ${completedLessons.includes(activeText.id) ? 'fa-check-double' : 'fa-check'}`}></i>
-                              {completedLessons.includes(activeText.id) ? 'Lição Concluída!' : 'Marcar como Concluído'}
-                            </button>
-                          </div>
-                        </article>
-                      )}
+                        <div className="mt-24 mb-16 flex flex-col items-center justify-center w-full" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                          <p className="text-sm italic opacity-70 mb-4 text-center max-w-sm font-sans">
+                            Marque este capítulo como concluído para acompanhar a sua evolução.
+                          </p>
+                          <button
+                            onClick={() => toggleChapterCompletion(activeChapterId)}
+                            className={`flex items-center gap-3 px-8 py-5 rounded-[2rem] font-black shadow-xl transition-all active:scale-95 border-2
+                              ${completedChapters.includes(activeChapterId) ? 'bg-emerald-600 text-white border-emerald-500' : 'bg-current text-white dark:text-black border-transparent'}`}
+                          >
+                            {completedChapters.includes(activeChapterId) ? <CheckCheck size={20} /> : <Check size={20} />}
+                            {completedChapters.includes(activeChapterId) ? 'Lição Concluída!' : 'Marcar como Concluído'}
+                          </button>
+                        </div>
+                      </article>
                     </div>
                   </div>
 
-                  {/* Numeração de Página Centralizada nos 60% */}
-                  {viewMode === 'page' && !isLoading && (
-                    <div className="absolute bottom-10 sm:bottom-12 left-0 right-0 w-full flex justify-center pointer-events-none z-20">
-                      <span className="bg-black/10 backdrop-blur-sm px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-bold opacity-60 tracking-wider shadow-sm">
-                        {extractedTitles[activeText.id] || activeText.title} • Pág {pageInfo.current} de {pageInfo.total}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Barra de Progresso Inferior (Bolinhas) */}
-                  {!isLoading && (
-                    <div className="absolute bottom-3 sm:bottom-4 left-0 right-0 w-full flex justify-center items-center gap-1.5 sm:gap-2 pointer-events-none z-20 px-4">
-                      {texts.filter(t => t.type !== 'special').map((t) => {
-                        const isCompleted = completedLessons.includes(t.id);
-                        const isActive = activeText.id === t.id;
-                        return (
-                          <button
-                            key={`prog-${t.id}`}
-                            onClick={() => navigateToLesson(t.id)}
-                            className={`pointer-events-auto rounded-full transition-all duration-300 shadow-sm
-                              ${isCompleted ? 'bg-green-500' : 'bg-current opacity-20 hover:opacity-50'}
-                              ${isActive ? 'w-4 sm:w-6 h-2 sm:h-2.5 opacity-80' : 'w-2 sm:w-2.5 h-2 sm:h-2.5'}
-                            `}
-                            title={t.title}
-                          />
-                        );
-                      })}
-                    </div>
-                  )}
-                  
-                </React.Fragment>
+                  <div className="absolute bottom-4 left-0 right-0 w-full flex justify-center items-center gap-1.5 sm:gap-2 pointer-events-none z-20 px-4">
+                    {selectedBook.chapters.filter(t => t.type !== 'special').map((t) => {
+                      const isCompleted = completedChapters.includes(t.id);
+                      const isActive = activeChapterId === t.id;
+                      return (
+                        <button
+                          key={`prog-${t.id}`}
+                          onClick={() => navigateToChapter(t.id)}
+                          className={`pointer-events-auto rounded-full transition-all duration-300 shadow-sm ${isCompleted ? 'bg-emerald-500' : 'bg-current opacity-20 hover:opacity-50'} ${isActive ? 'w-4 sm:w-6 h-2 sm:h-2.5 opacity-80' : 'w-2 sm:w-2.5 h-2 sm:h-2.5'}`}
+                          title={t.title}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
               )}
             </div>
-
           </main>
-        </div>
-      );
-    }
 
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
-  </script>
-</body>
-</html>
+          {/* COLUNA 3: PAINEL DE ESTUDO */}
+          {!isDesktopLayout && (
+            <div className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 backdrop-blur-sm ${isStudyPanelOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsStudyPanelOpen(false)}></div>
+          )}
+
+          <aside className={`${isDesktopLayout ? 'w-[380px] shrink-0 border-l border-current/10' : 'fixed inset-y-0 right-0 z-50 w-4/5 max-w-[380px] border-l border-current/10 shadow-2xl'} flex flex-col h-[100dvh] transition-transform duration-300 ease-in-out ${currentTheme.panelClasses} ${!isDesktopLayout && !isStudyPanelOpen ? 'translate-x-full' : 'translate-x-0'}`}>
+            <div className="p-4 flex items-center justify-between border-b border-current/10 shrink-0">
+              <div className="flex bg-black/5 p-1 rounded-xl w-full mr-2">
+                <button onClick={() => setActiveStudyTab('feed')} className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${activeStudyTab === 'feed' ? 'bg-current text-white dark:text-black shadow-md' : 'opacity-60 hover:opacity-100'}`}>Comunidade</button>
+                <button onClick={() => setActiveStudyTab('notes')} className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${activeStudyTab === 'notes' ? 'bg-current text-white dark:text-black shadow-md' : 'opacity-60 hover:opacity-100'}`}>Minhas Notas</button>
+              </div>
+              {!isDesktopLayout && <button onClick={() => setIsStudyPanelOpen(false)} className="p-2 rounded-full hover:bg-black/10 shrink-0"><X size={20} /></button>}
+            </div>
+
+            <div className="flex-1 overflow-hidden p-4">
+              {activeStudyTab === 'feed' ? (
+                <div className="flex flex-col gap-4 animate-in fade-in duration-300 h-full overflow-y-auto hide-scrollbar pb-24">
+                  <div className="p-4 rounded-2xl bg-black/5 border border-current/10">
+                    <textarea placeholder="Partilhe a sua reflexão com a comunidade..." className="w-full bg-transparent outline-none resize-none text-sm placeholder:text-current/40 mb-3" rows="3"></textarea>
+                    <div className="flex justify-end"><button className="bg-current text-white dark:text-black px-4 py-2 rounded-full text-xs font-bold flex items-center gap-2 active:scale-95 transition-all"><Send size={14} /> Publicar</button></div>
+                  </div>
+                  {mockFeedPosts.map(post => (
+                    <div key={post.id} className={`p-4 rounded-2xl border ${post.isAuthor ? 'bg-amber-500/10 border-amber-500/20' : 'bg-black/5 border-current/10'}`}>
+                      <div className="flex justify-between items-center mb-2">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${post.isAuthor ? 'bg-amber-500 text-white' : 'bg-black/10'}`}>{post.author.charAt(0)}</div>
+                          <span className="font-bold text-sm">{post.author}</span>
+                          {post.isAuthor && <span className="bg-amber-500 text-white text-[9px] px-1.5 py-0.5 rounded-full uppercase tracking-wider font-bold">Autor</span>}
+                        </div>
+                        <span className="text-[10px] opacity-50">{post.time}</span>
+                      </div>
+                      <p className="text-sm opacity-80 mb-4 font-serif leading-relaxed">{post.content}</p>
+                      <div className="flex items-center gap-4 border-t border-current/10 pt-3 mt-auto">
+                        <button className="flex items-center gap-1.5 text-xs font-bold opacity-60 hover:opacity-100 transition-opacity"><Heart size={14} /> {post.likes}</button>
+                        <button className="flex items-center gap-1.5 text-xs font-bold opacity-60 hover:opacity-100 transition-opacity"><MessageCircle size={14} /> {post.comments}</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full opacity-50 text-center px-6">
+                  <BookMarked size={48} className="mb-4 opacity-40" />
+                  <p className="text-sm font-bold uppercase tracking-widest mb-2">Suas Notas</p>
+                  <p className="text-xs font-serif">Selecione trechos do texto durante a leitura para destacar. Os destaques salvos no seu navegador aparecerão aqui.</p>
+                </div>
+              )}
+            </div>
+          </aside>
+
+        </div>
+      </div>
+    );
+  }
+}
