@@ -45,18 +45,19 @@
       scrollbar-width: none;
     }
     
-    /* Estilos preservados do arquivo DOCX (Negrito, Italico, Parágrafos) */
+    /* Estilos preservados do arquivo DOCX (Forçados com !important para o Tailwind não sobrepor) */
     .prose-content p {
-      margin-bottom: 1.5em; /* Espaçamento de 1.5 linhas entre parágrafos garantido */
+      margin-bottom: 1.5em !important; /* Espaçamento de 1.5 linhas entre parágrafos garantido */
+      display: block !important;
     }
     .prose-content strong, .prose-content b {
-      font-weight: bold;
+      font-weight: bold !important;
     }
     .prose-content em, .prose-content i {
-      font-style: italic;
+      font-style: italic !important;
     }
     .prose-content u {
-      text-decoration: underline;
+      text-decoration: underline !important;
     }
 
     /* Hifenização Automática Cross-Browser */
@@ -143,13 +144,11 @@
       const [completedLessons, setCompletedLessons] = useState(prefs.completedLessons || []);
       const [extractedTitles, setExtractedTitles] = useState(prefs.extractedTitles || {});
       
-      // Estado para os 3 marcadores fixos
+      const [selectionMenu, setSelectionMenu] = useState(null);
+      const [highlights, setHighlights] = useState(prefs.highlights || {});
       const [bookmarks, setBookmarks] = useState(prefs.bookmarks || { 1: null, 2: null, 3: null });
       const [showBookmarks, setShowBookmarks] = useState(false);
 
-      const [selectionMenu, setSelectionMenu] = useState(null);
-      const [highlights, setHighlights] = useState(prefs.highlights || {});
-      
       const [isSidebarOpen, setIsSidebarOpen] = useState(false);
       const [showSettings, setShowSettings] = useState(false);
       const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -368,7 +367,6 @@
         const bm = bookmarks[slot];
         if (!bm) return;
 
-        // Prepara o estado das posições para o React pular automaticamente
         setScrollPositions(prev => ({
           ...prev,
           [`${bm.textId}_${bm.viewMode}`]: bm.position
@@ -378,7 +376,6 @@
           if (bm.viewMode !== viewMode) setViewMode(bm.viewMode);
           if (bm.textId !== activeTextId) setActiveTextId(bm.textId);
         } else {
-          // Se já está na mesma lição e modo, força a rolagem mecânica
           if (scrollContainerRef.current) {
               if (bm.viewMode === 'scroll') scrollContainerRef.current.scrollTop = bm.position;
               else scrollContainerRef.current.scrollLeft = bm.position;
@@ -397,7 +394,7 @@
       const handleLineSpacing = () => setLineSpacing(prev => prev === 1.2 ? 1.6 : prev === 1.6 ? 2.0 : 1.2);
       const toggleViewMode = () => setViewMode(prev => prev === 'scroll' ? 'page' : 'scroll');
 
-      // === SISTEMA DE MARCA-TEXTO (Seleção de Texto em Cores) ===
+      // === SISTEMA DE MARCA-TEXTO ===
       useEffect(() => {
         let timeoutId = null;
         const handleSelectionChange = () => {
@@ -489,8 +486,8 @@
         if (window.innerWidth < 768) setIsSidebarOpen(false);
       }
 
-      // === CÁLCULOS DE MARGEM DE 5% ===
-      const isDesktop = windowWidth >= 768; // 60% apenas em ecrãs grandes (desktop)
+      // === CÁLCULOS DE MARGEM ===
+      const isDesktop = windowWidth >= 768; 
       const sidebarWidth = 288;
       
       const mainAreaWidth = (isDesktop && isSidebarOpen) ? windowWidth - sidebarWidth : windowWidth;
@@ -662,7 +659,7 @@
                 {/* Botão de Configurações */}
                 <button 
                   onClick={() => { setShowSettings(!showSettings); setShowBookmarks(false); }}
-                  className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all shrink-0 relative z-50 ml-1"
+                  className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all shrink-0 ml-1 relative z-50"
                   title="Configurações"
                 >
                   <i className={`fas fa-cog text-xl transition-transform duration-300 pointer-events-none ${showSettings ? 'rotate-90' : ''}`}></i>
