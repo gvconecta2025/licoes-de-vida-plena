@@ -59,6 +59,13 @@
       text-decoration: underline;
     }
 
+    /* Hifenização Automática Cross-Browser */
+    .hyphens-auto {
+      -webkit-hyphens: auto;
+      -ms-hyphens: auto;
+      hyphens: auto;
+    }
+
     .loader {
       border: 4px solid rgba(255,255,255,0.1);
       border-left-color: currentColor;
@@ -85,7 +92,7 @@
       vermelho: { id: 'vermelho', name: 'Vermelho', classes: 'bg-gradient-to-br from-[#4a2424] to-[#2d1414] text-[#e8cfcf]', panelClasses: 'bg-black/20 border-[#6e3636]', solidMenuClasses: 'bg-[#3d1e1e] border-[#6e3636]', preview: 'bg-[#4a2424]' }
     };
 
-    // Textos e Páginas Especiais (Adicionado o Sumário)
+    // Textos e Páginas Especiais (Adicionado "Conclusão")
     const initialTexts = [
       { id: 'capa', title: 'Capa do Livro', type: 'special' }, 
       { id: 'sumario', title: 'Sumário', type: 'special' }, 
@@ -106,6 +113,7 @@
       { id: 'licao10', title: 'Lição 10', docxUrl: './licao-10.docx', content: null },
       { id: 'licao11', title: 'Lição 11', docxUrl: './licao-11.docx', content: null },
       { id: 'licao12', title: 'Lição 12', docxUrl: './licao-12.docx', content: null },
+      { id: 'conclusao', title: 'Conclusão', docxUrl: './conclusao.docx', content: null },
       { id: 'autor', title: 'Sobre o Autor', type: 'special' } 
     ];
 
@@ -152,7 +160,7 @@
       
       const [isPlaying, setIsPlaying] = useState(false);
 
-      // Função de Carregamento (.DOCX com formatação Original mantida)
+      // Função de Carregamento e Extração Dinâmica do DOCX
       useEffect(() => {
         if (activeText && activeText.docxUrl && !activeText.content && activeText.type !== 'special') {
           
@@ -174,16 +182,31 @@
               const tempDiv = document.createElement('div');
               tempDiv.innerHTML = result.value;
               
+              // Extrai o primeiro elemento em negrito (strong ou b) para o título
+              const boldElement = tempDiv.querySelector('strong, b');
               const firstChild = tempDiv.firstElementChild;
-              
-              // Extração do Título
-              if (firstChild && firstChild.textContent.trim().length > 0) {
-                const titleText = firstChild.textContent.trim();
-                setExtractedTitles(prev => ({ ...prev, [activeTextId]: titleText }));
-                firstChild.remove(); 
+              let titleText = '';
+              let elementToRemove = null;
+
+              if (boldElement && boldElement.textContent.trim().length > 0) {
+                titleText = boldElement.textContent.trim();
+                elementToRemove = boldElement;
+                
+                // Se o parágrafo contiver APENAS o texto em negrito, removemos o parágrafo inteiro para evitar espaços vazios
+                if (boldElement.parentElement && boldElement.parentElement.textContent.trim() === titleText) {
+                  elementToRemove = boldElement.parentElement;
+                }
+              } else if (firstChild && firstChild.textContent.trim().length > 0) {
+                // Fallback caso o utilizador se esqueça de por em negrito
+                titleText = firstChild.textContent.trim();
+                elementToRemove = firstChild;
               }
 
-              // Agora MANTEMOS as tags de formatação (HTML) ao invés de removê-las
+              if (titleText) {
+                setExtractedTitles(prev => ({ ...prev, [activeTextId]: titleText }));
+                if (elementToRemove) elementToRemove.remove(); 
+              }
+
               let htmlContent = tempDiv.innerHTML;
               if (!htmlContent.trim()) htmlContent = "<p>(O arquivo docx está vazio ou não pôde ser lido)</p>";
 
@@ -342,7 +365,6 @@
           if (!activeText || !activeText.content || activeText.type === 'special') return;
           window.speechSynthesis.cancel();
           
-          // Remove as tags de formatação (HTML) apenas para enviar o texto "limpo" ao leitor de voz
           const plainText = activeText.content.replace(/<[^>]+>/g, ' ');
 
           const utterance = new SpeechSynthesisUtterance(plainText);
@@ -357,7 +379,7 @@
         }
       };
 
-      // === SISTEMA DE MARCA-TEXTO (Com HTML Original Preservado) ===
+      // === SISTEMA DE MARCA-TEXTO ===
       useEffect(() => {
         let timeoutId = null;
         const handleSelectionChange = () => {
@@ -416,7 +438,6 @@
           const wrapper = document.getElementById('text-content-wrapper');
           if (wrapper) saveHtmlToCache(wrapper.innerHTML);
         } catch(e) {
-          // surroundContents falha se a seleção cruzar múltiplos parágrafos (<p>)
           alert('Para marcar, selecione trechos que estejam dentro de um único parágrafo.');
         }
         
@@ -451,18 +472,15 @@
         if (window.innerWidth < 768) setIsSidebarOpen(false);
       }
 
-      // === CÁLCULOS DA LARGURA DA PÁGINA (60% NA WEB) ===
-      const isDesktop = windowWidth >= 768; // Tailwind 'md' breakpoint
-      const sidebarWidth = 288; // 72 tailwind units = 288px
+      // === CÁLCULOS DE MARGEM DE 5% ===
+      const isDesktop = windowWidth >= 768; // 60% apenas em ecrãs grandes (desktop)
+      const sidebarWidth = 288;
       
-      // Largura da área principal subtraindo o sidebar se estiver aberto no Desktop
       const mainAreaWidth = (isDesktop && isSidebarOpen) ? windowWidth - sidebarWidth : windowWidth;
-      
-      // Container da leitura ocupa 60% no desktop, e 100% no mobile
       const containerWidth = isDesktop ? mainAreaWidth * 0.6 : mainAreaWidth;
       
-      const isSm = windowWidth >= 640;
-      const pad = isSm ? 32 : 16;
+      // Margem fixa de 5% sobre a largura do contentor de leitura
+      const marginPx = containerWidth * 0.05;
 
       return (
         <div className={`min-h-[100dvh] flex transition-colors duration-500 ease-in-out ${currentTheme.classes}`}>
@@ -532,7 +550,7 @@
                         {text.title}
                       </span>
                     )}
-                    {/* Segunda linha: Título extraído do DOCX ou Título Especial */}
+                    {/* Segunda linha: Título extraído em Negrito do DOCX ou Título Especial */}
                     <span className="text-[15px] font-semibold truncate">
                       {text.type === 'special' ? text.title : (extractedTitles[text.id] || 'Carregando Capítulo...')}
                     </span>
@@ -724,7 +742,8 @@
                       ${viewMode === 'scroll' ? 'overflow-y-auto overflow-x-hidden hide-scrollbar' : 'overflow-x-auto overflow-y-hidden hide-scrollbar-completely'}
                       ${currentTheme.panelClasses}`}
                   >
-                    <div className={`mx-auto w-full ${viewMode === 'scroll' ? 'p-4 sm:p-6 md:p-12 pb-32' : 'h-full'}`}>
+                    <div className={`mx-auto w-full ${viewMode === 'scroll' ? 'h-auto' : 'h-full'}`}
+                         style={viewMode === 'scroll' ? { padding: `24px ${marginPx}px 120px ${marginPx}px` } : {}}>
                       
                       {isLoading ? (
                         <div className="flex flex-col items-center justify-center h-full opacity-60 pt-20">
@@ -735,13 +754,13 @@
                         <article 
                           className="w-full break-words transition-all duration-300 relative"
                           style={viewMode === 'page' ? {
-                            /* A mágica do layout de colunas calcula com exatidão a área em Pixels do Contentor */
-                            columnWidth: `${containerWidth - (pad * 2)}px`,
-                            columnGap: `${pad * 2}px`,
+                            /* Margens precisas de 5% ativadas no modo leitura horizontal e vertical */
+                            columnWidth: `${containerWidth - (marginPx * 2)}px`,
+                            columnGap: `${marginPx * 2}px`,
                             height: '100%', 
-                            padding: `24px ${pad}px 40px ${pad}px`, 
+                            padding: `24px ${marginPx}px 40px ${marginPx}px`, 
                             boxSizing: 'border-box'
-                          } : { paddingBottom: '120px' }}
+                          } : {}}
                         >
                           <h2 
                             className="font-bold mb-6 sm:mb-8 leading-tight opacity-90 border-b-2 border-current pb-4"
@@ -750,10 +769,10 @@
                             {extractedTitles[activeText.id] || activeText.title}
                           </h2>
                           
-                          {/* Container de Leitura com HTML preservado e proteção anticópia */}
+                          {/* Container de Leitura (Alinhado à Esquerda + Hifenização Ativada + HTML Preservado) */}
                           <div 
                             id="text-content-wrapper"
-                            className="prose-content opacity-85 font-serif text-justify select-text"
+                            className="prose-content opacity-85 font-serif text-left hyphens-auto select-text"
                             style={{ 
                               fontSize: `${fontSize}px`, 
                               lineHeight: lineSpacing,
