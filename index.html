@@ -92,7 +92,7 @@
       vermelho: { id: 'vermelho', name: 'Vermelho', classes: 'bg-gradient-to-br from-[#4a2424] to-[#2d1414] text-[#e8cfcf]', panelClasses: 'bg-black/20 border-[#6e3636]', solidMenuClasses: 'bg-[#3d1e1e] border-[#6e3636]', preview: 'bg-[#4a2424]' }
     };
 
-    // Textos e Páginas Especiais (Conclusão adicionada no final)
+    // Textos e Páginas Especiais
     const initialTexts = [
       { id: 'capa', title: 'Capa do Livro', type: 'special' }, 
       { id: 'sumario', title: 'Sumário', type: 'special' }, 
@@ -143,7 +143,12 @@
       const [completedLessons, setCompletedLessons] = useState(prefs.completedLessons || []);
       const [extractedTitles, setExtractedTitles] = useState(prefs.extractedTitles || {});
       
+      // Estado para os 3 marcadores fixos
+      const [bookmarks, setBookmarks] = useState(prefs.bookmarks || { 1: null, 2: null, 3: null });
+      const [showBookmarks, setShowBookmarks] = useState(false);
+
       const [selectionMenu, setSelectionMenu] = useState(null);
+      const [highlights, setHighlights] = useState(prefs.highlights || {});
       
       const [isSidebarOpen, setIsSidebarOpen] = useState(false);
       const [showSettings, setShowSettings] = useState(false);
@@ -179,7 +184,6 @@
               const tempDiv = document.createElement('div');
               tempDiv.innerHTML = result.value;
               
-              // Extrai o primeiro elemento em negrito (strong ou b) para o título
               const boldElement = tempDiv.querySelector('strong, b');
               const firstChild = tempDiv.firstElementChild;
               let titleText = '';
@@ -188,13 +192,10 @@
               if (boldElement && boldElement.textContent.trim().length > 0) {
                 titleText = boldElement.textContent.trim();
                 elementToRemove = boldElement;
-                
-                // Se o parágrafo contiver APENAS o texto em negrito, removemos o parágrafo inteiro para evitar espaços vazios
                 if (boldElement.parentElement && boldElement.parentElement.textContent.trim() === titleText) {
                   elementToRemove = boldElement.parentElement;
                 }
               } else if (firstChild && firstChild.textContent.trim().length > 0) {
-                // Fallback caso o utilizador se esqueça de por em negrito
                 titleText = firstChild.textContent.trim();
                 elementToRemove = firstChild;
               }
@@ -269,10 +270,12 @@
           viewMode,
           scrollPositions,
           completedLessons,
-          extractedTitles
+          extractedTitles,
+          highlights,
+          bookmarks
         };
         localStorage.setItem('leitorWebPrefs', JSON.stringify(prefsToSave));
-      }, [activeTextId, currentTheme, fontSize, lineSpacing, viewMode, scrollPositions, completedLessons, extractedTitles]);
+      }, [activeTextId, currentTheme, fontSize, lineSpacing, viewMode, scrollPositions, completedLessons, extractedTitles, highlights, bookmarks]);
 
       useEffect(() => {
         if (scrollContainerRef.current && !isLoading && activeText.type !== 'special') {
@@ -345,12 +348,56 @@
         }
       };
 
+      // === FUNÇÕES DOS MARCADORES DE PÁGINA ===
+      const handleSaveBookmark = (slot) => {
+        if (activeText.type === 'special' || !scrollContainerRef.current) return;
+
+        const pos = viewMode === 'scroll' ? scrollContainerRef.current.scrollTop : scrollContainerRef.current.scrollLeft;
+        const newBookmark = {
+          textId: activeTextId,
+          title: extractedTitles[activeTextId] || activeText.title,
+          viewMode: viewMode,
+          position: pos,
+          page: pageInfo.current
+        };
+        
+        setBookmarks(prev => ({ ...prev, [slot]: newBookmark }));
+      };
+
+      const handleGoToBookmark = (slot) => {
+        const bm = bookmarks[slot];
+        if (!bm) return;
+
+        // Prepara o estado das posições para o React pular automaticamente
+        setScrollPositions(prev => ({
+          ...prev,
+          [`${bm.textId}_${bm.viewMode}`]: bm.position
+        }));
+
+        if (bm.textId !== activeTextId || bm.viewMode !== viewMode) {
+          if (bm.viewMode !== viewMode) setViewMode(bm.viewMode);
+          if (bm.textId !== activeTextId) setActiveTextId(bm.textId);
+        } else {
+          // Se já está na mesma lição e modo, força a rolagem mecânica
+          if (scrollContainerRef.current) {
+              if (bm.viewMode === 'scroll') scrollContainerRef.current.scrollTop = bm.position;
+              else scrollContainerRef.current.scrollLeft = bm.position;
+          }
+        }
+        setShowBookmarks(false);
+      };
+
+      const handleClearBookmark = (slot, e) => {
+        e.stopPropagation();
+        setBookmarks(prev => ({ ...prev, [slot]: null }));
+      };
+
       const handleZoomIn = () => setFontSize(prev => Math.min(prev + 2, 48));
       const handleZoomOut = () => setFontSize(prev => Math.max(prev - 2, 14));
       const handleLineSpacing = () => setLineSpacing(prev => prev === 1.2 ? 1.6 : prev === 1.6 ? 2.0 : 1.2);
       const toggleViewMode = () => setViewMode(prev => prev === 'scroll' ? 'page' : 'scroll');
 
-      // === SISTEMA DE MARCA-TEXTO ===
+      // === SISTEMA DE MARCA-TEXTO (Seleção de Texto em Cores) ===
       useEffect(() => {
         let timeoutId = null;
         const handleSelectionChange = () => {
@@ -449,8 +496,9 @@
       const mainAreaWidth = (isDesktop && isSidebarOpen) ? windowWidth - sidebarWidth : windowWidth;
       const containerWidth = isDesktop ? mainAreaWidth * 0.6 : mainAreaWidth;
       
-      // Margem fixa de 5% sobre a largura do contentor de leitura
       const marginPx = containerWidth * 0.05;
+      
+      const hasBookmarksSaved = Object.values(bookmarks).some(b => b !== null);
 
       return (
         <div className={`min-h-[100dvh] flex transition-colors duration-500 ease-in-out ${currentTheme.classes}`}>
@@ -514,13 +562,13 @@
                     ${text.type === 'special' ? 'border border-current opacity-70 mt-4 mb-2' : ''}`}
                 >
                   <div className="flex flex-col overflow-hidden text-left w-full pr-2">
-                    {/* Primeira linha: Etiqueta estática (Ex: Lição 1) */}
+                    {/* Primeira linha: Etiqueta estática */}
                     {text.type !== 'special' && (
                       <span className="text-[10px] font-bold uppercase tracking-widest opacity-50 mb-0.5">
                         {text.title}
                       </span>
                     )}
-                    {/* Segunda linha: Título extraído em Negrito do DOCX ou Título Especial */}
+                    {/* Segunda linha: Título extraído em Negrito */}
                     <span className="text-[15px] font-semibold truncate">
                       {text.type === 'special' ? text.title : (extractedTitles[text.id] || 'Carregando Capítulo...')}
                     </span>
@@ -553,9 +601,68 @@
               </div>
 
               <div className="flex items-center gap-1 sm:gap-2 shrink-0 relative ml-2 z-50">
+                
+                {/* Botão de Fitas / Marcadores */}
                 <button 
-                  onClick={() => setShowSettings(!showSettings)}
-                  className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all shrink-0 ml-1 relative z-50"
+                  onClick={() => { setShowBookmarks(!showBookmarks); setShowSettings(false); }}
+                  className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all shrink-0 relative z-50"
+                  title="Fitas de Marcação"
+                >
+                  <i className="fas fa-bookmark text-xl pointer-events-none"></i>
+                  {hasBookmarksSaved && (
+                     <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full shadow-sm"></span>
+                  )}
+                </button>
+
+                {/* Menu Dropdown de Marcadores */}
+                {showBookmarks && (
+                  <React.Fragment>
+                    <div className="fixed inset-0 w-screen h-screen z-40" onClick={() => setShowBookmarks(false)}></div>
+                    <div className={`absolute right-12 top-full mt-3 p-5 rounded-3xl shadow-2xl border w-72 sm:w-80 z-50 origin-top-right animate-in fade-in zoom-in-95 duration-200 flex flex-col gap-4 ${currentTheme.solidMenuClasses}`}>
+                      <span className="text-[11px] font-bold uppercase tracking-wider opacity-60">Fitas de Marcação</span>
+                      
+                      {[1, 2, 3].map(slot => {
+                         const bm = bookmarks[slot];
+                         const colorClass = slot === 1 ? 'bg-rose-500' : slot === 2 ? 'bg-blue-500' : 'bg-emerald-500';
+                         const isSpecial = activeText.type === 'special';
+
+                         return (
+                           <div key={slot} className="flex items-center gap-2">
+                              {bm ? (
+                                 <div className="flex-1 flex items-center justify-between p-3 rounded-2xl bg-black/5 hover:bg-black/10 transition-all border border-transparent hover:border-black/5 group cursor-pointer" onClick={() => handleGoToBookmark(slot)}>
+                                    <div className="flex items-center gap-3 overflow-hidden">
+                                       <div className={`w-6 h-6 rounded-full text-white flex items-center justify-center text-xs font-bold ${colorClass} shrink-0 shadow-md`}>{slot}</div>
+                                       <div className="flex flex-col truncate">
+                                         <span className="text-[10px] uppercase opacity-50 tracking-widest">{bm.viewMode === 'page' ? `Pág ${bm.page}` : 'Rolagem'}</span>
+                                         <span className="text-sm font-bold truncate">{bm.title}</span>
+                                       </div>
+                                    </div>
+                                    <button onClick={(e) => handleClearBookmark(slot, e)} className="opacity-0 group-hover:opacity-100 p-2 hover:text-red-500 transition-all" title="Remover Fita">
+                                       <i className="fas fa-trash-alt text-sm"></i>
+                                    </button>
+                                 </div>
+                              ) : (
+                                 <button 
+                                    disabled={isSpecial}
+                                    onClick={() => handleSaveBookmark(slot)} 
+                                    className={`w-full flex items-center gap-3 p-3 rounded-2xl border-2 border-dashed transition-all
+                                      ${isSpecial ? 'border-current opacity-20 cursor-not-allowed' : `${colorClass} border-transparent bg-black/5 hover:opacity-100 hover:shadow-md`}`}
+                                 >
+                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${isSpecial ? 'border-2 border-current' : 'bg-white/20 text-inherit'}`}>{slot}</div>
+                                    <span className="text-sm font-bold opacity-80">{isSpecial ? 'Indisponível nesta página' : 'Guardar Posição Atual'}</span>
+                                 </button>
+                              )}
+                           </div>
+                         )
+                      })}
+                    </div>
+                  </React.Fragment>
+                )}
+
+                {/* Botão de Configurações */}
+                <button 
+                  onClick={() => { setShowSettings(!showSettings); setShowBookmarks(false); }}
+                  className="p-3 rounded-full hover:bg-black/10 active:scale-90 transition-all shrink-0 relative z-50 ml-1"
                   title="Configurações"
                 >
                   <i className={`fas fa-cog text-xl transition-transform duration-300 pointer-events-none ${showSettings ? 'rotate-90' : ''}`}></i>
@@ -739,7 +846,7 @@
                             {extractedTitles[activeText.id] || activeText.title}
                           </h2>
                           
-                          {/* Container de Leitura (Alinhado à Esquerda + Hifenização Ativada + HTML Preservado) */}
+                          {/* Container de Leitura */}
                           <div 
                             id="text-content-wrapper"
                             className="prose-content opacity-85 font-serif text-left hyphens-auto select-text"
@@ -757,7 +864,11 @@
                           >
                           </div>
 
-                          <div className="mt-16 mb-8 flex justify-center w-full" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                          {/* Bloco de Conclusão com Explicação e Botão */}
+                          <div className="mt-16 mb-8 flex flex-col items-center justify-center w-full" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                            <p className="text-sm italic opacity-70 mb-4 text-center max-w-sm font-sans">
+                              Marque este capítulo como concluído para acompanhar a sua evolução na barra de progresso e no sumário.
+                            </p>
                             <button
                               onClick={() => toggleLessonCompletion(activeText.id)}
                               className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-bold shadow-lg transition-all active:scale-95 border-2 z-20 relative
@@ -776,10 +887,31 @@
 
                   {/* Numeração de Página Centralizada nos 60% */}
                   {viewMode === 'page' && !isLoading && (
-                    <div className="absolute bottom-2 left-0 right-0 w-full flex justify-center pointer-events-none z-20">
+                    <div className="absolute bottom-10 sm:bottom-12 left-0 right-0 w-full flex justify-center pointer-events-none z-20">
                       <span className="bg-black/10 backdrop-blur-sm px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-bold opacity-60 tracking-wider shadow-sm">
                         {extractedTitles[activeText.id] || activeText.title} • Pág {pageInfo.current} de {pageInfo.total}
                       </span>
+                    </div>
+                  )}
+
+                  {/* Barra de Progresso Inferior (Bolinhas) */}
+                  {!isLoading && (
+                    <div className="absolute bottom-3 sm:bottom-4 left-0 right-0 w-full flex justify-center items-center gap-1.5 sm:gap-2 pointer-events-none z-20 px-4">
+                      {texts.filter(t => t.type !== 'special').map((t) => {
+                        const isCompleted = completedLessons.includes(t.id);
+                        const isActive = activeText.id === t.id;
+                        return (
+                          <button
+                            key={`prog-${t.id}`}
+                            onClick={() => navigateToLesson(t.id)}
+                            className={`pointer-events-auto rounded-full transition-all duration-300 shadow-sm
+                              ${isCompleted ? 'bg-green-500' : 'bg-current opacity-20 hover:opacity-50'}
+                              ${isActive ? 'w-4 sm:w-6 h-2 sm:h-2.5 opacity-80' : 'w-2 sm:w-2.5 h-2 sm:h-2.5'}
+                            `}
+                            title={t.title}
+                          />
+                        );
+                      })}
                     </div>
                   )}
                   
