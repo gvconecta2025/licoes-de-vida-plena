@@ -16,9 +16,6 @@
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  <!-- Mammoth.js para ler arquivos .docx diretamente no navegador -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-
   <style>
     body {
       font-family: system-ui, -apple-system, sans-serif;
@@ -45,9 +42,10 @@
       scrollbar-width: none;
     }
     
-    /* Estilos preservados do arquivo DOCX (Forçados com !important para o Tailwind não sobrepor) */
+    /* Estilos para o conteúdo HTML injetado (Forçados com !important) */
     .prose-content p {
-      margin-bottom: 1.5em !important; /* Espaçamento de 1.5 linhas entre parágrafos garantido */
+      margin-top: 0 !important;
+      margin-bottom: 1.5em !important; /* Espaçamento de 1.5 linhas garantido */
       display: block !important;
     }
     .prose-content strong, .prose-content b {
@@ -58,6 +56,15 @@
     }
     .prose-content u {
       text-decoration: underline !important;
+    }
+    
+    /* Limpeza de estilos extras que o Word possa gerar no HTML */
+    .prose-content span {
+      font-size: inherit !important;
+      font-family: inherit !important;
+      line-height: inherit !important;
+      color: inherit !important;
+      background: transparent !important;
     }
 
     /* Hifenização Automática Cross-Browser */
@@ -93,28 +100,28 @@
       vermelho: { id: 'vermelho', name: 'Vermelho', classes: 'bg-gradient-to-br from-[#4a2424] to-[#2d1414] text-[#e8cfcf]', panelClasses: 'bg-black/20 border-[#6e3636]', solidMenuClasses: 'bg-[#3d1e1e] border-[#6e3636]', preview: 'bg-[#4a2424]' }
     };
 
-    // Textos e Páginas Especiais
+    // Nova Arquitetura: Referenciando arquivos .html em vez de .docx
     const initialTexts = [
       { id: 'capa', title: 'Capa do Livro', type: 'special' }, 
       { id: 'sumario', title: 'Sumário', type: 'special' }, 
-      { id: 'prologo', title: 'Prólogo', docxUrl: './prologo.docx', content: null },
-      { id: 'licao0a', title: 'Lição 0a', docxUrl: './licao-0a.docx', content: null },
-      { id: 'licao0b', title: 'Lição 0b', docxUrl: './licao-0b.docx', content: null },
-      { id: 'licao0c', title: 'Lição 0c', docxUrl: './licao-0c.docx', content: null },
-      { id: 'licao0d', title: 'Lição 0d', docxUrl: './licao-0d.docx', content: null },
-      { id: 'licao1', title: 'Lição 1', docxUrl: './licao-1.docx', content: null },
-      { id: 'licao2', title: 'Lição 2', docxUrl: './licao-2.docx', content: null },
-      { id: 'licao3', title: 'Lição 3', docxUrl: './licao-3.docx', content: null },
-      { id: 'licao4', title: 'Lição 4', docxUrl: './licao-4.docx', content: null },
-      { id: 'licao5', title: 'Lição 5', docxUrl: './licao-5.docx', content: null },
-      { id: 'licao6', title: 'Lição 6', docxUrl: './licao-6.docx', content: null },
-      { id: 'licao7', title: 'Lição 7', docxUrl: './licao-7.docx', content: null },
-      { id: 'licao8', title: 'Lição 8', docxUrl: './licao-8.docx', content: null },
-      { id: 'licao9', title: 'Lição 9', docxUrl: './licao-9.docx', content: null },
-      { id: 'licao10', title: 'Lição 10', docxUrl: './licao-10.docx', content: null },
-      { id: 'licao11', title: 'Lição 11', docxUrl: './licao-11.docx', content: null },
-      { id: 'licao12', title: 'Lição 12', docxUrl: './licao-12.docx', content: null },
-      { id: 'conclusao', title: 'Conclusão', docxUrl: './conclusao.docx', content: null },
+      { id: 'prologo', title: 'Prólogo', htmlUrl: './prologo.html', content: null },
+      { id: 'licao0a', title: 'Lição 0a', htmlUrl: './licao-0a.html', content: null },
+      { id: 'licao0b', title: 'Lição 0b', htmlUrl: './licao-0b.html', content: null },
+      { id: 'licao0c', title: 'Lição 0c', htmlUrl: './licao-0c.html', content: null },
+      { id: 'licao0d', title: 'Lição 0d', htmlUrl: './licao-0d.html', content: null },
+      { id: 'licao1', title: 'Lição 1', htmlUrl: './licao-1.html', content: null },
+      { id: 'licao2', title: 'Lição 2', htmlUrl: './licao-2.html', content: null },
+      { id: 'licao3', title: 'Lição 3', htmlUrl: './licao-3.html', content: null },
+      { id: 'licao4', title: 'Lição 4', htmlUrl: './licao-4.html', content: null },
+      { id: 'licao5', title: 'Lição 5', htmlUrl: './licao-5.html', content: null },
+      { id: 'licao6', title: 'Lição 6', htmlUrl: './licao-6.html', content: null },
+      { id: 'licao7', title: 'Lição 7', htmlUrl: './licao-7.html', content: null },
+      { id: 'licao8', title: 'Lição 8', htmlUrl: './licao-8.html', content: null },
+      { id: 'licao9', title: 'Lição 9', htmlUrl: './licao-9.html', content: null },
+      { id: 'licao10', title: 'Lição 10', htmlUrl: './licao-10.html', content: null },
+      { id: 'licao11', title: 'Lição 11', htmlUrl: './licao-11.html', content: null },
+      { id: 'licao12', title: 'Lição 12', htmlUrl: './licao-12.html', content: null },
+      { id: 'conclusao', title: 'Conclusão', htmlUrl: './conclusao.html', content: null },
       { id: 'autor', title: 'Sobre o Autor', type: 'special' } 
     ];
 
@@ -138,7 +145,7 @@
       
       const [currentTheme, setCurrentTheme] = useState(themes[prefs.themeId] || themes.polen);
       const [fontSize, setFontSize] = useState(prefs.fontSize || 20); 
-      const [lineSpacing, setLineSpacing] = useState(prefs.lineSpacing || 2.0); 
+      const [lineSpacing, setLineSpacing] = useState(prefs.lineSpacing || 1.8); 
       const [viewMode, setViewMode] = useState(prefs.viewMode || 'page'); 
       const [scrollPositions, setScrollPositions] = useState(prefs.scrollPositions || {});
       const [completedLessons, setCompletedLessons] = useState(prefs.completedLessons || []);
@@ -161,9 +168,9 @@
       const touchTimeout = useRef(null);
       const flipSoundRef = useRef(null);
 
-      // Função de Carregamento e Extração Dinâmica do DOCX
+      // Nova Lógica de Carregamento para Arquivos HTML diretos
       useEffect(() => {
-        if (activeText && activeText.docxUrl && !activeText.content && activeText.type !== 'special') {
+        if (activeText && activeText.htmlUrl && !activeText.content && activeText.type !== 'special') {
           
           if (offlineDocs[activeText.id]) {
              setTexts(prevTexts => prevTexts.map(t => 
@@ -173,26 +180,26 @@
           }
 
           setIsLoading(true);
-          fetch(activeText.docxUrl)
+          fetch(activeText.htmlUrl)
             .then(response => {
-              if (!response.ok) throw new Error('Arquivo não encontrado');
-              return response.arrayBuffer();
+              if (!response.ok) throw new Error('Arquivo HTML não encontrado');
+              return response.text(); // Lê como texto HTML puro
             })
-            .then(arrayBuffer => mammoth.convertToHtml({ arrayBuffer: arrayBuffer }))
-            .then(result => {
+            .then(htmlContent => {
               const tempDiv = document.createElement('div');
-              tempDiv.innerHTML = result.value;
+              tempDiv.innerHTML = htmlContent;
               
-              const boldElement = tempDiv.querySelector('strong, b');
+              // Tenta extrair o título dos cabeçalhos comuns ou do primeiro negrito
+              const titleElement = tempDiv.querySelector('h1, h2, h3, strong, b');
               const firstChild = tempDiv.firstElementChild;
               let titleText = '';
               let elementToRemove = null;
 
-              if (boldElement && boldElement.textContent.trim().length > 0) {
-                titleText = boldElement.textContent.trim();
-                elementToRemove = boldElement;
-                if (boldElement.parentElement && boldElement.parentElement.textContent.trim() === titleText) {
-                  elementToRemove = boldElement.parentElement;
+              if (titleElement && titleElement.textContent.trim().length > 0) {
+                titleText = titleElement.textContent.trim();
+                elementToRemove = titleElement;
+                if (titleElement.parentElement && titleElement.parentElement.textContent.trim() === titleText && titleElement.parentElement.tagName === 'P') {
+                  elementToRemove = titleElement.parentElement;
                 }
               } else if (firstChild && firstChild.textContent.trim().length > 0) {
                 titleText = firstChild.textContent.trim();
@@ -204,20 +211,23 @@
                 if (elementToRemove) elementToRemove.remove(); 
               }
 
-              let htmlContent = tempDiv.innerHTML;
-              if (!htmlContent.trim()) htmlContent = "<p>(O arquivo docx está vazio ou não pôde ser lido)</p>";
+              // Extrai o que sobrou no body (caso o word tenha salvo html com head, body, etc)
+              const bodyMatch = tempDiv.querySelector('body');
+              let finalHtml = bodyMatch ? bodyMatch.innerHTML : tempDiv.innerHTML;
 
-              const updatedOfflineDocs = { ...loadOfflineContent(), [activeTextId]: htmlContent };
+              if (!finalHtml.trim()) finalHtml = "<p>(O arquivo HTML está vazio)</p>";
+
+              const updatedOfflineDocs = { ...loadOfflineContent(), [activeTextId]: finalHtml };
               localStorage.setItem('leitorWebOfflineDocs', JSON.stringify(updatedOfflineDocs));
 
               setTexts(prevTexts => prevTexts.map(t => 
-                t.id === activeTextId ? { ...t, content: htmlContent } : t
+                t.id === activeTextId ? { ...t, content: finalHtml } : t
               ));
               setIsLoading(false);
             })
             .catch(error => {
               console.error(error);
-              const errorMsg = `<p>O arquivo desta lição ainda não foi disponibilizado ou ocorreu um erro de conexão.</p><p>Verifique se tem internet ou se o autor já publicou esta lição.</p>`;
+              const errorMsg = `<p>O arquivo <strong>${activeText.htmlUrl}</strong> ainda não foi disponibilizado no servidor ou ocorreu um erro de conexão.</p>`;
               setTexts(prevTexts => prevTexts.map(t => 
                 t.id === activeTextId ? { ...t, content: errorMsg } : t
               ));
@@ -347,7 +357,6 @@
         }
       };
 
-      // === FUNÇÕES DOS MARCADORES DE PÁGINA ===
       const handleSaveBookmark = (slot) => {
         if (activeText.type === 'special' || !scrollContainerRef.current) return;
 
@@ -453,7 +462,7 @@
           const wrapper = document.getElementById('text-content-wrapper');
           if (wrapper) saveHtmlToCache(wrapper.innerHTML);
         } catch(e) {
-          alert('Para marcar, selecione trechos que estejam dentro de um único parágrafo.');
+          alert('Para marcar, selecione trechos que estejam dentro de um único parágrafo HTML.');
         }
         
         selection.removeAllRanges();
@@ -531,7 +540,7 @@
             onClick={() => setIsSidebarOpen(false)}
           ></div>
 
-          {/* Menu Lateral (Sidebar) com Botões Duplos */}
+          {/* Menu Lateral (Sidebar) */}
           <aside 
             className={`fixed inset-y-0 left-0 z-50 w-4/5 max-w-[280px] md:relative md:max-w-none md:w-72 h-[100dvh] flex flex-col border-r backdrop-blur-xl transition-transform duration-300 ease-in-out ${currentTheme.panelClasses}
               ${isSidebarOpen ? 'translate-x-0 shadow-2xl md:shadow-none' : '-translate-x-full md:translate-x-0'}`}
@@ -565,7 +574,7 @@
                         {text.title}
                       </span>
                     )}
-                    {/* Segunda linha: Título extraído em Negrito */}
+                    {/* Segunda linha: Título extraído */}
                     <span className="text-[15px] font-semibold truncate">
                       {text.type === 'special' ? text.title : (extractedTitles[text.id] || 'Carregando Capítulo...')}
                     </span>
@@ -843,14 +852,14 @@
                             {extractedTitles[activeText.id] || activeText.title}
                           </h2>
                           
-                          {/* Container de Leitura */}
+                          {/* Container de Leitura (Alinhado à Esquerda + Hifenização Ativada + HTML Preservado) */}
                           <div 
                             id="text-content-wrapper"
                             className="prose-content opacity-85 font-serif text-left hyphens-auto select-text"
                             style={{ 
                               fontSize: `${fontSize}px`, 
                               lineHeight: lineSpacing,
-                              WebkitTouchCallout: 'none' /* Oculta opções nativas de cópia no iOS */
+                              WebkitTouchCallout: 'none' 
                             }}
                             onCopy={e => e.preventDefault()}
                             onCut={e => e.preventDefault()}
