@@ -24,13 +24,13 @@
             --theme-start: #1e40af;
             --theme-end: #3b82f6;
             --theme-text-accent: #2563eb;
-            --theme-bg-light: #eff6ff; /* Fundo dinâmico claro */
+            --theme-bg-light: #dbeafe; /* Tonalidade clara levemente mais forte para ser notada */
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            /* Fundo com degradê acompanhando a página inicial */
-            background: linear-gradient(to bottom, var(--theme-bg-light) 0%, #f8fafc 100%);
+            /* Fundo com degradê que começa na cor clara do tema e vai para o branco */
+            background: linear-gradient(to bottom, var(--theme-bg-light) 0%, #ffffff 100%);
             background-attachment: fixed;
             min-height: 100vh;
         }
@@ -86,14 +86,15 @@
             const savedFont = localStorage.getItem('user_font_pref');
             if (savedFont) document.body.style.fontSize = savedFont + 'px';
             
+            // Atualizei as cores 'light' para degradês mais visíveis, mas ainda suaves
             const themes = {
-                blue: { start: '#1e40af', end: '#3b82f6', accent: '#2563eb', light: '#eff6ff' },
-                green: { start: '#14532d', end: '#22c55e', accent: '#16a34a', light: '#f0fdf4' },
-                red: { start: '#7f1d1d', end: '#ef4444', accent: '#dc2626', light: '#fef2f2' },
-                coffee: { start: '#3e2723', end: '#8d6e63', accent: '#6d4c41', light: '#efebe9' },
-                petrol: { start: '#083344', end: '#0891b2', accent: '#0e7490', light: '#ecfeff' },
-                light: { start: '#475569', end: '#94a3b8', accent: '#64748b', light: '#f8fafc' },
-                pollen: { start: '#78350f', end: '#f59e0b', accent: '#d97706', light: '#fffbeb' }
+                blue: { start: '#1e40af', end: '#3b82f6', accent: '#2563eb', light: '#dbeafe' },
+                green: { start: '#14532d', end: '#22c55e', accent: '#16a34a', light: '#dcfce7' },
+                red: { start: '#7f1d1d', end: '#ef4444', accent: '#dc2626', light: '#fee2e2' },
+                coffee: { start: '#3e2723', end: '#8d6e63', accent: '#6d4c41', light: '#e7e5e4' },
+                petrol: { start: '#083344', end: '#0891b2', accent: '#0e7490', light: '#cffafe' },
+                light: { start: '#475569', end: '#94a3b8', accent: '#64748b', light: '#f1f5f9' },
+                pollen: { start: '#78350f', end: '#f59e0b', accent: '#d97706', light: '#fef3c7' }
             };
 
             if (savedTheme && themes[savedTheme]) {
@@ -208,17 +209,17 @@
                         `;
                     });
 
-                    // O painel do conteúdo do artigo com o fundo branco fica envolto por esta tag
+                    // Removido o cartão branco. O texto agora fica diretamente sobre o degradê!
                     container.innerHTML = `
-                        <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-50 mb-8">
+                        <div class="mb-8">
                             <h1 class="text-3xl font-bold mb-6 text-gray-900 leading-tight">${post.title}</h1>
                             ${mediaHtml}
                             <article class="article-body whitespace-pre-wrap">${articleContent}</article>
                         </div>
                         
-                        <div class="pt-6 border-t border-gray-200/60 flex items-center justify-between px-2">
+                        <div class="pt-6 border-t border-gray-300/50 flex items-center justify-between px-2">
                             <span class="text-xs text-gray-500 font-bold uppercase tracking-wider">O Caminho</span>
-                            <button onclick="navigator.clipboard.writeText(window.location.href); alert('Link copiado!');" class="text-[var(--theme-text-accent)] bg-white shadow-sm border border-gray-100 px-4 py-2 rounded-full text-xs font-bold transition-colors">
+                            <button onclick="navigator.clipboard.writeText(window.location.href); alert('Link copiado!');" class="text-[var(--theme-text-accent)] bg-white/60 backdrop-blur-sm shadow-sm border border-white px-4 py-2 rounded-full text-xs font-bold transition-colors hover:bg-white">
                                 <i class="fas fa-share-alt mr-1"></i> Partilhar
                             </button>
                         </div>
