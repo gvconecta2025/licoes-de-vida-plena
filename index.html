@@ -246,11 +246,12 @@
             <i class="fas fa-hands-praying text-xl pointer-events-none"></i>
             <span class="text-[10px] font-bold uppercase tracking-wider pointer-events-none mt-1">Início</span>
         </button>
-        <a href="estante/index.html" class="flex flex-col items-center gap-1 transition-all text-gray-400 hover:text-gray-600 nav-btn cursor-pointer p-2 w-full">
+        <!-- Links Corrigidos com caminho absoluto a partir da raiz -->
+        <a href="/estante/index.html" class="flex flex-col items-center gap-1 transition-all text-gray-400 hover:text-gray-600 nav-btn cursor-pointer p-2 w-full">
             <i class="fas fa-book-bible text-xl pointer-events-none"></i>
             <span class="text-[10px] font-bold uppercase tracking-wider pointer-events-none mt-1">Estante</span>
         </a>
-        <a href="cursos/index.html" class="flex flex-col items-center gap-1 transition-all text-gray-400 hover:text-gray-600 nav-btn cursor-pointer p-2 w-full">
+        <a href="/cursos/index.html" class="flex flex-col items-center gap-1 transition-all text-gray-400 hover:text-gray-600 nav-btn cursor-pointer p-2 w-full">
             <i class="fas fa-chalkboard-user text-xl pointer-events-none"></i>
             <span class="text-[10px] font-bold uppercase tracking-wider pointer-events-none mt-1">Cursos</span>
         </a>
@@ -519,7 +520,8 @@
                     } else {
                         mediaHtml = `<img src="${url}" class="w-full aspect-video object-cover object-center shrink-0 bg-gray-100 ${type === 'image' && !post.title ? 'rounded-3xl' : 'rounded-t-3xl'}" onerror="this.style.display='none'">`;
                         if (type === 'article') {
-                            mediaHtml = `<a href="blog/index.html?id=${post.id}" class="block cursor-pointer transition-opacity hover:opacity-90" title="Ler artigo completo">${mediaHtml}</a>`;
+                            // Link Corrigido com caminho absoluto a partir da raiz
+                            mediaHtml = `<a href="/blog/index.html?id=${post.id}" class="block cursor-pointer transition-opacity hover:opacity-90" title="Ler artigo completo">${mediaHtml}</a>`;
                         }
                     }
                 }
@@ -535,14 +537,14 @@
                     const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|v\/)|youtu\.be\/)([\w-]{11})/g;
                     textSnippet = textSnippet.replace(ytRegex, '[Vídeo Anexado]');
 
-                    // Revertido: O cartão volta a ser uma div e os links ficam apenas na imagem e no botão separadamente!
                     return `
                     <div class="bg-white rounded-3xl overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] flex flex-col relative z-10">
                         ${mediaHtml}
                         <div class="p-5 flex-1">
                             <h3 class="font-bold text-xl text-gray-900 leading-tight mb-2">${post.title}</h3>
                             <p class="text-gray-600 text-sm line-clamp-3 whitespace-pre-wrap leading-relaxed">${textSnippet}</p>
-                            <a href="blog/index.html?id=${post.id}" class="mt-4 text-[var(--theme-text-accent)] font-bold text-sm inline-flex items-center hover:underline cursor-pointer">Ler artigo completo <i class="fas fa-arrow-right ml-1.5"></i></a>
+                            <!-- Link Corrigido com caminho absoluto a partir da raiz -->
+                            <a href="/blog/index.html?id=${post.id}" class="mt-4 text-[var(--theme-text-accent)] font-bold text-sm inline-flex items-center hover:underline cursor-pointer">Ler artigo completo <i class="fas fa-arrow-right ml-1.5"></i></a>
                         </div>
                     </div>`;
                 }
