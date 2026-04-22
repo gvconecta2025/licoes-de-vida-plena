@@ -358,7 +358,9 @@
         let appId = null;
         let userEmailAccess = safeStorage.getItem('educator_email_access') || null;
 
-        const ADMIN_EMAIL = 'gvconeta2025@gmail.com';
+        // Lista de e-mails com permissão de Administrador
+        const ADMIN_EMAILS = ['gvconeta2025@gmail.com', 'professoragiselle.edu2@gmail.com'];
+        const isAdmin = (email) => email && ADMIN_EMAILS.includes(email.toLowerCase());
 
         const themes = {
             blue: { start: '#1e40af', end: '#3b82f6', accent: '#2563eb' },
@@ -505,8 +507,8 @@
                 return;
             }
 
-            if (!db || !currentUser || currentUser.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
-                alert("Apenas o administrador logado pode publicar.");
+            if (!db || !currentUser || !isAdmin(currentUser.email)) {
+                alert("Apenas administradores podem publicar.");
                 return;
             }
 
@@ -546,8 +548,8 @@
         window.deletePost = async (id) => {
             if(!confirm("Tem certeza que deseja excluir esta reflexão? Esta ação não pode ser desfeita.")) return;
             
-            if (!db || !currentUser || currentUser.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
-                alert("Você precisa ser o administrador para fazer isso.");
+            if (!db || !currentUser || !isAdmin(currentUser.email)) {
+                alert("Você precisa ser administrador para fazer isso.");
                 return;
             }
 
@@ -706,7 +708,7 @@
 
             // Lógica de Acesso de Administrador protegida pelo Google
             window.handleAdminAccess = async () => {
-                if (currentUser && currentUser.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+                if (currentUser && isAdmin(currentUser.email)) {
                     // Já logado como admin
                     window.toggleCentralPanel();
                 } else {
@@ -715,14 +717,15 @@
                         const provider = new GoogleAuthProvider();
                         const result = await signInWithPopup(auth, provider);
                         
-                        if (result.user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+                        if (isAdmin(result.user.email)) {
                             window.toggleCentralPanel();
                         } else {
-                            alert("Acesso Negado: Apenas o e-mail do administrador pode acessar este painel.");
+                            alert("Acesso Negado: Este e-mail não tem permissão de administrador.");
                         }
                     } catch (error) {
                         console.error("Erro no login do Google:", error);
-                        alert("Falha na autenticação do Google. Verifique sua conexão e tente novamente.");
+                        // ALERTA MODIFICADO PARA MOSTRAR O ERRO REAL
+                        alert(`Falha na autenticação do Google.\n\nDetalhe do erro: ${error.message}\nCódigo: ${error.code}`);
                     }
                 }
             };
