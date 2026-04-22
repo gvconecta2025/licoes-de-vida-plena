@@ -94,8 +94,8 @@
         </div>
     </header>
 
-    <!-- Painel de Configurações (Overlay) -->
-    <div id="settings-panel" class="fixed inset-0 bg-black/40 z-[100] hidden items-end justify-center">
+    <!-- Painel de Configurações (Overlay) - Clicar no fundo escuro fecha o painel -->
+    <div id="settings-panel" class="fixed inset-0 bg-black/40 z-[100] hidden items-end justify-center" onclick="if(event.target === this) toggleSettings()">
         <div class="bg-white w-full max-w-md rounded-t-[2.5rem] p-8 shadow-2xl animate-slide-up">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-xl font-bold text-gray-800">Configurações</h3>
@@ -132,8 +132,8 @@
         </div>
     </div>
 
-    <!-- Painel Central (Overlay) -->
-    <div id="central-panel" class="fixed inset-0 bg-black/50 z-[105] hidden items-end justify-center">
+    <!-- Painel Central (Overlay) - Clicar no fundo escuro fecha o painel -->
+    <div id="central-panel" class="fixed inset-0 bg-black/50 z-[105] hidden items-end justify-center" onclick="if(event.target === this) toggleCentralPanel()">
         <div class="bg-white w-full max-w-md rounded-t-[2.5rem] p-6 shadow-2xl animate-slide-up h-[90vh] flex flex-col relative">
             <div class="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-gray-300 rounded-full"></div>
 
@@ -256,6 +256,18 @@
         </a>
     </nav>
 
+    <!-- Modal de Validação - Clicar no fundo fecha -->
+    <div id="email-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-6 z-[60]" onclick="if(event.target === this) closeModal()">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl">
+            <i class="fas fa-envelope-open-text text-blue-600 text-4xl mb-4 icon-accent"></i>
+            <h3 class="text-xl font-bold mb-2">Acesso aos Livros</h3>
+            <p class="text-gray-500 text-sm mb-6">Insira o e-mail cadastrado para descarregar as suas obras de estudo.</p>
+            <input type="email" id="user-email" placeholder="seu@email.com" class="w-full border p-3 rounded-xl mb-4 outline-none focus:ring-2 focus:ring-blue-500 text-center">
+            <button onclick="validateEmail()" class="w-full gradient-bg text-white font-bold py-3 rounded-xl shadow-lg cursor-pointer hover:opacity-90">Liberar Acesso</button>
+            <button onclick="closeModal()" class="mt-4 text-gray-400 text-sm cursor-pointer p-2 font-semibold">Voltar</button>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -271,11 +283,18 @@
         let currentUser = null;
         let db = null;
         let auth = null;
-        let appId = null;
+        let appId = "licoes-de-vida-plena"; 
 
-        // LISTA DE E-MAILS DE ADMINISTRAÇÃO
+        // ==========================================
+        // SISTEMA DE ACESSOS (ADMIN VS USUÁRIO)
+        // ==========================================
+        // E-mails que possuem controle total (Criação, Edição, Exclusão)
         const ADMIN_EMAILS = ['gvconeta2025@gmail.com', 'professoragiselle.edu2@gmail.com'];
         const isAdmin = (email) => email && ADMIN_EMAILS.includes(email.toLowerCase());
+
+        // Variável que definirá o acesso do usuário na sessão atual.
+        // Futuramente, quando construirmos a área de usuários logados, eles receberão 'user'.
+        let userRole = 'guest'; // 'admin', 'user' ou 'guest'
 
         const themes = {
             blue: { start: '#1e40af', end: '#3b82f6', accent: '#2563eb' },
@@ -374,8 +393,8 @@
                 return;
             }
 
-            if (!db || !currentUser || !isAdmin(currentUser.email)) {
-                alert("Apenas administradores podem publicar.");
+            if (!db || !currentUser || userRole !== 'admin') {
+                alert("Acesso Negado: Apenas administradores podem publicar.");
                 return;
             }
 
@@ -391,11 +410,11 @@
                 }
                 
                 clearPostForm();
-                alert("Publicação guardada com sucesso!");
+                alert("Publicação salva com sucesso!");
 
             } catch (err) {
                 console.error("Erro ao guardar post:", err);
-                alert("Houve um erro ao tentar guardar. Verifique a ligação.");
+                alert("Houve um erro ao tentar salvar no Firebase. Verifique a conexão.");
             }
         };
 
@@ -416,18 +435,18 @@
         };
 
         window.deletePost = async (id) => {
-            if(!confirm("Tem a certeza que deseja eliminar esta publicação?")) return;
+            if(!confirm("Tem a certeza que deseja excluir esta publicação permanentemente?")) return;
             
-            if (!db || !currentUser || !isAdmin(currentUser.email)) {
-                alert("Precisa ser administrador para fazer isso.");
+            if (!db || !currentUser || userRole !== 'admin') {
+                alert("Acesso Negado: Você precisa ser administrador.");
                 return;
             }
 
             try {
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'posts', id));
             } catch(err) {
-                console.error("Erro ao eliminar:", err);
-                alert("Houve um erro ao eliminar.");
+                console.error("Erro ao excluir:", err);
+                alert("Houve um erro ao excluir a postagem.");
             }
         };
 
@@ -580,11 +599,10 @@
             const app = initializeApp(firebaseConfig);
             auth = getAuth(app);
             db = getFirestore(app);
-            appId = "licoes-de-vida-plena";
 
             // Lógica de Acesso de Administrador
             window.handleAdminAccess = async () => {
-                if (currentUser && isAdmin(currentUser.email)) {
+                if (currentUser && userRole === 'admin') {
                     window.toggleCentralPanel();
                 } else {
                     try {
@@ -593,8 +611,10 @@
                         const result = await signInWithPopup(auth, provider);
                         
                         if (isAdmin(result.user.email)) {
+                            userRole = 'admin'; // Atualiza a permissão dinamicamente
                             window.toggleCentralPanel();
                         } else {
+                            userRole = 'user'; // Login feito, mas não é administrador
                             alert("Acesso Negado: Este e-mail não tem permissão de administrador.");
                         }
                     } catch (error) {
@@ -606,18 +626,28 @@
                 }
             };
 
-            // Login silencioso para alunos verem os posts
+            // Login silencioso para visitantes verem os posts
             const initAuth = async () => {
                 try {
                     await signInAnonymously(auth);
                 } catch(e) {
                     console.error("Falha ao logar anonimamente.", e);
+                    alert("Atenção: O Login Anônimo não está ativado no Firebase. As postagens podem não carregar para visitantes. Acesse o Painel do Firebase > Autenticação > Métodos de Login > Ative o 'Anônimo'.");
                 }
             };
 
             // Observer de Auth e Setup de Sincronização do Feed
             onAuthStateChanged(auth, (user) => {
                 currentUser = user;
+                
+                // Define a Role ao detectar mudança no usuário
+                if (user && isAdmin(user.email)) {
+                    userRole = 'admin';
+                } else if (user && !user.isAnonymous) {
+                    userRole = 'user';
+                } else {
+                    userRole = 'guest';
+                }
 
                 if (user && db) {
                     const postsRef = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
@@ -630,6 +660,7 @@
                         renderAdminPosts();
                     }, (error) => {
                         console.error("Erro ao sincronizar posts:", error);
+                        alert("Erro ao ler dados do Firebase. Verifique as regras do banco de dados ou o provedor Anônimo.");
                     });
                 }
             });
