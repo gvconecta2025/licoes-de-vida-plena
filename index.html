@@ -424,12 +424,6 @@
             }
         };
 
-        // Fallback de admin offline
-        window.handleAdminAccess = () => {
-            alert("Modo offline: Conexão com Firebase não identificada. Acesso liberado apenas para visualização.");
-            window.toggleCentralPanel();
-        };
-
         window.setTheme = (themeName) => {
             const theme = themes[themeName];
             document.documentElement.style.setProperty('--theme-start', theme.start);
@@ -512,7 +506,7 @@
             }
 
             if (!db || !currentUser || currentUser.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
-                alert("Apenas o administrador pode publicar.");
+                alert("Apenas o administrador logado pode publicar.");
                 return;
             }
 
@@ -552,7 +546,10 @@
         window.deletePost = async (id) => {
             if(!confirm("Tem certeza que deseja excluir esta reflexão? Esta ação não pode ser desfeita.")) return;
             
-            if (!db || !currentUser || currentUser.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) return;
+            if (!db || !currentUser || currentUser.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+                alert("Você precisa ser o administrador para fazer isso.");
+                return;
+            }
 
             try {
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'posts', id));
@@ -686,92 +683,84 @@
             console.error("Erro Crítico na UI:", err);
         }
 
-        // 7. INICIALIZAÇÃO DO FIREBASE COM LOGIN GOOGLE
+        // 7. INICIALIZAÇÃO DO FIREBASE (PARA SUBIR NO VERCEL/GITHUB)
         try {
-            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-                const firebaseConfig = JSON.parse(__firebase_config);
-                const app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-                appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            // =========================================================
+            // CONFIGURAÇÃO OFICIAL DO SEU PROJETO FIREBASE
+            // =========================================================
+            const firebaseConfig = {
+                apiKey: "AIzaSyCW_Hjw1HAXu2pyPIYjtqPCQHsQ-WhZehs",
+                authDomain: "licoes-de-vida-plena.firebaseapp.com",
+                projectId: "licoes-de-vida-plena",
+                storageBucket: "licoes-de-vida-plena.firebasestorage.app",
+                messagingSenderId: "814651383731",
+                appId: "1:814651383731:web:136a823c6d6c61e350f5c6"
+            };
 
-                // Lógica de Acesso de Administrador protegida pelo Google
-                window.handleAdminAccess = async () => {
-                    if (currentUser && currentUser.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
-                        // Já logado como admin
-                        window.toggleCentralPanel();
-                    } else {
-                        // Solicita login com o Google
-                        try {
-                            const provider = new GoogleAuthProvider();
-                            const result = await signInWithPopup(auth, provider);
-                            
-                            if (result.user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
-                                window.toggleCentralPanel();
-                            } else {
-                                alert("Acesso Negado: Apenas o e-mail do administrador pode acessar este painel.");
-                            }
-                        } catch (error) {
-                            console.error("Erro no login do Google:", error);
-                            alert("Falha na autenticação do Google. Verifique sua conexão e tente novamente.");
-                        }
-                    }
-                };
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            
+            // Nome único para o seu banco de dados
+            appId = "licoes-de-vida-plena";
 
-                window.validateEmail = async () => {
-                    const email = document.getElementById('user-email').value;
-                    if (!email.includes('@')) return;
-
+            // Lógica de Acesso de Administrador protegida pelo Google
+            window.handleAdminAccess = async () => {
+                if (currentUser && currentUser.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+                    // Já logado como admin
+                    window.toggleCentralPanel();
+                } else {
+                    // Solicita login com o Google
                     try {
-                        if (currentUser && db) {
-                            const userRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'settings');
-                            await setDoc(userRef, { email: email, validated: true }, { merge: true });
-                        }
-                        safeStorage.setItem('educator_email_access', email);
-                        userEmailAccess = email;
-                        closeModal();
-                        renderBooks();
-                    } catch (err) {
-                        console.error("Aviso Firebase:", err);
-                        safeStorage.setItem('educator_email_access', email);
-                        userEmailAccess = email;
-                        closeModal();
-                        renderBooks();
-                    }
-                };
-
-                const initAuth = async () => {
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-                };
-
-                // Observer de Auth
-                onAuthStateChanged(auth, (user) => {
-                    currentUser = user;
-                    renderBooks();
-
-                    if (user && db) {
-                        const postsRef = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
+                        const provider = new GoogleAuthProvider();
+                        const result = await signInWithPopup(auth, provider);
                         
-                        onSnapshot(postsRef, (snapshot) => {
-                            feedData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                            feedData.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-                            
-                            renderHome();
-                            renderAdminPosts();
-                        }, (error) => {
-                            console.error("Erro ao sincronizar posts:", error);
-                        });
+                        if (result.user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+                            window.toggleCentralPanel();
+                        } else {
+                            alert("Acesso Negado: Apenas o e-mail do administrador pode acessar este painel.");
+                        }
+                    } catch (error) {
+                        console.error("Erro no login do Google:", error);
+                        alert("Falha na autenticação do Google. Verifique sua conexão e tente novamente.");
                     }
-                });
+                }
+            };
 
-                initAuth();
-            }
+            // Login silencioso para alunos verem os posts
+            const initAuth = async () => {
+                try {
+                    await signInAnonymously(auth);
+                } catch(e) {
+                    console.error("Falha ao logar anonimamente. Verifique se ativou o login Anônimo no Firebase.", e);
+                }
+            };
+
+            // Observer de Auth
+            onAuthStateChanged(auth, (user) => {
+                currentUser = user;
+                renderBooks();
+
+                if (user && db) {
+                    // Escutando os posts do banco de dados em tempo real
+                    const postsRef = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
+                    
+                    onSnapshot(postsRef, (snapshot) => {
+                        feedData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        feedData.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                        
+                        renderHome();
+                        renderAdminPosts();
+                    }, (error) => {
+                        console.error("Erro ao sincronizar posts:", error);
+                    });
+                }
+            });
+
+            initAuth();
+            
         } catch (e) {
-            console.error("Firebase não carregado. Recursos de banco de dados estarão inativos.", e);
+            console.error("Erro ao carregar o Firebase. Verifique se colou as chaves corretamente.", e);
         }
     </script>
 </body>
