@@ -86,17 +86,23 @@
 </head>
 <body class="max-w-md mx-auto shadow-2xl relative pb-24">
 
-    <div class="fixed top-[6px] bottom-[6px] left-1/2 -translate-x-1/2 w-[calc(100%-12px)] max-w-[calc(28rem-12px)] pointer-events-none z-0 rounded-[2.5rem]" 
-         style="border: 1px solid var(--theme-start); box-shadow: 0 0 15px var(--theme-start); opacity: 0.35;">
+    <!-- ESQUELETO VISUAL (Glow Theme Contour) -->
+    <div class="fixed top-[12px] bottom-[12px] left-1/2 -translate-x-1/2 w-[calc(100%-24px)] max-w-[calc(28rem-24px)] pointer-events-none z-0 rounded-[2.5rem]" 
+         style="border: 2px solid var(--theme-start); box-shadow: 0 0 15px var(--theme-start); opacity: 0.45;">
     </div>
     
+    <!-- PONTOS DE LUZ DO ESQUELETO -->
     <div class="fixed top-0 bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md pointer-events-none z-0">
-        <div class="absolute top-[24px] left-[12px] w-1 h-1 bg-white rounded-full opacity-80" style="box-shadow: 0 0 10px 4px var(--theme-start);"></div>
-        <div class="absolute top-[24px] right-[12px] w-1 h-1 bg-white rounded-full opacity-80" style="box-shadow: 0 0 10px 4px var(--theme-start);"></div>
-        <div class="absolute top-[105px] left-1/2 w-1.5 h-1.5 bg-white rounded-full opacity-80 -translate-x-1/2" style="box-shadow: 0 0 12px 5px var(--theme-start);"></div>
-        <div class="absolute top-1/2 left-[6px] w-1 h-1 bg-white rounded-full opacity-60 -translate-y-1/2" style="box-shadow: 0 0 10px 3px var(--theme-start);"></div>
-        <div class="absolute top-1/2 right-[6px] w-1 h-1 bg-white rounded-full opacity-60 -translate-y-1/2" style="box-shadow: 0 0 10px 3px var(--theme-start);"></div>
-        <div class="absolute bottom-[65px] left-1/2 w-1.5 h-1.5 bg-white rounded-full opacity-80 -translate-x-1/2" style="box-shadow: 0 0 12px 5px var(--theme-start);"></div>
+        <!-- Superior Esquerdo/Direito -->
+        <div class="absolute top-[30px] left-[18px] w-1.5 h-1.5 bg-white rounded-full opacity-90" style="box-shadow: 0 0 10px 4px var(--theme-start);"></div>
+        <div class="absolute top-[30px] right-[18px] w-1.5 h-1.5 bg-white rounded-full opacity-90" style="box-shadow: 0 0 10px 4px var(--theme-start);"></div>
+        <!-- Centro Base Cabeçalho -->
+        <div class="absolute top-[105px] left-1/2 w-2 h-2 bg-white rounded-full opacity-90 -translate-x-1/2" style="box-shadow: 0 0 12px 5px var(--theme-start);"></div>
+        <!-- Laterais Centro -->
+        <div class="absolute top-1/2 left-[12px] w-1.5 h-1.5 bg-white rounded-full opacity-70 -translate-y-1/2" style="box-shadow: 0 0 10px 3px var(--theme-start);"></div>
+        <div class="absolute top-1/2 right-[12px] w-1.5 h-1.5 bg-white rounded-full opacity-70 -translate-y-1/2" style="box-shadow: 0 0 10px 3px var(--theme-start);"></div>
+        <!-- Centro Topo Navegação -->
+        <div class="absolute bottom-[65px] left-1/2 w-2 h-2 bg-white rounded-full opacity-90 -translate-x-1/2" style="box-shadow: 0 0 12px 5px var(--theme-start);"></div>
     </div>
 
     <header class="gradient-bg text-white p-6 rounded-b-[2.5rem] shadow-lg relative z-10">
