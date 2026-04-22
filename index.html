@@ -86,8 +86,8 @@
                 <button onclick="toggleSettings()" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors shrink-0 cursor-pointer">
                     <i class="fas fa-cog text-lg pointer-events-none"></i>
                 </button>
-                <!-- Foto do Professor (Clicável para abrir o Painel Central) -->
-                <div onclick="toggleCentralPanel()" class="w-12 h-12 rounded-full overflow-hidden bg-white shadow-md border-2 border-white shrink-0 flex items-center justify-center cursor-pointer hover:scale-105 transition-transform">
+                <!-- Foto do Professor (Clicável para Login do Admin / Abrir Painel) -->
+                <div onclick="handleAdminAccess()" class="w-12 h-12 rounded-full overflow-hidden bg-white shadow-md border-2 border-white shrink-0 flex items-center justify-center cursor-pointer hover:scale-105 transition-transform" title="Área do Educador">
                     <img src="professor.png" alt="Professor" class="w-full h-full object-cover pointer-events-none" onerror="this.src='https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80'">
                 </div>
             </div>
@@ -338,7 +338,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, getDocs, doc, setDoc, addDoc, deleteDoc, query, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // 1. SAFE STORAGE WRAPPER
@@ -354,8 +354,11 @@
         // 2. ESTADOS E DADOS
         let currentUser = null;
         let db = null;
+        let auth = null;
         let appId = null;
         let userEmailAccess = safeStorage.getItem('educator_email_access') || null;
+
+        const ADMIN_EMAIL = 'gvconeta2025@gmail.com';
 
         const themes = {
             blue: { start: '#1e40af', end: '#3b82f6', accent: '#2563eb' },
@@ -367,7 +370,6 @@
             pollen: { start: '#78350f', end: '#f59e0b', accent: '#d97706' }
         };
 
-        // FEED DINÂMICO VAZIO (Agora ele obedece estritamente ao banco de dados real)
         let feedData = [];
 
         // DADOS DOS LIVROS (Exemplos mantidos por enquanto)
@@ -420,6 +422,12 @@
                 panel.classList.add('hidden');
                 panel.classList.remove('flex');
             }
+        };
+
+        // Fallback de admin offline
+        window.handleAdminAccess = () => {
+            alert("Modo offline: Conexão com Firebase não identificada. Acesso liberado apenas para visualização.");
+            window.toggleCentralPanel();
         };
 
         window.setTheme = (themeName) => {
@@ -482,7 +490,6 @@
             document.getElementById('email-modal').classList.remove('flex');
         };
 
-        // Fallback da função de email
         window.validateEmail = () => {
             const email = document.getElementById('user-email').value;
             if (!email.includes('@')) return;
@@ -492,7 +499,7 @@
             renderBooks();
         };
 
-        // 4. LÓGICA DE GERENCIAMENTO DE POSTS (FEED) 100% FIREBASE
+        // 4. LÓGICA DE GERENCIAMENTO DE POSTS
         window.savePost = async () => {
             const id = document.getElementById('post-id').value;
             const title = document.getElementById('post-title').value;
@@ -504,8 +511,8 @@
                 return;
             }
 
-            if (!db || !currentUser) {
-                alert("Conectando ao banco de dados... Tente novamente em alguns segundos.");
+            if (!db || !currentUser || currentUser.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+                alert("Apenas o administrador pode publicar.");
                 return;
             }
 
@@ -539,18 +546,16 @@
             document.getElementById('post-img').value = post.img || '';
             document.getElementById('btn-cancel-post').classList.remove('hidden');
             
-            // Rola até o formulário
             document.getElementById('post-form-container').scrollIntoView({ behavior: 'smooth', block: 'center' });
         };
 
         window.deletePost = async (id) => {
             if(!confirm("Tem certeza que deseja excluir esta reflexão? Esta ação não pode ser desfeita.")) return;
             
-            if (!db || !currentUser) return;
+            if (!db || !currentUser || currentUser.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) return;
 
             try {
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'posts', id));
-                // O listener onSnapshot atualizará a tela automaticamente
             } catch(err) {
                 console.error("Erro ao deletar:", err);
                 alert("Houve um erro ao deletar. Tente novamente.");
@@ -681,14 +686,37 @@
             console.error("Erro Crítico na UI:", err);
         }
 
-        // 7. INICIALIZAÇÃO DO FIREBASE (Obrigatória para os Posts)
+        // 7. INICIALIZAÇÃO DO FIREBASE COM LOGIN GOOGLE
         try {
             if (typeof __firebase_config !== 'undefined' && __firebase_config) {
                 const firebaseConfig = JSON.parse(__firebase_config);
                 const app = initializeApp(firebaseConfig);
-                const auth = getAuth(app);
+                auth = getAuth(app);
                 db = getFirestore(app);
                 appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+                // Lógica de Acesso de Administrador protegida pelo Google
+                window.handleAdminAccess = async () => {
+                    if (currentUser && currentUser.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+                        // Já logado como admin
+                        window.toggleCentralPanel();
+                    } else {
+                        // Solicita login com o Google
+                        try {
+                            const provider = new GoogleAuthProvider();
+                            const result = await signInWithPopup(auth, provider);
+                            
+                            if (result.user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+                                window.toggleCentralPanel();
+                            } else {
+                                alert("Acesso Negado: Apenas o e-mail do administrador pode acessar este painel.");
+                            }
+                        } catch (error) {
+                            console.error("Erro no login do Google:", error);
+                            alert("Falha na autenticação do Google. Verifique sua conexão e tente novamente.");
+                        }
+                    }
+                };
 
                 window.validateEmail = async () => {
                     const email = document.getElementById('user-email').value;
@@ -725,17 +753,13 @@
                     currentUser = user;
                     renderBooks();
 
-                    // Conexão em Tempo Real com o Firestore para os Posts
                     if (user && db) {
                         const postsRef = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
                         
                         onSnapshot(postsRef, (snapshot) => {
-                            // Mapeia diretamente o que vem do banco de dados na nuvem
                             feedData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                            // Organiza do mais novo para o mais velho
                             feedData.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
                             
-                            // Atualiza a tela
                             renderHome();
                             renderAdminPosts();
                         }, (error) => {
