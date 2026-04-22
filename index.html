@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>O Caminho</title>
     
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#1e40af">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -246,11 +246,11 @@
             <i class="fas fa-hands-praying text-xl pointer-events-none"></i>
             <span class="text-[10px] font-bold uppercase tracking-wider pointer-events-none mt-1">Início</span>
         </button>
-        <a href="estante/index.html" class="flex flex-col items-center gap-1 transition-all text-gray-400 hover:text-gray-600 nav-btn cursor-pointer p-2 w-full">
+        <a href="/estante/index.html" class="flex flex-col items-center gap-1 transition-all text-gray-400 hover:text-gray-600 nav-btn cursor-pointer p-2 w-full">
             <i class="fas fa-book-bible text-xl pointer-events-none"></i>
             <span class="text-[10px] font-bold uppercase tracking-wider pointer-events-none mt-1">Estante</span>
         </a>
-        <a href="cursos/index.html" class="flex flex-col items-center gap-1 transition-all text-gray-400 hover:text-gray-600 nav-btn cursor-pointer p-2 w-full">
+        <a href="/cursos/index.html" class="flex flex-col items-center gap-1 transition-all text-gray-400 hover:text-gray-600 nav-btn cursor-pointer p-2 w-full">
             <i class="fas fa-chalkboard-user text-xl pointer-events-none"></i>
             <span class="text-[10px] font-bold uppercase tracking-wider pointer-events-none mt-1">Cursos</span>
         </a>
@@ -263,7 +263,7 @@
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW falhou:', err));
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW falhou:', err));
             });
         }
 
@@ -532,16 +532,16 @@
                     const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|v\/)|youtu\.be\/)([\w-]{11})/g;
                     textSnippet = textSnippet.replace(ytRegex, '[Vídeo Anexado]');
 
-                    // ADICIONADO ONCLICK AQUI: Transforma o card todo em um botão
+                    // Cartão do artigo agora é um bloco <a> inteiro que leva diretamente ao artigo, de forma muito mais segura
                     return `
-                    <div onclick="window.location.href='blog/index.html?id=${post.id}'" class="bg-white rounded-3xl overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] transition-transform active:scale-[0.98] flex flex-col relative z-10 cursor-pointer hover:bg-gray-50">
+                    <a href="/blog/index.html?id=${post.id}" class="bg-white rounded-3xl overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] transition-transform active:scale-[0.98] flex flex-col relative z-10 cursor-pointer hover:bg-gray-50 block">
                         ${mediaHtml}
                         <div class="p-5 flex-1">
                             <h3 class="font-bold text-xl text-gray-900 leading-tight mb-2">${post.title}</h3>
                             <p class="text-gray-600 text-sm line-clamp-3 whitespace-pre-wrap leading-relaxed">${textSnippet}</p>
                             <span class="mt-4 text-[var(--theme-text-accent)] font-bold text-sm inline-flex items-center">Ler artigo completo <i class="fas fa-arrow-right ml-1.5"></i></span>
                         </div>
-                    </div>`;
+                    </a>`;
                 }
             }).join('');
         }
