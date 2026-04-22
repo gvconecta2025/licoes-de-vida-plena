@@ -367,13 +367,10 @@
             pollen: { start: '#78350f', end: '#f59e0b', accent: '#d97706' }
         };
 
-        // FEED DINÂMICO (Substitui o mockFeed fixo)
-        let feedData = [
-            { id: "mock1", title: "A Força da Oração", content: "Estudo sobre como a oração constante transforma o ambiente ao nosso redor...", img: "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=400&q=80", createdAt: 2 },
-            { id: "mock2", title: "Parábolas Comentadas", content: "Uma análise profunda sobre a parábola do semeador e seus frutos hoje.", img: "https://images.unsplash.com/photo-1490730141103-6ca3d7d6cf70?auto=format&fit=crop&w=400&q=80", createdAt: 1 }
-        ];
+        // FEED DINÂMICO VAZIO (Agora ele obedece estritamente ao banco de dados real)
+        let feedData = [];
 
-        // DADOS DOS LIVROS
+        // DADOS DOS LIVROS (Exemplos mantidos por enquanto)
         const mockBooks = [
             { 
                 id: 1, 
@@ -485,7 +482,17 @@
             document.getElementById('email-modal').classList.remove('flex');
         };
 
-        // 4. LÓGICA DE GERENCIAMENTO DE POSTS (FEED)
+        // Fallback da função de email
+        window.validateEmail = () => {
+            const email = document.getElementById('user-email').value;
+            if (!email.includes('@')) return;
+            safeStorage.setItem('educator_email_access', email);
+            userEmailAccess = email;
+            closeModal();
+            renderBooks();
+        };
+
+        // 4. LÓGICA DE GERENCIAMENTO DE POSTS (FEED) 100% FIREBASE
         window.savePost = async () => {
             const id = document.getElementById('post-id').value;
             const title = document.getElementById('post-title').value;
@@ -497,31 +504,20 @@
                 return;
             }
 
+            if (!db || !currentUser) {
+                alert("Conectando ao banco de dados... Tente novamente em alguns segundos.");
+                return;
+            }
+
             const postData = { title, content, img, updatedAt: Date.now() };
 
             try {
-                if (db && currentUser) {
-                    // Salva no Firebase
-                    const postsRef = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
-                    if (id) {
-                        await setDoc(doc(postsRef, id), postData, { merge: true });
-                    } else {
-                        postData.createdAt = Date.now();
-                        await addDoc(postsRef, postData);
-                    }
+                const postsRef = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
+                if (id) {
+                    await setDoc(doc(postsRef, id), postData, { merge: true });
                 } else {
-                    // Fallback Offline: Salva na memória
-                    if(id) {
-                        const index = feedData.findIndex(p => p.id === id);
-                        if(index > -1) feedData[index] = { ...feedData[index], ...postData };
-                    } else {
-                        postData.createdAt = Date.now();
-                        postData.id = "local_" + Date.now();
-                        feedData.push(postData);
-                    }
-                    feedData.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-                    renderHome();
-                    renderAdminPosts();
+                    postData.createdAt = Date.now();
+                    await addDoc(postsRef, postData);
                 }
                 
                 clearPostForm();
@@ -529,7 +525,7 @@
 
             } catch (err) {
                 console.error("Erro ao salvar post:", err);
-                alert("Houve um erro ao tentar salvar. Tente novamente.");
+                alert("Houve um erro ao tentar salvar no banco de dados. Verifique a conexão.");
             }
         };
 
@@ -550,17 +546,14 @@
         window.deletePost = async (id) => {
             if(!confirm("Tem certeza que deseja excluir esta reflexão? Esta ação não pode ser desfeita.")) return;
             
+            if (!db || !currentUser) return;
+
             try {
-                if(db && currentUser && !id.startsWith('mock') && !id.startsWith('local')) {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'posts', id));
-                } else {
-                    // Fallback Offline / Mock
-                    feedData = feedData.filter(p => p.id !== id);
-                    renderHome();
-                    renderAdminPosts();
-                }
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'posts', id));
+                // O listener onSnapshot atualizará a tela automaticamente
             } catch(err) {
                 console.error("Erro ao deletar:", err);
+                alert("Houve um erro ao deletar. Tente novamente.");
             }
         };
 
@@ -578,7 +571,12 @@
             if(!container) return;
             
             if (feedData.length === 0) {
-                container.innerHTML = `<div class="text-center text-gray-500 py-10">Nenhuma reflexão publicada ainda.</div>`;
+                container.innerHTML = `
+                    <div class="text-center text-gray-500 py-10 bg-white rounded-3xl border border-gray-100 shadow-sm">
+                        <i class="fas fa-pen-nib text-3xl text-gray-300 mb-3"></i>
+                        <p class="text-sm">Nenhuma reflexão publicada ainda.</p>
+                        <p class="text-xs text-gray-400 mt-1">Acesse o painel do professor para criar a primeira.</p>
+                    </div>`;
                 return;
             }
 
@@ -599,7 +597,7 @@
             if(!container) return;
             
             if(feedData.length === 0) {
-                container.innerHTML = `<p class="text-xs text-gray-400 text-center py-2">Sem reflexões salvas.</p>`;
+                container.innerHTML = `<p class="text-xs text-gray-400 text-center py-4 bg-white rounded-xl border border-gray-100">Sem reflexões salvas no banco de dados.</p>`;
                 return;
             }
 
@@ -683,7 +681,7 @@
             console.error("Erro Crítico na UI:", err);
         }
 
-        // 7. INICIALIZAÇÃO DO FIREBASE
+        // 7. INICIALIZAÇÃO DO FIREBASE (Obrigatória para os Posts)
         try {
             if (typeof __firebase_config !== 'undefined' && __firebase_config) {
                 const firebaseConfig = JSON.parse(__firebase_config);
@@ -727,19 +725,21 @@
                     currentUser = user;
                     renderBooks();
 
-                    // Se logado e com banco ativado, escuta a coleção de posts em tempo real
+                    // Conexão em Tempo Real com o Firestore para os Posts
                     if (user && db) {
                         const postsRef = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
+                        
                         onSnapshot(postsRef, (snapshot) => {
-                            // Se o banco estiver vazio, usa os dados do array que já existem
-                            if(!snapshot.empty) {
-                                feedData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                                feedData.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-                            }
+                            // Mapeia diretamente o que vem do banco de dados na nuvem
+                            feedData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                            // Organiza do mais novo para o mais velho
+                            feedData.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                            
+                            // Atualiza a tela
                             renderHome();
                             renderAdminPosts();
                         }, (error) => {
-                            console.error("Erro ao buscar posts:", error);
+                            console.error("Erro ao sincronizar posts:", error);
                         });
                     }
                 });
@@ -747,7 +747,7 @@
                 initAuth();
             }
         } catch (e) {
-            console.error("Modo Offline Ativado (Firebase não injetado):", e);
+            console.error("Firebase não carregado. Recursos de banco de dados estarão inativos.", e);
         }
     </script>
 </body>
