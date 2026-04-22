@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>O Caminho - Artigo</title>
     
-    <!-- Tags PWA para instalação no telemóvel (Caminhos absolutos) -->
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#1e40af">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,7 +12,6 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
 
@@ -54,26 +52,19 @@
 </head>
 <body class="max-w-md mx-auto shadow-2xl relative pb-10">
 
-    <!-- ESQUELETO VISUAL (Glow Theme Contour) -->
     <div class="fixed top-[12px] bottom-[12px] left-1/2 -translate-x-1/2 w-[calc(100%-24px)] max-w-[calc(28rem-24px)] pointer-events-none z-0 rounded-[2.5rem]" 
          style="border: 2px solid var(--theme-start); box-shadow: 0 0 15px var(--theme-start); opacity: 0.45;">
     </div>
     
-    <!-- PONTOS DE LUZ DO ESQUELETO (Adaptado para o Blog) -->
     <div class="fixed top-0 bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md pointer-events-none z-0">
-        <!-- Superior Esquerdo/Direito -->
         <div class="absolute top-[30px] left-[18px] w-1.5 h-1.5 bg-white rounded-full opacity-90" style="box-shadow: 0 0 10px 4px var(--theme-start);"></div>
         <div class="absolute top-[30px] right-[18px] w-1.5 h-1.5 bg-white rounded-full opacity-90" style="box-shadow: 0 0 10px 4px var(--theme-start);"></div>
-        <!-- Centro Base Cabeçalho -->
         <div class="absolute top-[105px] left-1/2 w-2 h-2 bg-white rounded-full opacity-90 -translate-x-1/2" style="box-shadow: 0 0 12px 5px var(--theme-start);"></div>
-        <!-- Laterais Centro -->
         <div class="absolute top-1/2 left-[12px] w-1.5 h-1.5 bg-white rounded-full opacity-70 -translate-y-1/2" style="box-shadow: 0 0 10px 3px var(--theme-start);"></div>
         <div class="absolute top-1/2 right-[12px] w-1.5 h-1.5 bg-white rounded-full opacity-70 -translate-y-1/2" style="box-shadow: 0 0 10px 3px var(--theme-start);"></div>
-        <!-- Centro Fundo (Na base, já que não tem menu de navegação) -->
         <div class="absolute bottom-[12px] left-1/2 w-2 h-2 bg-white rounded-full opacity-90 -translate-x-1/2" style="box-shadow: 0 0 12px 5px var(--theme-start);"></div>
     </div>
 
-    <!-- Cabeçalho "ARTIGOS" acompanhando o Design da Página Inicial -->
     <header class="gradient-bg text-white p-6 rounded-b-[2.5rem] shadow-lg relative z-10 mb-8">
         <div class="flex justify-between items-center mb-4">
             <div>
@@ -81,7 +72,6 @@
                 <p class="text-white/80 text-sm mt-1">O Caminho - Estudo da Palavra</p>
             </div>
             <div class="flex gap-4 items-center">
-                <!-- Botão voltar com caminho absoluto para evitar erro 404 -->
                 <a href="/index.html" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors shrink-0 cursor-pointer text-white" title="Voltar ao Feed">
                     <i class="fas fa-arrow-left text-lg pointer-events-none"></i>
                 </a>
