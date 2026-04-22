@@ -1,1 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O Caminho - Artigo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
 
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        :root {
+            /* Pega o tema salvo, se houver */
+            --theme-text-accent: #2563eb; 
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        /* Estilo para formatar o texto do artigo */
+        .article-body p {
+            margin-bottom: 1.5em;
+            line-height: 1.8;
+            color: #374151; /* gray-700 */
+        }
+    </style>
+</head>
+<body class="max-w-md mx-auto min-h-screen shadow-2xl bg-white relative pb-10">
+
+    <!-- Header Simples com Botão Voltar no Canto Esquerdo -->
+    <header class="bg-white px-6 pt-8 pb-4 sticky top-0 z-10 bg-opacity-90 backdrop-blur-sm">
+        <a href="../index.html" class="text-gray-500 hover:text-[var(--theme-text-accent)] flex items-center gap-2 font-bold transition-colors text-sm w-fit">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </a>
+    </header>
+
+    <main class="px-6" id="article-container">
+        <!-- Loader -->
+        <div id="loader" class="flex justify-center items-center h-64">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+        
+        <!-- O conteúdo será injetado aqui -->
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Tentar aplicar as preferências de design salvas pelo usuário
+        try {
+            const savedTheme = localStorage.getItem('user_theme_pref');
+            const savedFont = localStorage.getItem('user_font_pref');
+            
+            if (savedFont) document.body.style.fontSize = savedFont + 'px';
+            
+            const themeColors = {
+                blue: '#2563eb', green: '#16a34a', red: '#dc2626', 
+                coffee: '#6d4c41', petrol: '#0e7490', light: '#64748b', pollen: '#d97706'
+            };
+            if (savedTheme && themeColors[savedTheme]) {
+                document.documentElement.style.setProperty('--theme-text-accent', themeColors[savedTheme]);
+            }
+        } catch(e) {}
+
+        // Firebase Configuração Oficial
+        const firebaseConfig = {
+            apiKey: "AIzaSyCW_Hjw1HAXu2pyPIYjtqPCQHsQ-WhZehs",
+            authDomain: "licoes-de-vida-plena.firebaseapp.com",
+            projectId: "licoes-de-vida-plena",
+            storageBucket: "licoes-de-vida-plena.firebasestorage.app",
+            messagingSenderId: "814651383731",
+            appId: "1:814651383731:web:136a823c6d6c61e350f5c6"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Pega o ID da URL (?id=xxxxxx)
+        const urlParams = new URLSearchParams(window.location.search);
+        const postId = urlParams.get('id');
+
+        async function loadArticle() {
+            const container = document.getElementById('article-container');
+            
+            if (!postId) {
+                container.innerHTML = `<p class="text-center text-gray-500 mt-10">Artigo não encontrado.</p>`;
+                return;
+            }
+
+            try {
+                const docRef = doc(db, 'artifacts', 'licoes-de-vida-plena', 'public', 'data', 'posts', postId);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const post = docSnap.data();
+                    
+                    // Atualizar título da aba do navegador para o título do artigo
+                    document.title = post.title + " - O Caminho";
+
+                    container.innerHTML = `
+                        <h1 class="text-3xl font-bold mb-6 text-gray-900 leading-tight">${post.title}</h1>
+                        ${post.mediaUrl ? `<img src="${post.mediaUrl}" class="w-full aspect-video object-cover rounded-2xl mb-8 shadow-sm border border-gray-100" onerror="this.style.display='none'">` : ''}
+                        
+                        <article class="article-body whitespace-pre-wrap">${post.content}</article>
+                        
+                        <div class="mt-12 pt-6 border-t border-gray-100 flex items-center justify-between">
+                            <span class="text-xs text-gray-400 font-semibold uppercase tracking-wider">O Caminho</span>
+                            <button onclick="navigator.clipboard.writeText(window.location.href); alert('Link copiado!');" class="text-[var(--theme-text-accent)] bg-blue-50 px-4 py-2 rounded-full text-xs font-bold transition-colors">
+                                <i class="fas fa-share-alt mr-1"></i> Partilhar
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = `<p class="text-center text-gray-500 mt-10">Este artigo não existe mais ou foi removido.</p>`;
+                }
+            } catch (error) {
+                console.error("Erro ao procurar artigo:", error);
+                container.innerHTML = `<p class="text-center text-red-500 mt-10">Houve um erro ao carregar a leitura. Verifique sua conexão.</p>`;
+            }
+        }
+
+        loadArticle();
+    </script>
+</body>
+</html>
