@@ -1,883 +1,293 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { 
-  ZoomIn, ZoomOut, BookOpen, 
-  Menu, X, Check, CheckCheck, Bookmark, Settings, 
-  ChevronLeft, ChevronRight, Lock, Library, 
-  MessageCircle, Heart, Send, BookMarked,
-  Monitor, Smartphone, Home, GraduationCap
-} from 'lucide-react';
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Educador Digital - Plataforma de Ensino</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
 
-// =========================================================================
-// 1. CONFIGURAÇÃO DE TEMAS
-// =========================================================================
-const themes = {
-  claro: { id: 'claro', name: 'Claro', classes: 'bg-gradient-to-br from-gray-50 to-gray-200 text-gray-800', panelClasses: 'bg-white/70 backdrop-blur-xl border-gray-300', solidMenuClasses: 'bg-gray-50 border-gray-300', preview: 'bg-gray-200' },
-  polen: { id: 'polen', name: 'Pólen', classes: 'bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-100 text-amber-900', panelClasses: 'bg-white/50 backdrop-blur-xl border-amber-200', solidMenuClasses: 'bg-amber-50 border-amber-300', preview: 'bg-amber-200' },
-  escuro: { id: 'escuro', name: 'Escuro', classes: 'bg-gradient-to-br from-zinc-900 to-black text-zinc-300', panelClasses: 'bg-zinc-900/70 backdrop-blur-xl border-zinc-800', solidMenuClasses: 'bg-zinc-900 border-zinc-800', preview: 'bg-zinc-800' },
-  cafe: { id: 'cafe', name: 'Café', classes: 'bg-gradient-to-br from-[#3b2d26] to-[#1c1410] text-[#e8dcc4]', panelClasses: 'bg-[#2a1f1a]/70 backdrop-blur-xl border-[#4a3b32]', solidMenuClasses: 'bg-[#3b2d26] border-[#4a3b32]', preview: 'bg-[#4a3b32]' },
-  azul: { id: 'azul', name: 'Azul', classes: 'bg-gradient-to-br from-slate-800 to-slate-950 text-blue-100', panelClasses: 'bg-slate-900/70 backdrop-blur-xl border-slate-700', solidMenuClasses: 'bg-slate-800 border-slate-700', preview: 'bg-slate-700' }
-};
-
-// =========================================================================
-// 2. CONTEÚDO NATIVO DO LIVRO
-// =========================================================================
-const bookCatalog = [
-  {
-    id: 'vida-plena',
-    title: 'Lições de Vida Plena',
-    author: 'Autor',
-    coverImage: '🌱',
-    isLocked: false,
-    chapters: [
-      { id: 'sumario', title: 'Sumário', type: 'special' }, 
-      { id: 'prologo', label: 'Prólogo', title: 'O Abraço que Adão Não Deu', content: `
-        <p>Se você abriu este livro esperando encontrar mais um manual de como ser um cristão melhor, preciso ser honesto com você logo nas primeiras linhas: este não é esse livro.</p>
-        <p>Não vamos falar sobre como orar mais, dar mais, servir mais ou resistir mais ao pecado. Se é isso que você está procurando, há prateleiras inteiras esperando por você.</p>
-        <p>Este livro tem um único objetivo. Ele quer te mostrar um jardim que existe dentro de você — e que está aberto há mais tempo do que você imagina.</p>
-        <p>Existe uma cena no Gênesis que a religiosidade nos treinou a ler como um tribunal. A serpente, o fruto, a desobediência, a sentença. Um crime e um castigo. Mas se você pausar nessa leitura e prestar atenção no que acontece logo depois, vai encontrar algo que nenhum sistema de regras consegue reproduzir. Você vai encontrar Deus caminhando.</p>
-        <p><b>"E ouviram a voz do Senhor Deus, que passeava no jardim pela viração do dia."</b> (Gênesis 3:8)</p>
-        <p>O homem havia acabado de falhar de uma forma que, segundo toda a lógica da justiça, merecia resposta imediata. Mas Deus não aparece com um martelo. Não aparece com uma lista de punições. Aparece caminhando, na hora mais suave do dia, chamando pelo nome de quem havia se escondido.</p>
-        <p><b>"Adão, onde estás?"</b> (Gênesis 3:9)</p>
-        <p>Essa pergunta mudou tudo para mim. Porque ela não é a pergunta de um juiz buscando um réu. É a pergunta de um Pai buscando um filho.</p>
-        <p>E o filho estava escondido.</p>
-        <p>Passei muitos anos da minha vida dentro da religião sem nunca perceber que estava fazendo exatamente o que Adão fez. Não estava fugindo de Deus literalmente, claro. Estava na igreja toda semana. Lia a Bíblia. Orava. Servia. Me doava. Fazia tudo o que me ensinaram que um bom cristão deveria fazer. Mas havia algo que ninguém nunca me disse e que eu só fui entender muito mais tarde, que toda aquela atividade religiosa podia ser, por dentro, uma forma sofisticada de continuar escondido.</p>
-        <p>O problema nunca estava nas mãos. Estava nos olhos.</p>
-        <p>Existe uma diferença enorme entre dois tipos de pecado que o modo padrão de religiosidade mistura como se fossem a mesma coisa. O primeiro é o que chamamos aqui de Pecado das Mãos: os atos errados, as falhas morais, as dívidas que geramos com nossas ações. Esse é o pecado que o sistema religioso vê, pesa, julga e tenta corrigir com regras, rituais e disciplina.</p>
-        <p>O segundo é o Pecado da Visão. E esse é o que realmente partiu a humanidade no Éden.</p>
-        <p>Antes de Eva estender a mão para o fruto, algo já havia quebrado. A serpente não ofereceu primeiro uma ação proibida. Ofereceu uma suspeita. Será que Deus está realmente do seu lado? Será que a soberania Dele não é uma ameaça disfarçada de amor? Será que Ele está escondendo algo bom de você?</p>
-        <p>Foi no momento em que essa suspeita foi acolhida, antes de qualquer gesto, antes de qualquer fruto, que a Queda aconteceu de verdade. O Pecado da Visão é a desconfiança instalada no centro da alma humana, que distorce a imagem de Deus e faz o homem ver no Criador um cobrador onde há um Pai, um juiz onde há um Anfitrião, uma ameaça onde há um abraço.</p>
-        <p>Todo o restante foi consequência.</p>
-        <p>Durante séculos, a espiritualidade popular focou nos sintomas e ignorou a doença. Ela pega as mãos do homem e tenta limpá-las com leis, ritos, confissões e performance. Mas as mãos limpas de um homem com a visão doente continuam sendo as mãos de alguém que foge. E a fuga pode ter formas muito devotas. O próprio Adão usou as coisas boas do jardim, as árvores que Deus havia criado, para se esconder do Deus que o amava. O problema nunca foi a árvore. Foi o que o coração com a visão doente fez com ela.</p>
-        <p>Este livro não é uma crítica à sua comunidade de fé. É um convite para descobrir que o relacionamento com Deus é mais direto, mais leve e mais íntimo do que alguém provavelmente já te ensinou.</p>
-        <p>Existe uma cena que me perseguiu desde que a li pela primeira vez com olhos realmente abertos. Um homem pregado numa cruz, ao lado de Jesus. Sem tempo para fazer as pazes com alguém que havia magoado. Sem possibilidade de restituir o que havia roubado. Sem capacidade de frequentar qualquer rito de purificação. Sem nada, exceto a sua voz e a sua vontade, nos últimos minutos que tinha.</p>
-        <p>E ele usou essa voz para dizer algo simples: <b>"Lembra-te de mim quando entrares no teu reino."</b> (Lucas 23:42)</p>
-        <p>A resposta veio imediata, soberana e absoluta: <b>"Em verdade te digo que hoje estarás comigo no Paraíso."</b> (Lucas 23:43)</p>
-        <p>Aquele homem não deu um passo em direção ao jardim. Não tinha pernas para isso. Mas ele fez o movimento que Adão não fez. Com tudo que ainda tinha, apenas a sua vontade, ele se virou em direção ao Pai.</p>
-        <p>E o Pai foi ao encontro dele.</p>
-        <p>Isso é o que este livro chama de Vida Plena. Não é uma recompensa futura reservada para quem acumulou performance espiritual suficiente. É a eternidade que começa no instante exato em que você para de fugir. É o jardim que existe dentro de você, esperando ser habitado. É o abraço que o Anfitrião tem oferecido desde que fez Sua primeira pergunta na viração do dia.</p>
-        <p>O Propósito é a imagem do futuro que nos puxa para frente. E essa imagem não está num lugar distante nem numa condição que você ainda precisa alcançar. Ela está plantada dentro de você pelo mesmo Espírito que rasgou o véu do templo de cima a baixo (Mateus 27:51) para declarar que a distância entre Deus e o homem havia acabado.</p>
-        <p>Existe uma imagem no livro de Apocalipse que me parece a síntese de tudo o que estas páginas querem dizer. Jesus está do lado de fora de uma porta e bate. Ele não arromba. Não usa força. Não manipula. Ele bate. E espera.</p>
-        <p><b>"Eis que estou à porta e bato; se alguém ouvir a minha voz, e abrir a porta, entrarei em sua casa, e com ele cearei, e ele comigo."</b> (Apocalipse 3:20)</p>
-        <p>O detalhe: a maçaneta está do lado de dentro.</p>
-        <p>Deus fez todo o trabalho pesado. Ele suportou a traição do Éden sem abandonar a busca. Ele caminhou entre nós na pessoa de Jesus para desfazer, de uma vez por todas, a imagem do Deus cobrador que a suspeita da serpente plantou. Ele abriu mão do pagamento na Cruz para que as suas mãos ficassem livres. Ele instalou o Espírito Santo dentro de você como Anfitrião de um jardim replantado no seu interior.</p>
-        <p>Tudo isso foi feito. O convite está na porta. O único gesto que resta é seu.</p>
-        <p>Nas próximas páginas, você vai encontrar uma forma nova de ver a sua vida com Deus. Vamos reconhecer conceitos que a religiosidade popular deformou ao longo dos séculos e devolvê-los à simplicidade original da Bíblia. Vamos falar sobre culpa, perdão, vontade, identidade, oração e comunidade não como temas acadêmicos, mas como ferramentas práticas para quem quer sair do esconderijo e habitar o jardim que está dentro de si.</p>
-        <p>Este livro não foi escrito para resolver todos os seus problemas espirituais. Foi escrito para fazer uma coisa só, e fazê-la bem: mostrar que o jardim ainda está aberto, que o Pai ainda está caminhando, e que a pergunta ainda está no ar.</p>
-        <p><b>"Onde estás?"</b> (Gênesis 3:9)</p>
-        <p>O abraço que Adão não deu está disponível para você agora. Em qualquer circunstância. Com qualquer histórico. Com qualquer quantidade de dívidas nas mãos. Basta girar a maçaneta por dentro.</p>` 
-      },
-      { id: 'licao0a', label: 'Lição 0a', title: 'Jesus como a Lente Absoluta', content: `
-        <p>Existe uma confissão que eu precisei fazer para mim mesmo antes de conseguir escrever este livro. Durante anos, eu li a Bíblia sem nunca ter encontrado a Bíblia de verdade. Eu encontrei fragmentos, promessas soltas, ameaças que me mantinham acordado à noite e versículos que eu guardava como armas para usar nas discussões de domingo. Eu tinha o mapa na mão e nunca havia encontrado o jardim.</p>
-        <p>O que faltava não era dedicação. O que faltava era a lente certa.</p>
-        <p>Existe uma linha que atravessa a Bíblia do primeiro capítulo ao último. Não é uma linha doutrinal, não é um conjunto de regras que progride do mais simples para o mais complexo. É uma linha relacional. É o rastro de um Deus que se recusa a deixar o homem perdido, que fala de formas diferentes em momentos diferentes, que usa profetas e poetas e histórias de guerras e cartas pessoais, mas que nunca perde de vista um único objetivo: encontrar o filho que se escondeu. Neste livro chamamos esse rastro de <b>Fio de Ouro</b>.</p>
-        <p>O autor de Hebreus descreve essa trajetória de uma forma que, depois que você entende, não consegue mais ignorar. Ele diz que Deus falou muitas vezes e de muitas maneiras pelos profetas, e que agora, nestes últimos dias, falou pelo Filho. (Hebreus 1:1-2) Não é uma informação de protocolo no início de uma carta. É a chave que abre tudo. A revelação de Deus não é um bloco uniforme onde cada parte tem o mesmo peso. Ela tem uma direção, ela tem um destino, ela tem um rosto.</p>
-        <p><b>Esse rosto é Jesus.</b></p>
-        <p>A razão pela qual tantos de nós saímos da leitura bíblica mais confusos do que entramos é simples: nós lemos todos os textos no mesmo nível, como se o livro de Levítico e o Sermão da Montanha fossem capítulos do mesmo manual com a mesma autoridade sobre a nossa vida hoje. Mas a Bíblia não funciona assim. Ela é a história de um Deus que se aproxima progressivamente, que fala a linguagem que o homem consegue suportar em cada momento da história, que usa o idioma de cada época para ir preparando a humanidade para uma revelação que nenhuma época anterior conseguiria receber completamente.</p>
-        <p>Isso não significa que certas partes da Bíblia são falsas ou que podemos escolher o que lemos. Significa que precisamos ler o livro inteiro como uma narrativa que avança, não como um arquivo de regras eternas desconectadas entre si. A matemática nos ensina que um ponto isolado não revela a direção de uma curva. Você precisa ver o conjunto para entender para onde a linha está indo. Na leitura bíblica, Jesus é o ponto que revela a direção de toda a curva.</p>
-        <p>Existe algo que a religiosidade raramente menciona mas que é fundamental para entender a Escritura com honestidade: há humanidade entranhada no texto sagrado. Os homens que escreveram cada livro da Bíblia eram inspirados pelo Espírito de Deus, mas eram homens do seu tempo, com a cultura do seu tempo, os limites do seu tempo e as feridas do seu tempo. Deus não os robotizou. Ele falou através deles sem apagar quem eles eram, porque um Deus que respeita a soberania da vontade humana não começa por eliminar a personalidade dos seus colaboradores. Isso não é uma fraqueza da inspiração. É a prova de um Deus que confia no processo que Ele mesmo criou.</p>
-        <p>A exceção absoluta é Jesus. Nas palavras e na vida do Filho não há humanidade distorcendo a revelação. Quando Jesus fala, o Pai fala. Quando Jesus age, o Pai se revela. Ele mesmo disse isso de uma forma que não deixa margem para interpretação: quem me vê a mim vê o Pai. (João 14:9) Isso significa que quando você quer saber como Deus reage diante de alguém que falhou, a resposta não está em construir uma posição a partir das leis do Levítico. Está em observar Jesus diante da mulher que todos queriam apedrejar. Quando você quer saber o que Deus sente quando alguém que virou as costas para Ele resolve voltar, a resposta não está no relato do dilúvio. Está no pai que viu o filho ainda de longe e correu ao seu encontro. (Lucas 15:20)</p>
-        <p><b>Cristo interpreta a Bíblia. A Bíblia não interpreta Cristo.</b></p>
-        <p>Na prática, isso nos dá um critério simples e poderoso para cada texto que lemos. Se a interpretação que estamos fazendo de uma passagem produz uma imagem de Deus diferente do Pai revelado por Jesus, a interpretação está errada. O texto está certo. Mas alguma coisa está distorcendo a lente. Pode ser o contexto que foi ignorado, pode ser a época que foi desconsiderada, pode ser o peso de uma tradição que foi colocado sobre as palavras antes mesmo de elas serem lidas. Em todos esses casos, o caminho de volta é o mesmo: voltar para Jesus e deixar que Ele ilumine o que ainda não estava claro.</p>
-        <p>Nós não lemos a Bíblia para ter razão. Nós a lemos para encontrar o rastro de quem nunca parou de nos procurar. E quando você começa a ler com essa lente, algo acontece que nenhuma quantidade de versículos memorizados jamais produziu: o livro começa a falar de um Deus que você reconhece. Um Deus que você consegue confiar. Um Deus diante de quem você não precisa mais se esconder.</p>
-        <p>E é exatamente esse Deus que as próximas lições vão apresentar.</p>` 
-      },
-      { id: 'licao0b', label: 'Lição 0b', title: 'O Conhecimento Suficiente', content: `
-        <p>Há um tipo de fé que cansa mais do que a ausência dela. É a fé que exige de você respostas para tudo antes de permitir que você descanse. A fé que transforma o relacionamento com Deus numa prova permanente, onde cada dúvida que persiste é evidência de que você ainda não chegou lá. Muita gente carrega esse peso por anos sem perceber que ele não veio de Deus. Veio de um sistema que confundiu conhecimento com confiança.</p>
-        <p>A verdade é mais simples e mais generosa do que isso.</p>
-        <p>Você não precisa entender tudo para confiar em Deus. Nunca vai entender tudo. E isso não é uma fraqueza da sua fé. É a natureza de qualquer relacionamento real entre uma criatura e o Criador que a fez.</p>
-        <p>A pergunta que importa não é quanto você sabe. É <b>quem você conhece</b>.</p>
-        <p>Quando Jesus disse a Filipe "quem me vê a mim vê o Pai" (João 14:9), ele estava respondendo a pergunta mais antiga da humanidade. Como é Deus de verdade? O que ele sente? Como ele reage quando alguém falha? A resposta não está num argumento filosófico nem num tratado doutrinal. Está numa vida. Está nas escolhas que Jesus fez, nas pessoas que ele tocou, nos momentos em que ele chorou na frente do túmulo de um amigo, nos momentos em que ele se sentou para comer com quem ninguém queria por perto. Quem conhece Jesus tem o conhecimento suficiente para começar a andar.</p>
-        <p>Isso não significa que as perguntas difíceis devem ser enterradas. Significa que elas têm um lugar melhor para serem feitas, e esse lugar é dentro do relacionamento, não antes dele. Uma criança não precisa entender a biologia do amor dos pais para ser amada. Ela começa sendo amada, e o entendimento vai chegando dentro da segurança que esse amor produz. A fé funciona da mesma forma.</p>
-        <p>Existe um ponto onde muita gente tropeça. Ao longo da caminhada, é possível olhar para trás e perceber que parte do que foi ensinado sobre Deus estava errado. Que certas imagens que você guardou de Deus desde criança não correspondem ao Pai revelado por Jesus. Que algumas coisas nas quais você acreditou com sinceridade foram ensinadas de forma equivocada, ou usadas para produzir medo onde deveria haver amor.</p>
-        <p>Reconhecer isso não é uma crise de fé. É o início de uma fé mais real.</p>
-        <p>Ninguém cresce sem rever o que aprendeu. Ninguém amadurece sem perceber, em algum momento, que certas fundações eram mais frágeis do que pareciam. Isso não significa que tudo estava errado. Significa que você está caminhando. A fé não é um estado fixo que você conquista de uma vez e carrega intacto pelo resto da vida. Ela cresce, ela se aprofunda, ela se corrige ao longo do caminho. E em cada correção, o que fica mais firme não é um sistema de crenças, mas a confiança na pessoa de Jesus.</p>
-        <p>O problema com a religiosidade é que ela frequentemente trata o crescimento como uma ameaça. Quem faz perguntas é visto com desconfiança. Quem revê posições é visto como instável. Quem confessa que certas coisas que aprendeu não fazem mais sentido é tratado como se estivesse abandonando a fé. Mas quem abandona uma fundação equivocada para se apoiar em algo mais sólido não está recuando. Está avançando.</p>
-        <p>Existe uma permissão que muita gente nunca recebeu e que estas páginas querem entregar: a permissão para começar a caminhar com o que você tem agora, sem esperar resolver todas as questões primeiro. Para trazer as dúvidas para dentro da conversa com Deus em vez de resolvê-las todas antes de entrar. Para reconhecer que certas coisas que você aprendeu sobre Deus precisam ser revisadas à luz de Jesus, e que isso não é traição a nenhuma fé genuína que você já teve.</p>
-        <p>Jesus não exigiu que ninguém entendesse tudo antes de chamá-los para perto. Ele chamou pescadores que não sabiam o que era graça. Chamou um cobrador de impostos que entendia tudo de números e nada de perdão. Chamou um perseguidor da fé que precisou cair do cavalo para enxergar o que estava na sua frente. Em nenhum momento a condição para se aproximar foi o domínio de um conjunto de crenças.</p>
-        <p>No início do seu ministério, quando os primeiros discípulos perguntaram onde ele morava, Jesus não respondeu com um endereço nem com uma explicação. Respondeu com um convite: <b>"Vinde e vede."</b> (João 1:39)</p>
-        <p>Essa é a condição para começar. Não o entendimento completo. Não a fé sem dúvidas. Não a vida organizada e sem pendências. Apenas a disposição de vir e ver.</p>
-        <p>O conhecimento suficiente é esse.</p>` 
-      },
-      { id: 'licao0c', label: 'Lição 0c', title: 'A Matemática do Plantio', content: `
-        <p>Paulo escreveu algo que parece simples mas carrega um peso enorme: <b>"não vos enganeis: de Deus não se zomba; pois aquilo que o homem semear, isso também ceifará."</b> (Gálatas 6:7)</p>
-        <p>O que você está vivendo hoje é, em boa parte, o resultado das sementes que foram plantadas antes. O que você vai viver amanhã depende, em boa parte, do que está sendo plantado agora.</p>
-        <p>Essa não é uma sentença de condenação. É a descrição de como o mundo que Deus criou funciona. Um mundo onde as escolhas têm consequências reais é um mundo que leva a liberdade humana a sério. Se o que plantamos hoje não produzisse colheita amanhã, a nossa soberania sobre a nossa própria vida seria apenas uma ficção bem intencionada.</p>
-        <p>Há uma confusão que o sistema religioso popularizou e que produz muito sofrimento desnecessário. Ele ensina que basta pedir perdão com sinceridade para que tanto a dívida diante de Deus quanto as consequências práticas da vida desapareçam juntas. O resultado é uma geração de pessoas que ora pedindo que Deus desfaça as colheitas que elas mesmas plantaram, enquanto continuam semeando as mesmas coisas. E quando a colheita ruim insiste em aparecer, concluem que a fé delas é fraca ou que Deus não as ouviu.</p>
-        <p>A Graça que perdoa a dívida eterna não cancela as consequências das nossas escolhas no tempo. São duas coisas diferentes, e confundi-las custa caro.</p>
-        <p>Um pai que perdoa o filho que quebrou o vidro não paga o vidro no lugar do filho. O perdão é verdadeiro e completo. E o vidro ainda precisa ser reposto.</p>
-        <p>Antes de continuar, porém, é preciso dizer algo com honestidade, porque sem isso essa verdade vira acusação onde deveria ser convite.</p>
-        <p>Nem tudo que você colhe hoje nasceu de sementes que você plantou.</p>
-        <p>Nós chegamos ao mundo num campo que já tinha história antes de nós. Decisões de gerações anteriores produziram colheitas que herdamos sem escolha. Relacionamentos ao nosso redor plantaram sementes cujos frutos chegaram até nós sem pedir licença. Se você carrega o peso de consequências que não escolheu, isso é real. Você não está inventando esse peso.</p>
-        <p>Mas mesmo dentro dessa complexidade, a sua responsabilidade sobre as suas próprias sementes permanece intacta. Você não escolheu o campo que herdou. Você escolhe o que planta nele a partir de hoje.</p>
-        <p>A religiosidade ama o vitimismo porque ele cria dependência. Quando você acredita que a sua vida é determinada por forças externas que escapam ao seu controle, você precisa de alguém que interceda no seu lugar, que quebre o ciclo por você, que tenha acesso a um poder que você não tem. Mas o convite do Evangelho não é esse. O Criador não quer filhos paralisados esperando ser resgatados de cada consequência. Quer filhos que caminham, que escolhem, que plantam com consciência.</p>
-        <p>Entender a lei da semeadura não diminui a Graça. Revela o quanto ela é generosa. Deus não apenas perdoa a dívida que você nunca conseguiria pagar. Ele caminha ao seu lado enquanto você aprende a semear diferente. A Graça é o convite amoroso, contínuo e insistente de um Pai que se recusa a desistir dos seus filhos — inclusive enquanto eles ainda estão colhendo as consequências das sementes antigas.</p>
-        <p>A lei da colheita não é uma prisão. É o ambiente onde a transformação acontece.</p>
-        <p>Por isso Paulo não estava pregando fatalismo. Estava pregando exatamente o oposto. Estava dizendo que o presente que você está vivendo não precisa ser o futuro que você vai colher. Que uma nova semente produz uma nova colheita. Que o amanhã não está condenado a repetir o ontem.</p>
-        <p>O que você planta hoje, você colhe amanhã. <b>O que você quer colher amanhã, plante hoje.</b></p>` 
-      },
-      { id: 'licao0d', label: 'Lição 0d', title: 'A Dinâmica das Pedras: O Desarmamento', content: `
-        <p>Imagine um garimpeiro que passa a vida inteira quebrando pedregulhos.</p>
-        <p>Ele acorda cedo, trabalha até escurecer, conhece cada detalhe do terreno, discute com outros garimpeiros sobre a melhor técnica de quebrar pedra. Tem um conhecimento impressionante sobre o assunto. Mas ao final da vida, o que ele tem nas mãos são pedaços de pedra comum. Enquanto isso, a alguns metros de distância, havia diamantes que ele nunca se deu ao trabalho de procurar porque estava ocupado demais com os pedregulhos.</p>
-        <p>Doutrinas funcionam da mesma forma.</p>
-        <p>Existem verdades que são absolutamente centrais. Sem elas, o relacionamento com Deus perde o eixo. Jesus como único mediador. A Graça como fonte do relacionamento. O Perdão como cancelamento real de uma dívida real. A ressurreição como fundação histórica de tudo que se crê. Essas são as pedras preciosas. Lapidá-las, conhecê-las, guardar-las é o trabalho de uma vida inteira e a recompensa é proporcional ao esforço.</p>
-        <p>Mas o sistema religioso, com uma frequência que assusta, direciona sua energia para outro lugar. Disputa a forma correta do batismo. O dia exato do culto. A versão certa da Bíblia. O estilo legítimo de adoração. A sequência dos eventos do fim dos tempos. Cada um desses temas tem uma comunidade apaixonada que trata a sua posição como questão de vida ou morte espiritual, e trata quem discorda como inimigo da fé.</p>
-        <p>São pedregulhos. Têm algum valor, como toda pedra tem. Mas não se comparam aos diamantes.</p>
-        <p>E o problema não é apenas que o garimpeiro perde tempo com a pedra errada. É que enquanto ele quebra pedregulhos, fica convencido de que está fazendo o trabalho mais importante do mundo. A intensidade do esforço cria a ilusão do valor do objeto.</p>
-        <p>Existe um princípio que ajuda a distinguir os dois: se há dúvida genuína, é porque Deus não revelou completamente. E se Deus não revelou completamente, é porque não era essencial para o relacionamento. O Criador que foi capaz de comunicar com clareza suficiente o que precisava ser comunicado, que revelou em Jesus tudo que era necessário sobre o próprio caráter, não teria deixado obscuro algo de que a salvação dependesse. O que ficou em aberto ficou porque pode ficar. Não porque Deus se esqueceu.</p>
-        <p>Isso não é indiferença doutrinária. É sabedoria na escolha das batalhas.</p>
-        <p>Paulo escreveu a Timóteo sobre pessoas que viviam "sempre aprendendo e que jamais podem chegar ao conhecimento da verdade." (2 Timóteo 3:7) O retrato é assustadoramente familiar: gente que acumula informação religiosa indefinidamente sem que isso produza qualquer transformação real. Pessoas que sabem tudo sobre a pedra e nada sobre o diamante.</p>
-        <p>A postura que este livro propõe é diferente. É a postura do aluno, não a do guerreiro. O guerreiro precisa de um inimigo e encontra um em cada doutrina que diverge da sua. O aluno precisa de um mestre e encontra nesse mesmo espaço de divergência uma oportunidade de entender melhor o que ainda não compreende. O guerreiro defende território. O aluno busca o que é precioso.</p>
-        <p>Há algo mais que precisa ser dito com cuidado, porque é um ponto onde muita gente se machuca sem perceber.</p>
-        <p>Líderes que direcionam sua comunidade para o combate de pedregulhos não são necessariamente mal intencionados. Muitos acreditam genuinamente que estão defendendo a fé. Mas o efeito prático é o mesmo independente da intenção: uma comunidade que passa os anos em batalhas secundárias raramente produz pessoas transformadas. Produz pessoas bem informadas sobre os temas das batalhas. E essas são coisas muito diferentes.</p>
-        <p>Quando você reconhece esse padrão, a reação natural é a raiva. Sente que perdeu tempo, que foi conduzido para o lugar errado, que as batalhas que travou não valiam o que custaram. Essa raiva é compreensível. Mas ela é mais um pedregulho que não vale o esforço.</p>
-        <p>O desarmamento que esta lição propõe não é ingenuidade. Não é abandonar a verdade nem tratar tudo como igualmente válido. É a decisão consciente de guardar a sua energia para o que é precioso. De reconhecer que você tem uma quantidade finita de atenção, de tempo e de força, e que o que você escolhe estudar, defender e construir vai definir o tipo de fé que você terá ao final do caminho.</p>
-        <p>As próximas lições vão direto aos diamantes. A Queda, a Graça, a Fé, o Perdão, a identidade. As verdades que, quando entendidas de verdade, não apenas informam a cabeça mas mudam a forma como você acorda de manhã, como você trata as pessoas ao seu redor, como você enfrenta o que não consegue controlar.</p>
-        <p><b>Pedras preciosas não precisam de você para defender o valor delas. Elas provam o próprio valor quando você as segura na mão.</b></p>` 
-      },
-      { id: 'licao1', label: 'Lição 1', title: 'A Queda: o Pecado da Visão', content: `
-        <p>As quatro lições anteriores foram preparatórias. Elas limparam a lente, estabeleceram o ponto de partida, e criaram o espaço necessário para que o que vem agora possa ser recebido da forma certa. A partir daqui, o terreno muda. O que você vai encontrar nestas próximas doze lições não nasceu de pesquisa acadêmica nem de especulação filosófica. Nasceu de uma busca pessoal que durou anos, de perguntas que eu não conseguia calar, de uma fé que precisou ser desmontada e reconstruída sobre fundações mais sólidas do que as que eu havia herdado.</p>
-        <p>Eu não escrevo para convencer você de nada. Escrevo para compartilhar o que transformou a minha vida. Hoje eu me sinto vivendo uma vida plena. Não porque os problemas acabaram, porque não acabaram. Não porque tudo ficou mais fácil, porque nem sempre fica. Mas porque a forma como vejo Deus, a mim mesmo e à realidade ao meu redor mudou de tal forma que o peso que eu carregava antes simplesmente não existe mais da mesma maneira. Esse é o objetivo destas lições: não mudar a sua doutrina, mas curar a sua visão.</p>
-        <p>O que você encontrará aqui é o eixo central de uma visão de vida plena e de relacionamento com Deus. Não esgotamos o assunto nestas páginas, e por isso há um site onde esse conteúdo é expandido, aprofundado e defendido para quem quer ir mais longe. Mas o essencial está aqui. E o essencial começa onde o problema começou.</p>
-        <p>No jardim.</p>
-        <p>A serpente disse à mulher: <b>"Certamente não morrereis. Porque Deus sabe que no dia em que dele comerdes se abrirão os vossos olhos, e sereis como Deus..."</b> (Gênesis 3:4-5)</p>
-        <p>O que a maioria de nós aprendeu sobre esse texto é que Adão e Eva desobedeceram a Deus e por isso foram expulsos do jardim. A narrativa foi ensinada como uma história de mãos que tocaram o que não deviam tocar. E por isso durante séculos a religião concentrou sua energia em vigiar as mãos. Regras, leis, códigos morais, listas de comportamentos proibidos. Toda a estrutura foi montada sobre a premissa de que o problema da humanidade é comportamental.</p>
-        <p>Mas o problema da humanidade não começou nas mãos.</p>
-        <p>Antes de Eva tocar no fruto, algo aconteceu dentro dela. A serpente não propôs uma ação errada em primeiro lugar. Propôs uma revisão da forma de ver Deus. O argumento foi cirúrgico e devastador: será que a sabedoria de Deus é realmente boa? Será que Ele não está escondendo algo de vocês? Será que a soberania Dele é uma forma de limitação e não de proteção?</p>
-        <p>A Queda aconteceu naquele momento de deliberação interna, antes de qualquer movimento das mãos. Quando Eva olhou para a árvore e a viu como boa, agradável e desejável, a visão já havia sido corrompida. A desconfiança já havia sido instalada. O fruto foi apenas a consequência de uma visão que já havia caído.</p>
-        <p><b>O Pecado da Visão é a raiz. O Pecado das Mãos é o fruto.</b></p>
-        <p>Curar as mãos sem curar os olhos é o projeto de toda religiosidade que não chega à raiz. Pode produzir pessoas moralmente ajustadas, comportamentalmente corretas, exteriormente irrepreensíveis. Mas não produz pessoas livres. Não produz pessoas que confiam em Deus de verdade, que descansam nEle sem precisar vigiar constantemente o próprio desempenho. Produz pessoas exaustas tentando manter as mãos limpas enquanto os olhos continuam enfermos.</p>
-        <p>O que precisa mudar é a visão que temos de Deus.</p>
-        <p>Existe um detalhe no texto de Gênesis que raramente recebe a atenção que merece. Quando Deus percorre o jardim depois da Queda, a primeira coisa que Ele faz não é listar as consequências nem pronunciar a sentença. A primeira coisa que Ele faz é perguntar: "Onde você está?" (Gênesis 3:9, ACF). Não é uma pergunta de localização geográfica. É a voz de um Pai que busca o filho que se escondeu. É o Criador recusando o distanciamento que a criatura instalou.</p>
-        <p>Essa cena reposiciona tudo. Deus não foi pego de surpresa pela Queda. O apóstolo João registra algo que inverte a linha do tempo da forma mais contundente possível: o Cordeiro foi morto "desde a fundação do mundo." (Apocalipse 13:8, ACF). A cura já estava preparada antes da ferida. O projeto de Deus nunca foi abandonar o homem à consequência das suas escolhas. O projeto sempre foi buscar o filho que se escondeu atrás das árvores.</p>
-        <p>E o homem continua se escondendo. Não atrás de árvores físicas, mas atrás de templos, de ritos, de mediadores, de desempenho religioso. Toda estrutura que o sistema religioso edificou ao longo dos séculos pode ser lida, na sua essência, como uma forma sofisticada de se esconder de Deus sem precisar admitir que está se escondendo. O homem cria a ilusão de que está se aproximando de Deus através dos rituais, mas o que está fazendo é exatamente o que Adão fez: cobrindo a nudez com folhas de figueira e chamando isso de vestimenta adequada para entrar na presença do Criador.</p>
-        <p>O Éden não é um lugar no passado que perdemos e precisamos recuperar. É uma imagem de futuro que nos puxa para frente. É o relacionamento sem véus entre o Criador e a criatura que foi prometido, que começou a ser restaurado em Cristo, e que será consumado na Eternidade. A Vida Plena não é a tentativa de voltar ao passado. É deixar que o futuro nos alcance agora.</p>
-        <p>E o futuro nos alcança quando a visão é curada.</p>
-        <p>Esta é a proposta que atravessa as doze lições deste livro. Não um programa de comportamento. Não uma lista de práticas religiosas. Uma mudança de visão. Aprender a ver Deus como Ele se revelou em Jesus, não como a serpente O descreveu no jardim. Aprender a confiar na sabedoria e na soberania de um Pai que nunca precisou ser temido, apenas amado. Aprender a sair de trás das árvores.</p>
-        <p>Quando a visão muda, o comportamento segue. Não como esforço, mas como consequência natural de quem finalmente enxerga com clareza. Uma pessoa que realmente vê Deus como Ele é não precisa de uma lista de regras para amá-Lo. O amor é a resposta mais óbvia diante do que ela passa a ver. O amor que brota dessa clareza que passamos a ter é um amor constrangedor. Como não amar nosso Criador que nos ama desse jeito?</p>
-        <p>Desde o princípio o fim já estava disponível.</p>
-        <p>O Pecado da Visão, é a desconfiança instalada no coração humano de que Deus não é bom, de que a Sua soberania é uma ameaça, de que a Sua sabedoria é questionável. Mas o que pouco se percebe é que a cura já estava disponível no mesmo instante em que a doença se instalou. "Adão, onde estás?" (Gênesis 3:9, ACF) Essa pergunta era um convite. Era o Criador percorrendo o jardim, abrindo espaço para que o homem saísse de trás das árvores e simplesmente viesse. Se Adão tivesse respondido ao chamado não com desculpa, não com acusação, mas com um abraço, tudo poderia ter sido consumado ali. O relacionamento poderia ter sido restaurado naquele mesmo instante, no mesmo jardim, sob as mesmas árvores. O Pai estava chamando.</p>
-        <p>Mas Adão se escondeu. E é por isso que a Bíblia afirma algo que parece impossível quando lemos pela primeira vez: o Cordeiro foi morto desde a fundação do mundo. (Apocalipse 13:8, ACF) Antes da serpente. Antes do fruto. Antes da pergunta no jardim. Antes de Adão existir para responder ou se esconder. O plano de restauração já estava consumado na mente de um Deus que conhece o fim desde o princípio e que, portanto, nunca foi surpreendido por nenhuma das nossas fugas. O abraço que Adão não deu estava disponível desde sempre. E continua disponível agora. Antes de falar sobre o que fazer, é preciso curar o que ver.</p>` 
-      },
-      { id: 'licao3', label: 'Lição 3', title: 'Graça: a Pressão que Não Arromba', content: `
-        <p>A Misericórdia é a fonte. A Graça é a Misericórdia em movimento.</p>
-        <p>aprendemos que Deus opera a partir da jurisdição da Misericórdia. Agora é hora de mostrar como Ele chegou até nós com essa oferta. Porque não adianta o Credor estar disposto a rasgar a nota promissória se o devedor continua escondido atrás das árvores acreditando que o Credor veio cobrar.</p>
-        <p>A Queda produziu distância. O Pecado da Visão fez o homem acreditar que Deus era uma ameaça, e a primeira reação foi fugir. "E ouviram a voz do Senhor Deus, que passeava no jardim pela viração do dia; e escondeu-se Adão e sua mulher da presença do Senhor Deus, entre as árvores do jardim." (Gênesis 3:8, ACF) Se Deus ficasse parado esperando que o homem voltasse por conta própria, ninguém voltaria. Um cego não mapeia o caminho de volta para a luz sozinho. Alguém precisa buscá-lo.</p>
-        <p>A Graça é a voz de Deus percorrendo o jardim perguntando: <b>"Onde você está?"</b> (Gênesis 3:9, ACF) É a busca ativa pelo filho que se escondeu. É Deus atravessando a distância que o homem criou, não porque o homem mereceu, mas porque o Pai decidiu que o relacionamento valia o esforço.</p>
-        <p>A melhor definição de Graça que pude imaginar é que ela é o convite amoroso, insistente e contínuo de um Pai que não desiste de resgatar o filho que ama. Deus não desiste de nos convidar ao abraço! E esse convite nasce diretamente do coração misericordioso do Criador.</p>
-        <p>João registrou algo sobre Jesus que define o movimento da Graça de modo que não pode ser ignorada: "Ninguém pode vir a mim, se o Pai que me enviou o não trouxer." (João 6:44, ACF) O homem, sozinho, com a visão corrompida pela desconfiança, não tem como voltar. Precisa ser trazido. E é isso que a Graça faz. Ela não espera. Ela vai.</p>
-        <p>Mas existe um detalhe na forma como a Graça opera que separa o Deus revelado em Jesus de qualquer outra divindade que o homem já inventou. <i>"Eis que estou à porta, e bato..."</i> (Apocalipse 3:20, ACF)</p>
-        <p><b>A Graça bate. Não arromba.</b></p>
-        <p>Deus tem poder para derrubar qualquer porta. Tem poder para forçar a vontade humana, para reprogramar o coração, para transformar a rebeldia em obediência instantânea sem pedir permissão. Mas Ele não faz isso. Porque arrombar a vontade de alguém destrói a possibilidade de amor verdadeiro. E o que Deus quer não é obediência de robôs. É relacionamento com filhos.</p>
-        <p>A maçaneta está do lado de dentro da porta.</p>
-        <p>Essa é a regra de ouro que a Graça respeita. Ela vai até onde o homem está. Localiza a porta. Bate. Chama. Insiste. Mas para na soleira da soberania humana. O último movimento, o giro da maçaneta, é do homem. Não porque Deus não possa fazer por ele. Mas porque Deus decidiu que esse movimento final seria o único gesto que separaria o filho que volta por escolha do escravo que obedece por medo.</p>
-        <p>A Graça exerce uma pressão formidável. Ela ilumina o intelecto mostrando o absurdo da mentira da serpente. Constrange o coração expondo a beleza do que foi perdido. Revela a futilidade de continuar escondido quando o Pai já sabe exatamente onde você está e está chamando pelo seu nome. Mas depois de toda essa pressão, a Graça espera. Porque um sim forçado não é um sim.</p>
-        <p>Paulo escreveu a Tito algo que muita gente lê sem perceber o peso: "Porque a graça de Deus se há manifestado, trazendo salvação a todos os homens, ensinando-nos que, renunciando à impiedade e às concupiscências mundanas, vivamos neste presente século sóbria, e justa, e piamente." (Tito 2:11-12, ACF)</p>
-        <p>A Graça ensina.</p>
-        <p>Ela não é uma licença para continuar vivendo da mesma forma sem consequências. Não é um bilhete de impunidade onde o homem pode pecar livremente porque Deus vai perdoar de qualquer jeito. Quando a porta é aberta e a Graça entra, ela começa a reorganizar a casa. Ela atua diretamente contra a inércia do Pecado das Mãos, criando uma nova gravidade espiritual. Não por coerção, mas por revelação. Quando você finalmente vê Deus como Ele é de verdade, e não como a serpente O descreveu, o comportamento muda como consequência natural de uma visão curada.</p>
-        <p>O sistema religioso corrompeu a Graça em dois extremos opostos e igualmente destrutivos.</p>
-        <p>De um lado, o legalismo transformou a Graça em prêmio. Ensinou que ela precisa ser alcançada através de sacrifício, desempenho e bom comportamento. Criou uma escada onde o homem sobe degrau por degrau tentando se aproximar de Deus, e quanto mais sobe, mais a Graça parece distante porque a escada nunca chega ao topo. Nesse sistema, a Graça deixa de ser Graça. Vira salário. E quem vive tentando ganhar o que já foi oferecido de graça passa a vida exausto sem nunca descansar.</p>
-        <p>Do outro lado, a graça barata transformou o convite em desculpa. Ensinou que porque Deus perdoa, o pecado não tem peso. Que a Graça cobre tudo, então pode-se viver de qualquer jeito. Esse extremo ignora que a Graça não apenas perdoa. Ela ensina. E quem realmente encontrou a Graça não a usa como licença para continuar ferindo a si mesmo e aos outros. Usa (ela) como a força que finalmente torna possível viver de forma diferente.</p>
-        <p>A Graça não é passiva. Não é Deus esperando de braços cruzados que você finalmente acerte a vida para então aceitar você de volta. Ela é ativa. É um Pai percorrendo o jardim chamando pelo filho. É um Criador que decidiu que o relacionamento valia mais do que a ofensa e que está disposto a ir até o fim do esconderijo para provar isso.</p>
-        <p>E a Graça não é força bruta. Não é Deus arrombando a sua vontade e forçando você a amá-Lo. Ela é convite. É uma porta sendo batida, uma voz chamando do lado de fora, um Pai que está disposto a esperar o tempo que for necessário até que você decida abrir.</p>
-        <p>A Graça é o convite amoroso, contínuo e insistente de um Pai que se recusa a desistir dos seus filhos.</p>
-        <p>E quando a porta finalmente se abre, quando o homem decide girar a maçaneta e enfrentar o Pai de quem passou tanto tempo fugindo, ele descobre que o Pai nunca foi quem a serpente disse que era. Descobre que a Sabedoria de Deus sempre foi boa. Que a Soberania de Deus nunca foi uma ameaça. Que o esconderijo era desnecessário desde o início.</p>
-        <p>Descobrir isso não é apenas informação. É cura. É a visão sendo restaurada. E é sobre essa cura que a próxima lição trata.</p>` 
-      },
-      { id: 'licao4', label: 'Lição 4', title: 'Fé: o Antídoto Ontológico da Queda', content: `
-        <p>A Graça bateu à porta. A maçaneta está do lado de dentro. Mas existe um problema que a Lição 1 já diagnosticou e que precisa ser resolvido antes que a mão gire a maçaneta.</p>
-        <p>A visão está doente.</p>
-        <p>O Pecado da Visão instalou no coração humano uma desconfiança tão profunda na sabedoria e soberania de Deus que mesmo quando a Graça chega batendo, o homem olha para a porta com medo. Ele ouve a voz do lado de fora e acredita que é um credor vindo cobrar. Ele vê a sombra sob a porta e imagina um juiz vindo sentenciar. A serpente fez um trabalho tão completo que mesmo depois que a Misericórdia foi revelada, mesmo depois que a Graça veio buscando, o homem ainda vê Deus como uma ameaça.</p>
-        <p>A Fé é a cura dessa doença.</p>
-        <p>Se o Pecado da Visão é a desconfiança absoluta no caráter de Deus, a Fé é o seu oposto exato. É o restabelecimento da confiança na sabedoria e soberania do Criador. É a visão sendo restaurada ao ponto de finalmente enxergar Deus como Ele realmente é, e não como a mentira da serpente O pintou.</p>
-        <p>Paulo escreveu aos Efésios com uma clareza que não deixa margem para confusão: "Porque pela graça sois salvos, por meio da fé; e isto não vem de vós, é dom de Deus." (Efésios 2:8, ACF)</p>
-        <p>A Fé não vem de você.</p>
-        <p>Um homem com a visão corrompida pela Queda não consegue, por esforço próprio, gerar confiança no Criador. É como pedir para um cego desenhar um mapa da luz. Ele pode tentar. Pode se esforçar. Pode ter sinceridade absoluta na tentativa. Mas sem enxergar, não vai conseguir. A Fé é um equipamento de visão que Deus fornece. É a lente que restaura a capacidade de ver com clareza.</p>
-        <p>Mas existe uma segunda parte dessa verdade que é igualmente importante.</p>
-        <p>Embora a Fé seja um dom, ela não é imposta. Deus fornece a lente. O homem decide colocá-la. Deus revela quem Ele realmente é. O homem decide se vai acreditar nessa revelação ou continuar acreditando na mentira da serpente. A maçaneta continua do lado de dentro. O dom é oferecido. A escolha é do homem.</p>
-        <p>Como o homem não conseguia mais confiar no invisível, Deus encarnou o Seu caráter no visível. Jesus Cristo é a revelação definitiva de quem o Pai é. Quando você olha para Jesus, você está olhando para a prova histórica, sangrenta e tocável de que Deus não é quem a serpente disse que era.</p>
-        <p>"Quem me vê a mim vê o Pai." (João 14:9, ACF)</p>
-        <p>A Cruz não foi Deus sendo convencido a amar você. Foi Deus provando que Ele sempre amou. A nota promissória cravada na madeira é a evidência de que a Misericórdia não era teoria. A ressurreição três dias depois é a prova de que a morte não teve a última palavra e de que o Propósito continua intacto. Jesus é o dom da Fé materializado. Ele é a lente que Deus nos deu para finalmente enxergarmos com clareza.</p>
-        <p>Quando você olha para Jesus e decide que o que você está vendo é verdade, a visão começa a ser curada. A desconfiança instalada pela serpente começa a ser desinstalada pela revelação do Molde Original. E conforme a visão se cura, você começa a enxergar algo que estava invisível antes.</p>
-        <p>O autor de Hebreus escreveu: "Ora, a fé é a certeza daquilo que esperamos e a prova das coisas que não vemos." (Hebreus 11:1, ACF)</p>
-        <p>O que você espera? O Éden. A Eternidade. O relacionamento sem véus. O Propósito que foi prometido desde o início e que continua puxando a humanidade para frente. Quando a visão é curada pela Fé, esse Propósito deixa de ser uma promessa vaga e passa a ser uma certeza. Você não apenas acredita que ele existe. Você o vê com tanta clareza que ele começa a exercer uma força magnética sobre o seu presente.</p>
-        <p>A Fé não é pensamento positivo. Não é a capacidade de acreditar em coisas boas até que elas aconteçam. Não é uma força mental que você usa para convencer a si mesmo de que tudo vai dar certo. Não é autoajuda com linguagem religiosa.</p>
-        <p>A Fé não é moeda de troca. Não é o pagamento que você oferece a Deus em troca de bênçãos. Não é a ferramenta que você usa para mudar a mente do Criador ou forçar Sua mão. Não é o esforço humano tentando manipular a vontade divina.</p>
-        <p>A Fé é confiança racional baseada em evidência histórica.</p>
-        <p>Deus revelou quem Ele é em Jesus. Provou na Cruz que Sua Misericórdia é real. Provou na ressurreição que Sua promessa é sólida. A Fé é olhar para essa revelação e decidir que você vai acreditar nela. Não porque você sentiu um arrepio emocional. Não porque teve uma experiência mística inexplicável. Mas porque a evidência é suficiente e você decidiu que vai confiar nela.</p>
-        <p>O sistema religioso transformou a Fé em mais um peso nas costas do crente. Ensinou que fé é algo que você precisa produzir. Que se você se esforçar o suficiente, orar tempo suficiente, jejuar dias suficientes, você finalmente vai conseguir gerar a quantidade de fé necessária para que Deus responda. E quando Deus não responde da forma esperada, a conclusão é que a sua fé foi insuficiente. Que você não se esforçou o bastante. Que a culpa é sua.</p>
-        <p>Essa não é Fé. É tentativa de compra.</p>
-        <p>A Fé autêntica não é o esforço de produzir confiança. É o descanso de quem finalmente enxergou que pode confiar. Não é você tentando convencer a si mesmo de que Deus é bom. É você olhando para Jesus e percebendo que a bondade de Deus já foi provada de forma definitiva.</p>
-        <p>Quando a visão é curada pela Fé, você não precisa mais tentar produzir sentimentos. Não precisa mais fingir que confia quando não confia. Não precisa mais carregar a culpa de ter dúvidas. Porque a Fé não é a ausência de dúvidas. É a decisão de confiar no caráter de Deus mesmo quando as dúvidas ainda estão presentes.</p>
-        <p>A Fé é descansar na sabedoria de um Anfitrião que já provou que sabe o que está fazendo.</p>
-        <p>E quando você finalmente descansa, quando a visão está curada o suficiente para ver Deus como Ele realmente é, o comportamento muda como consequência natural. Não porque você está se esforçando mais. Mas porque quem realmente vê a luz não precisa de manual de instruções para parar de viver no escuro.</p>
-        <p>Mas existe algo estranho que acontece quando alguém descobre essa liberdade. Quase sempre, alguém aparece para dizer que você ainda precisa de mais alguma coisa além de Jesus.</p>` 
-      },
-      { id: 'conclusao', label: 'Conclusão', title: 'O Abraço que Consuma o Propósito', content: `
-        <p>Você começou esta jornada atrás de uma árvore.</p>
-        <p>Como Adão, você estava escondido. Talvez não soubesse disso. Talvez chamasse o esconderijo de outra coisa. Igreja. Doutrina. Devoção. Serviço. Mas o padrão era o mesmo. A visão estava doente. E com a visão doente, você via Deus como ameaça, não como Anfitrião. Via a Sua soberania como controle, não como cuidado. Via a Sua sabedoria como restrição, não como proteção.</p>
-        <p>E então você tentou se cobrir. Folhas de figueira espirituais. Desempenho religioso. Listas de regras cumpridas. Sacrifícios oferecidos. Mediadores contratados. Tudo para se tornar apresentável antes de enfrentar Aquele que você acreditava estar irado.</p>
-        <p>Mas enquanto você se escondia, Ele caminhava no jardim chamando: <b>"Onde estás?"</b></p>
-        <p>E agora, doze lições depois, você sabe a verdade.</p>
-        <p>Sabe que o Pecado da Visão foi o verdadeiro colapso. Que a Queda não foi quebra de regra externa, mas quebra de confiança interna. Que a serpente não ofereceu fruto proibido, ofereceu dúvida letal sobre o caráter de Deus.</p>
-        <p>Sabe que Deus opera no Sistema da Misericórdia, não no Sistema da Dívida. Que Ele escolheu cancelar a conta em vez de cobrar eternamente. Que a Sua jurisdição não é tribunal de justiça estrita, mas mesa de relacionamento restaurado.</p>
-        <p>Sabe que a Graça não é fraqueza divina tolerando rebelião humana. É a pressão gentil e insistente de um Pai que se recusa a desistir dos filhos. Que bate à porta sem arrombar. Que oferece sem forçar. Que convida sem coagir.</p>
-        <p>Sabe que a Fé não é esforço para acreditar no improvável. É descansar na sabedoria de um Anfitrião que já provou que sabe o que está fazendo. É curar a visão para ver que Deus sempre foi bom. É girar a maçaneta por dentro e sair de trás da árvore.</p>
-        <p>Sabe que os sistemas de mediação foram tentativas humanas de religar o que nunca deveria ter sido desconectado. Que o véu rasgou de cima para baixo não para você subir até Deus, mas para Deus descer até você. Que a religião teve origem na reação do homem atrás da árvore, e que foi o homem, não Deus, quem determinou a linguagem da conversa desde o princípio.</p>
-        <p>Sabe que Jesus é o Molde Original. A imagem de Deus desde Gênesis um. A prova viva de quem o Pai realmente é. E que você foi criado à imagem dEle desde antes da Queda, não como plano B depois do desastre.</p>
-        <p>Sabe que santificação não é adicionar regras, mas desembaraçar peso. Que Deus criou relacionamento e o homem inventou religião. Que o Fio Simples sempre foi forte o suficiente, e que a Trança Religiosa sempre foi peso desnecessário.</p>
-        <p>Sabe que o perdão não é sentimento, mas decisão. Que abrir as mãos para soltar o passado é a única forma de segurar o futuro. Que a sua dor não é o seu propósito, e que enquanto você cobrar dívidas estará preso ontem quando o Propósito está te chamando amanhã.</p>
-        <p>Sabe que Deus migrou do templo de pedra para o espírito humano. Que o Jardim Interior não é metáfora, mas realidade. Que oração é caminhada com Quem já habita em você, não barganha com Quem está distante.</p>
-        <p>Sabe que a igreja não é fonte, mas laboratório. Que você não vai vazio esperando ser enchido, mas cheio esperando transbordar. Que amor precisa de prática real com gente imperfeita, e que a comunidade é o teste de estresse da sua teologia.</p>
-        <p>Sabe que Cristo é o fim da Lei, que o andaime foi removido porque a casa está pronta. Que Batismo é funeral da desconfiança e Ceia é mesa do Jardim Interior. Que os ritos voltaram a ser festa dos que não se escondem mais.</p>
-        <p>Sabe que cada manhã é nova micro vida. Que renovar a mente diariamente é escolher não voltar ao padrão da Queda. Que quando você falha, conserta. E que quando está cheio, transborda.</p>
-        <p>Você sabe tudo isso agora.</p>
-        <p>Mas existe uma pergunta que ainda pode estar no ar. Uma pergunta que a honestidade exige que seja respondida antes que você saia daqui achando que a Vida Plena é ausência de problemas.</p>
-        <p>Se tudo foi resolvido na cruz, se o véu foi rasgado, se o Jardim Interior está aberto, se Deus já fez morada em nós, por que ainda sofremos?</p>
-        <p>Por que ainda existe dor? Por que relacionamentos ainda se quebram? Por que doenças ainda matam? Por que injustiças ainda acontecem? Por que, mesmo vivendo tudo que este livro ensina, você ainda vai enfrentar dias onde tudo parece estar desmoronando?</p>
-        <p>E a resposta não é simples, mas é verdadeira.</p>
-        <p>Porque você ainda está entre o Éden e a Eternidade.</p>
-        <p>A Queda aconteceu. E ela teve consequências reais no tecido da criação. Paulo escreveu que "toda a criação geme" esperando a redenção final. O mundo está quebrado. E enquanto você estiver neste corpo, enquanto habitar este planeta caído, você vai experimentar os efeitos da quebra.</p>
-        <p>Você vai adoecer. Vai envelhecer. Vai perder pessoas que ama. Vai enfrentar injustiças que não consegue consertar. Vai experimentar traições que não mereceu. Vai carregar cicatrizes que não pediu.</p>
-        <p>A Vida Plena não promete ausência de sofrimento. Promete presença no sofrimento.</p>
-        <p>A diferença não é que você não sofre. A diferença é que você não sofre sozinho. E não sofre sem propósito.</p>
-        <p>Quando a dor chega, e ela vai chegar, você não precisa se esconder de Deus achando que Ele está punindo você. Não precisa tentar merecer alívio através de desempenho religioso. Não precisa carregar o peso sozinho enquanto finge que está tudo bem.</p>
-        <p>Você pode caminhar no Jardim Interior e dizer: "Pai, isso dói. E eu não entendo. Mas eu confio em Você." E Ele, que habita permanentemente em você, não te dá respostas mágicas que fazem a dor desaparecer. Mas te dá presença que te sustenta enquanto atravessa.</p>
-        <p>A visão curada não remove o sofrimento. Mas muda completamente como você sofre. Porque em vez de sofrer achando que Deus é a causa ou que está distante ou que precisa ser convencido a ajudar, você sofre sabendo que Ele está perto, que está sofrendo com você, e que está trabalhando até mesmo na dor para te puxar em direção ao Propósito.</p>
-        <p>E existe algo mais que precisa ser dito sobre o sofrimento.</p>
-        <p>Ele é temporário.</p>
-        <p>O Propósito que te puxa para frente não é apenas imagem motivacional. É realidade garantida. A Eternidade não é talvez. É certeza. João viu a Nova Jerusalém e viu que não há mais templo, não há mais véu, não há mais mediação. E ele também viu que Deus "enxugará dos olhos toda lágrima, e não haverá mais morte, nem pranto, nem clamor, nem dor, porque já as primeiras coisas são passadas."</p>
-        <p>As primeiras coisas são passadas.</p>
-        <p>O sofrimento que você enfrenta hoje pertence às primeiras coisas. E as primeiras coisas vão passar. A dor que parece eterna é, na verdade, temporária. E a alegria que parece impossível é, na verdade, inevitável.</p>
-        <p>Não porque você mereceu. Mas porque Deus garantiu.</p>
-        <p>E enquanto você está entre o Éden e a Eternidade, enquanto as primeiras coisas ainda não passaram completamente, você vive cada micro vida diária segurando o Fio Simples. Não negando a dor. Não fingindo que está tudo resolvido. Mas se recusando a soltar a mão de Quem habita em você mesmo quando tudo ao redor está desmoronando.</p>
-        <p>Essa é a Vida Plena. Não é vida sem problemas. É vida com Presença.</p>
-        <p>E agora, no final desta jornada, você precisa tomar uma decisão.</p>
-        <p>Porque saber tudo isso não muda nada se você não fizer o que Adão não fez.</p>
-        <p>Você pode fechar este livro e voltar para trás da árvore. Pode pegar todo esse conhecimento e transformá-lo em nova Trança Religiosa. Pode adicionar essas lições à sua coleção de informações teológicas e continuar vivendo exatamente como vivia antes.</p>
-        <p>Pode continuar se escondendo. Continuar cobrando dívidas. Continuar dependendo de mediadores. Continuar operando no Sistema da Dívida. Continuar acreditando que Deus precisa ser convencido a te amar.</p>
-        <p>Ou você pode sair de trás da árvore.</p>
-        <p>Pode soltar as folhas de figueira que você costurou. Pode abrir as mãos e deixar cair as notas promissórias que estava segurando. Pode girar a maçaneta por dentro. Pode aceitar que o Anfitrião nunca saiu do jardim, que Ele sempre esteve chamando, que os braços sempre estiveram abertos.</p>
-        <p>Pode fazer o que Adão não fez.</p>
-        <p>Pode abraçar de volta.</p>
-        <p>E quando você abraça, quando finalmente para de fugir e corre em direção à voz que sempre esteve chamando "Onde estás?", algo acontece que nenhuma palavra consegue capturar completamente.</p>
-        <p>O abraço que Adão não deu se consuma em você.</p>
-        <p>Não porque você é especial. Mas porque Deus é fiel. Não porque você merece. Mas porque Ele decidiu que o relacionamento vale mais que o pagamento. Não porque você fez tudo certo. Mas porque Ele fez tudo que era necessário.</p>
-        <p>E naquele abraço, naquele momento de rendição voluntária, de confiança deliberada, de decisão de parar de se esconder, você descobre que a Vida Plena nunca foi sobre conquistar algo distante.</p>
-        <p>Era sobre aceitar Alguém presente.</p>
-        <p>E então, cada manhã, quando você acorda para uma nova micro vida, você tem a chance de abraçar de novo. De renovar a mente. De abrir as mãos. De segurar o Fio Simples. De caminhar no Jardim Interior. De transbordar no Laboratório do Reino. De consertar quando quebra. De perdoar quando é ferido. De confiar quando não entende.</p>
-        <p>Cada dia é uma nova oportunidade de viver o que Adão perdeu e Cristo restaurou.</p>
-        <p>E quando a última micro vida desta existência terminar, quando o sol se puser pela última vez e você fechar os olhos neste corpo quebrado, você vai acordar na Eternidade.</p>
-        <p>E lá, na consumação final do Propósito, não vai haver mais templo. Não vai haver mais véu. Não vai haver mais mediação. Não vai haver mais sofrimento. Não vai haver mais medo. Não vai haver mais esconderijo.</p>
-        <p>Vai haver apenas o abraço.</p>
-        <p>O abraço que começou quando você saiu de trás da árvore. O abraço que se fortaleceu a cada micro vida que você escolheu renovar a mente. O abraço que se aprofundou a cada vez que você perdoou, consertou, transbordou.</p>
-        <p>O abraço que Adão não deu, mas que você deu. E que agora, finalmente, se consuma em transparência absoluta, em relacionamento sem fim, em vida plena eternamente plena.</p>
-        <p>Então não espere. Não adie. Não se esconda mais.</p>
-        <p>O Anfitrião está caminhando no jardim na viração do dia. Ele está chamando: "Onde estás?"</p>
-        <p>E a única coisa que separa você dEle é a árvore que você escolheu para se esconder.</p>
-        <p>Saia.</p>
-        <p>Abra as mãos.</p>
-        <p>Corra em direção à voz.</p>
-        <p>E dê o abraço que Adão não deu.</p>
-        <p>O abraço que te dará a vida plena.</p>
-        <p>Bem-vindo de volta ao Jardim.</p>` 
-      },
-    ]
-  },
-  { id: 'livro-2', title: 'O Jardim Interior (Breve)', author: 'Autor', coverImage: '📖', isLocked: true, chapters: [] }
-];
-
-const mockFeedPosts = [
-  { id: 1, author: 'Autor', isAuthor: true, content: 'Bem-vindos à nossa nova Plataforma! Aqui no Início poderemos conversar, tirar dúvidas sobre os capítulos e acompanhar as novidades. Já começaram a ler as "Lições de Vida Plena"?', likes: 145, comments: 32, time: 'Há 2 horas' },
-  { id: 2, author: 'Maria S.', isAuthor: false, content: 'A Lição 0a mudou completamente a forma como eu leio a Bíblia. Jesus como Lente Absoluta faz todo o sentido. Fiquei muito impactada!', likes: 42, comments: 5, time: 'Há 5 horas' },
-  { id: 3, author: 'Autor', isAuthor: true, content: 'Dica de leitura: Utilize o ícone da engrenagem para ajustar o espaçamento das linhas e o modo de página. Também podem destacar partes do texto para guardar nas "Minhas Notas"!', likes: 89, comments: 14, time: 'Ontem' },
-];
-
-// =========================================================================
-// 3. APLICATIVO PRINCIPAL
-// =========================================================================
-export default function App() {
-  const loadPrefs = () => { try { return JSON.parse(localStorage.getItem('leitorWebPrefs')) || {}; } catch(e) { return {}; } };
-
-  const prefs = loadPrefs();
-
-  // Abertura Direta no Feed
-  const [currentScreen, setCurrentScreen] = useState('feed');
-  const [selectedBook, setSelectedBook] = useState(bookCatalog[0]);
-  const [activeChapterId, setActiveChapterId] = useState(null);
-  
-  const [currentTheme, setCurrentTheme] = useState(themes[prefs.themeId] || themes.claro);
-  const [fontSize, setFontSize] = useState(prefs.fontSize || 20);
-  const [lineSpacing, setLineSpacing] = useState(prefs.lineSpacing || 1.8);
-  const [viewMode, setViewMode] = useState(prefs.viewMode || 'page');
-  const [completedChapters, setCompletedChapters] = useState(prefs.completedChapters || []);
-  const [bookmarks, setBookmarks] = useState(prefs.bookmarks || { 1: null, 2: null, 3: null });
-  const [scrollPositions, setScrollPositions] = useState(prefs.scrollPositions || {});
-  
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isStudyPanelOpen, setIsStudyPanelOpen] = useState(false); 
-  const [showSettings, setShowSettings] = useState(false);
-  const [showBookmarks, setShowBookmarks] = useState(false);
-  const [activeStudyTab, setActiveStudyTab] = useState('feed'); 
-  const [selectionMenu, setSelectionMenu] = useState(null);
-  
-  const [layoutMode, setLayoutMode] = useState('auto');
-  const scrollContainerRef = useRef(null);
-  const scrollTimeout = useRef(null);
-
-  const isDesktopLayout = layoutMode === 'pc' || (layoutMode === 'auto' && windowWidth >= 1024);
-
-  useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('leitorWebPrefs', JSON.stringify({
-      themeId: currentTheme.id, fontSize, lineSpacing, viewMode, 
-      completedChapters, bookmarks, scrollPositions
-    }));
-  }, [currentTheme, fontSize, lineSpacing, viewMode, completedChapters, bookmarks, scrollPositions]);
-
-  useEffect(() => {
-    if (currentScreen === 'reader' && scrollContainerRef.current) {
-      const savedPos = scrollPositions[`${activeChapterId}_${viewMode}`] || 0;
-      if (viewMode === 'scroll') scrollContainerRef.current.scrollTop = savedPos;
-      else scrollContainerRef.current.scrollLeft = savedPos;
-    }
-  }, [activeChapterId, viewMode, currentScreen]);
-
-  const handleScroll = (e) => {
-    if (selectionMenu) setSelectionMenu(null);
-    const pos = viewMode === 'scroll' ? e.target.scrollTop : e.target.scrollLeft;
-    
-    if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
-    scrollTimeout.current = setTimeout(() => {
-      setScrollPositions(prev => ({ ...prev, [`${activeChapterId}_${viewMode}`]: pos }));
-    }, 300);
-  };
-
-  const navigateToChapter = (id) => {
-    setActiveChapterId(id);
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop = 0;
-      scrollContainerRef.current.scrollLeft = 0;
-    }
-    if (!isDesktopLayout) setIsSidebarOpen(false); 
-  };
-
-  const toggleChapterCompletion = (id) => {
-    setCompletedChapters(prev => prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]);
-  };
-
-  const handleZoomIn = () => setFontSize(p => Math.min(p + 2, 48));
-  const handleZoomOut = () => setFontSize(p => Math.max(p - 2, 14));
-  const handleLineSpacing = () => setLineSpacing(p => p === 1.2 ? 1.6 : p === 1.6 ? 2.0 : 1.2);
-  const toggleViewMode = () => setViewMode(p => p === 'scroll' ? 'page' : 'scroll');
-  const toggleLayoutMode = () => setLayoutMode(p => p === 'pc' ? 'mobile' : 'pc');
-
-  // === MARCADORES ===
-  const handleSaveBookmark = (slot) => {
-    if (!scrollContainerRef.current) return;
-    const pos = viewMode === 'scroll' ? scrollContainerRef.current.scrollTop : scrollContainerRef.current.scrollLeft;
-    const chapter = selectedBook.chapters.find(c => c.id === activeChapterId);
-    setBookmarks(prev => ({ ...prev, [slot]: { textId: activeChapterId, title: chapter.title, viewMode, position: pos } }));
-  };
-
-  const handleGoToBookmark = (slot) => {
-    const bm = bookmarks[slot];
-    if (!bm) return;
-    if (bm.textId !== activeChapterId) setActiveChapterId(bm.textId);
-    if (bm.viewMode !== viewMode) setViewMode(bm.viewMode);
-    setTimeout(() => {
-      if (scrollContainerRef.current) {
-        if (bm.viewMode === 'scroll') scrollContainerRef.current.scrollTop = bm.position;
-        else scrollContainerRef.current.scrollLeft = bm.position;
-      }
-    }, 100);
-    setShowBookmarks(false);
-  };
-
-  const handleClearBookmark = (slot, e) => {
-    e.stopPropagation();
-    setBookmarks(prev => ({ ...prev, [slot]: null }));
-  };
-
-  // === MARCA-TEXTO ===
-  useEffect(() => {
-    let timeoutId = null;
-    const handleSelectionChange = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        const selection = window.getSelection();
-        if (!selection || selection.isCollapsed || !selection.toString().trim()) {
-          setSelectionMenu(null);
-          return;
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
         }
-        const wrapper = document.getElementById('text-content-wrapper');
-        if (!wrapper || !wrapper.contains(selection.anchorNode)) return;
 
-        try {
-          const range = selection.getRangeAt(0);
-          const rect = range.getBoundingClientRect();
-          if (rect.width === 0 && rect.height === 0) return;
-          setSelectionMenu({ top: rect.top - 55, left: rect.left + (rect.width / 2) });
-        } catch (e) { console.error(e); }
-      }, 200); 
-    };
-    document.addEventListener('selectionchange', handleSelectionChange);
-    return () => document.removeEventListener('selectionchange', handleSelectionChange);
-  }, [activeChapterId]);
+        .active-tab {
+            color: #2563eb;
+            border-bottom: 3px solid #2563eb;
+        }
 
-  const addHighlight = (colorCode) => {
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) return;
-    const range = selection.getRangeAt(0);
-    const mark = document.createElement('mark');
-    mark.className = `${colorCode} text-inherit rounded px-1 cursor-pointer transition-colors hover:brightness-95 shadow-sm highlight-mark`;
-    
-    try {
-      range.surroundContents(mark);
-    } catch(e) {
-      alert('Para marcar corretamente, selecione trechos dentro de um único parágrafo.');
-    }
-    selection.removeAllRanges();
-    setSelectionMenu(null);
-  };
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
 
-  const handleRemoveHighlight = (e) => {
-    const target = e.target.closest('mark.highlight-mark');
-    if (target && window.confirm("Deseja remover esta marcação?")) {
-      const parent = target.parentNode;
-      while(target.firstChild) parent.insertBefore(target.firstChild, target);
-      parent.removeChild(target);
-    }
-  };
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+        }
 
-  // =========================================================================
-  // COMPONENTES REUTILIZÁVEIS
-  // =========================================================================
-  const GlobalNavBar = () => (
-    <nav className={`fixed bottom-0 left-0 right-0 z-40 border-t sm:relative sm:border-t-0 sm:border-b sm:shadow-sm flex items-center justify-around pb-6 pt-2 sm:py-2 sm:justify-center sm:gap-12 ${currentTheme.panelClasses}`}>
-      <button onClick={() => setCurrentScreen('feed')} className={`flex flex-col items-center gap-1 transition-all p-2 w-20 ${currentScreen === 'feed' ? 'text-emerald-600 opacity-100 scale-105' : 'opacity-50 hover:opacity-80'}`}>
-        <Home size={22} />
-        <span className="text-[10px] font-bold uppercase tracking-widest">Início</span>
-      </button>
-      <button onClick={() => setCurrentScreen('library')} className={`flex flex-col items-center gap-1 transition-all p-2 w-20 ${currentScreen === 'library' ? 'text-emerald-600 opacity-100 scale-105' : 'opacity-50 hover:opacity-80'}`}>
-        <Library size={22} />
-        <span className="text-[10px] font-bold uppercase tracking-widest">Estante</span>
-      </button>
-      <button className="flex flex-col items-center gap-1 transition-all p-2 w-20 opacity-30 cursor-not-allowed" title="Em Breve">
-        <GraduationCap size={22} />
-        <span className="text-[10px] font-bold uppercase tracking-widest">Cursos</span>
-      </button>
+        /* Esconder scrollbar mas manter funcionalidade */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="max-w-md mx-auto min-h-screen shadow-2xl bg-white relative pb-20">
+
+    <!-- Header / Perfil -->
+    <header class="gradient-bg text-white p-6 rounded-b-[2.5rem] shadow-lg">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-2xl font-bold">Olá, Estudante!</h1>
+                <p class="text-blue-100 text-sm">Bem-vindo ao seu espaço de aprendizado.</p>
+            </div>
+            <div class="w-12 h-12 rounded-full border-2 border-white overflow-hidden bg-white/20 flex items-center justify-center">
+                <i class="fas fa-user text-xl"></i>
+            </div>
+        </div>
+        
+        <!-- Busca Rápida -->
+        <div class="relative">
+            <input type="text" placeholder="O que você quer aprender hoje?" class="w-full py-3 px-11 rounded-2xl text-gray-800 focus:outline-none shadow-inner">
+            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main id="app-content" class="p-5">
+        <!-- Loader inicial -->
+        <div id="loader" class="flex justify-center items-center h-64">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+
+        <!-- View: Feed (Home) -->
+        <section id="view-home" class="hidden space-y-6">
+            <h2 class="text-xl font-bold text-gray-800">Destaques da Semana</h2>
+            <div id="feed-container" class="space-y-4">
+                <!-- Posts injetados via JS -->
+            </div>
+        </section>
+
+        <!-- View: Livros (Estante) -->
+        <section id="view-books" class="hidden space-y-6">
+            <div class="flex justify-between items-center">
+                <h2 class="text-xl font-bold text-gray-800">Meus E-books</h2>
+                <button onclick="checkAccess()" class="text-xs font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-full">Validar Acesso</button>
+            </div>
+            <div id="books-container" class="grid grid-cols-2 gap-4">
+                <!-- Livros injetados via JS -->
+            </div>
+        </section>
+
+        <!-- View: Cursos -->
+        <section id="view-courses" class="hidden space-y-6">
+            <h2 class="text-xl font-bold text-gray-800">Cursos na Hotmart</h2>
+            <div id="courses-container" class="space-y-4">
+                <!-- Cursos injetados via JS -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Navigation Bar (Estilo Mobile na Imagem) -->
+    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-100 px-6 py-3 flex justify-between items-center z-50">
+        <button onclick="switchTab('home')" id="nav-home" class="flex flex-col items-center gap-1 transition-all active-tab">
+            <i class="fas fa-home text-xl"></i>
+            <span class="text-[10px] font-bold uppercase tracking-wider">Início</span>
+        </button>
+        <button onclick="switchTab('books')" id="nav-books" class="flex flex-col items-center gap-1 transition-all text-gray-400">
+            <i class="fas fa-book-open text-xl"></i>
+            <span class="text-[10px] font-bold uppercase tracking-wider">Livros</span>
+        </button>
+        <button onclick="switchTab('courses')" id="nav-courses" class="flex flex-col items-center gap-1 transition-all text-gray-400">
+            <i class="fas fa-graduation-cap text-xl"></i>
+            <span class="text-[10px] font-bold uppercase tracking-wider">Cursos</span>
+        </button>
     </nav>
-  );
 
-  const FeedContent = () => (
-    <div className="flex flex-col gap-4 animate-in fade-in duration-300 w-full max-w-2xl mx-auto pb-24">
-      <div className={`p-4 rounded-2xl border shadow-sm ${currentTheme.panelClasses}`}>
-        <textarea placeholder="Partilhe a sua reflexão com a comunidade..." className="w-full bg-transparent outline-none resize-none text-sm placeholder:text-current/40 mb-3" rows="3"></textarea>
-        <div className="flex justify-end">
-          <button className="bg-current text-white dark:text-black px-4 py-2 rounded-full text-xs font-bold flex items-center gap-2 active:scale-95 transition-all">
-            <Send size={14} /> Publicar
-          </button>
+    <!-- Modal de Validação de Email -->
+    <div id="email-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-6 z-[60]">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl">
+            <i class="fas fa-lock text-blue-600 text-4xl mb-4"></i>
+            <h3 class="text-xl font-bold mb-2">Acesso Restrito</h3>
+            <p class="text-gray-500 text-sm mb-6">Insira o e-mail que você usou na compra para liberar seus livros.</p>
+            <input type="email" id="user-email" placeholder="seu@email.com" class="w-full border p-3 rounded-xl mb-4 outline-none focus:ring-2 focus:ring-blue-500 text-center">
+            <button onclick="validateEmail()" class="w-full gradient-bg text-white font-bold py-3 rounded-xl shadow-lg">Liberar Acesso</button>
+            <button onclick="closeModal()" class="mt-4 text-gray-400 text-sm">Cancelar</button>
         </div>
-      </div>
-      {mockFeedPosts.map(post => (
-        <div key={post.id} className={`p-5 rounded-2xl border shadow-sm ${post.isAuthor ? 'bg-amber-500/10 border-amber-500/20' : currentTheme.panelClasses}`}>
-          <div className="flex justify-between items-center mb-3">
-            <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shadow-inner ${post.isAuthor ? 'bg-amber-500 text-white' : 'bg-black/10'}`}>
-                {post.author.charAt(0)}
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm">{post.author}</span>
-                  {post.isAuthor && <span className="bg-amber-500 text-white text-[9px] px-1.5 py-0.5 rounded-full uppercase tracking-wider font-bold">Autor</span>}
-                </div>
-                <span className="text-[10px] opacity-50">{post.time}</span>
-              </div>
-            </div>
-          </div>
-          <p className="text-sm opacity-80 mb-5 font-serif leading-relaxed">{post.content}</p>
-          <div className="flex items-center gap-6 border-t border-current/10 pt-3">
-            <button className="flex items-center gap-2 text-xs font-bold opacity-60 hover:opacity-100 hover:text-rose-500 transition-all"><Heart size={16} /> {post.likes}</button>
-            <button className="flex items-center gap-2 text-xs font-bold opacity-60 hover:opacity-100 hover:text-blue-500 transition-all"><MessageCircle size={16} /> {post.comments}</button>
-          </div>
-        </div>
-      ))}
     </div>
-  );
 
-  // =========================================================================
-  // RENDERIZAÇÃO DAS TELAS PRINCIPAIS (Home e Library)
-  // =========================================================================
-  if (currentScreen === 'feed' || currentScreen === 'library') {
-    return (
-      <div className={`min-h-[100dvh] flex flex-col transition-colors duration-1000 ${themes.claro.classes}`}>
-        <GlobalNavBar />
-        <div className="flex-1 overflow-y-auto px-4 py-8 sm:p-8">
-          
-          {currentScreen === 'feed' && (
-            <div className="w-full max-w-2xl mx-auto animate-in slide-in-from-bottom-4 duration-500">
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight mb-8">Comunidade O Jardim</h1>
-              <FeedContent />
-            </div>
-          )}
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, query, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-          {currentScreen === 'library' && (
-            <div className="w-full max-w-5xl mx-auto animate-in slide-in-from-bottom-4 duration-500 pb-24">
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight mb-8">A Sua Estante</h1>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-                {bookCatalog.map(book => (
-                  <div 
-                    key={book.id} 
-                    onClick={() => {
-                      if (!book.isLocked) {
-                        setSelectedBook(book);
-                        setActiveChapterId(book.chapters[0].id);
-                        setCurrentScreen('reader');
-                      } else {
-                        alert("Sistema de Login e Pagamento será integrado na próxima fase para desbloquear novos livros e cursos!");
-                      }
-                    }}
-                    className={`relative rounded-[2rem] p-8 border shadow-lg transition-all duration-300 flex flex-col items-center text-center
-                      ${book.isLocked ? `${themes.escuro.panelClasses} opacity-60 cursor-not-allowed` : `${themes.claro.panelClasses} cursor-pointer hover:-translate-y-2 hover:shadow-2xl`}`}
-                  >
-                    {book.isLocked && (
-                      <div className="absolute top-5 right-5 bg-black/20 p-2.5 rounded-full text-white">
-                        <Lock size={18} />
-                      </div>
-                    )}
-                    <div className="text-7xl mb-6 opacity-90 select-none drop-shadow-md">{book.coverImage}</div>
-                    <h2 className="text-2xl font-black leading-tight mb-2 tracking-tight">{book.title}</h2>
-                    <p className="text-xs font-bold uppercase tracking-widest opacity-50 font-serif">{book.author}</p>
-                    
-                    {!book.isLocked ? (
-                      <div className="mt-8 w-full bg-emerald-50 text-emerald-700 font-black py-3 rounded-xl text-sm border border-emerald-100 hover:bg-emerald-100 transition-colors">
-                        Ler Agora
-                      </div>
-                    ) : (
-                      <div className="mt-8 w-full bg-black/20 text-white/50 font-black py-3 rounded-xl text-sm">
-                        Bloqueado
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
+        // Configuração Firebase do Ambiente
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-  // =========================================================================
-  // RENDERIZAÇÃO DO LEITOR (Modo Imersivo e Scholar)
-  // =========================================================================
-  if (currentScreen === 'reader') {
-    const sidebarWidth = 320;
-    const studyPanelWidth = 380;
-    const desktopMinWidth = sidebarWidth + 600 + studyPanelWidth; 
-    const containerClass = `min-h-[100dvh] flex flex-col md:flex-row overflow-x-auto transition-colors duration-500 ease-in-out ${currentTheme.classes}`;
-    const wrapperStyle = isDesktopLayout && windowWidth < desktopMinWidth ? { minWidth: `${desktopMinWidth}px` } : { width: '100%' };
+        let currentUser = null;
+        let userEmailAccess = localStorage.getItem('educator_email_access') || null;
 
-    const mainAreaWidth = isDesktopLayout ? Math.max(windowWidth, desktopMinWidth) - sidebarWidth - studyPanelWidth : windowWidth;
-    const marginPx = mainAreaWidth * 0.05; 
-    const columnWidth = mainAreaWidth - (marginPx * 2);
+        // Dados estáticos de exemplo (Seriam carregados do Firebase no futuro)
+        const mockFeed = [
+            { id: 1, title: "A importância da leitura", content: "Ler expande horizontes e abre portas para o conhecimento infinito...", img: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=400&q=80" },
+            { id: 2, title: "Novo Curso Lançado!", content: "O curso de Estratégias de Aprendizado já está disponível na Hotmart.", img: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80" }
+        ];
 
-    const chapter = selectedBook?.chapters.find(c => c.id === activeChapterId);
+        const mockBooks = [
+            { id: 1, title: "Pedagogia Moderna", author: "Dr. Silva", cover: "https://images.unsplash.com/photo-1589998059171-988d887df646?auto=format&fit=crop&w=400&q=80", link: "#" },
+            { id: 2, title: "Educação 5.0", author: "Ana Souza", cover: "https://images.unsplash.com/photo-1532012197367-280696590650?auto=format&fit=crop&w=400&q=80", link: "#" }
+        ];
 
-    return (
-      <div className={containerClass}>
-        <div style={wrapperStyle} className="flex h-full relative">
-          
-          {/* Popup Flutuante do Marca-Textos */}
-          {selectionMenu && (
-            <div className="fixed z-[100] bg-zinc-800 text-white rounded-xl shadow-2xl flex items-center p-2 gap-2 animate-in zoom-in-95 duration-100" style={{ top: `${Math.max(10, selectionMenu.top)}px`, left: `${selectionMenu.left}px`, transform: 'translateX(-50%)' }}>
-              <button onClick={() => addHighlight('bg-yellow-300/80 dark:bg-yellow-500/60')} className="w-7 h-7 rounded-full bg-yellow-400 hover:scale-110 shadow-sm"></button>
-              <button onClick={() => addHighlight('bg-green-300/80 dark:bg-green-500/60')} className="w-7 h-7 rounded-full bg-green-400 hover:scale-110 shadow-sm"></button>
-              <button onClick={() => addHighlight('bg-pink-300/80 dark:bg-pink-500/60')} className="w-7 h-7 rounded-full bg-pink-400 hover:scale-110 shadow-sm"></button>
-              <div className="w-px h-6 bg-white/20 mx-1"></div>
-              <button onClick={() => { setSelectionMenu(null); window.getSelection().removeAllRanges(); }} className="px-2 py-1 text-sm opacity-80 hover:opacity-100"><X size={16} /></button>
-              <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-zinc-800"></div>
-            </div>
-          )}
+        const mockCourses = [
+            { id: 1, title: "Mestre da Didática", price: "R$ 197,00", link: "https://hotmart.com" },
+            { id: 2, title: "Escola Digital Pro", price: "R$ 497,00", link: "https://hotmart.com" }
+        ];
 
-          {/* COLUNA 1: SUMÁRIO E NAVEGAÇÃO */}
-          {!isDesktopLayout && (
-            <div className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 backdrop-blur-sm ${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsSidebarOpen(false)}></div>
-          )}
+        // Inicialização de Autenticação (REGRA 3)
+        const initAuth = async () => {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                await signInAnonymously(auth);
+            }
+        };
 
-          <aside className={`${isDesktopLayout ? 'w-[320px] shrink-0 border-r border-current/10' : 'fixed inset-y-0 left-0 z-50 w-4/5 max-w-[320px] border-r border-current/10 shadow-2xl'} flex flex-col h-[100dvh] transition-transform duration-300 ease-in-out ${currentTheme.panelClasses} ${!isDesktopLayout && !isSidebarOpen ? '-translate-x-full' : 'translate-x-0'}`}>
-            <div className="p-5 flex items-center justify-between border-b border-current/10 shrink-0">
-              <button onClick={() => setCurrentScreen('library')} className="flex items-center gap-2 font-bold opacity-70 hover:opacity-100 transition-opacity text-sm bg-black/5 px-4 py-2 rounded-full active:scale-95">
-                <ChevronLeft size={16} /> Estante
-              </button>
-              {!isDesktopLayout && <button onClick={() => setIsSidebarOpen(false)} className="p-2 rounded-full hover:bg-black/10"><X size={20} /></button>}
-            </div>
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            if (user) {
+                console.log("Autenticado como:", user.uid);
+                renderHome();
+                document.getElementById('loader').classList.add('hidden');
+                switchTab('home');
+            }
+        });
 
-            <div className="p-5 border-b border-current/10 shrink-0 flex flex-col items-center text-center">
-              <div className="w-16 h-16 rounded-2xl bg-black/5 flex items-center justify-center text-3xl mb-3 shadow-inner">{selectedBook.coverImage}</div>
-              <h2 className="font-black text-lg leading-tight tracking-tight">{selectedBook.title}</h2>
-            </div>
+        // Navegação entre abas
+        window.switchTab = (tab) => {
+            // Esconde todas
+            ['home', 'books', 'courses'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.add('hidden');
+                document.getElementById(`nav-${t}`).classList.remove('active-tab');
+                document.getElementById(`nav-${t}`).classList.add('text-gray-400');
+            });
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-1.5 hide-scrollbar pb-24">
-              {selectedBook.chapters.map(c => (
-                <div key={c.id} onClick={() => navigateToChapter(c.id)} className={`p-3.5 rounded-2xl cursor-pointer transition-all flex justify-between items-center group ${activeChapterId === c.id ? 'bg-current text-white dark:text-black shadow-md' : 'hover:bg-black/5'} ${c.type === 'special' ? 'border border-current opacity-70 mt-4 mb-2' : ''}`}>
-                  <div className="flex flex-col text-left overflow-hidden pr-2">
-                    {c.type !== 'special' && <span className={`text-[9px] font-black uppercase tracking-widest mb-0.5 ${activeChapterId === c.id ? 'opacity-80' : 'opacity-40'}`}>{c.label}</span>}
-                    <span className={`text-sm font-semibold truncate ${activeChapterId === c.id ? '' : 'opacity-80'}`}>{c.title}</span>
-                  </div>
-                  {completedChapters.includes(c.id) && <Check className={`shrink-0 ${activeChapterId === c.id ? 'opacity-100' : 'text-emerald-500'}`} size={16} />}
-                </div>
-              ))}
-            </div>
-          </aside>
+            // Mostra a selecionada
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+            document.getElementById(`nav-${tab}`).classList.add('active-tab');
+            document.getElementById(`nav-${tab}`).classList.remove('text-gray-400');
 
-          {/* COLUNA 2: ÁREA DE LEITURA E DEFINIÇÕES */}
-          <main className="flex-1 flex flex-col h-[100dvh] min-w-0 relative">
-            <header className={`p-3 flex items-center justify-between border-b border-current/10 shrink-0 z-20 ${currentTheme.panelClasses}`}>
-              <div className="flex items-center gap-2">
-                {!isDesktopLayout && <button onClick={() => setIsSidebarOpen(true)} className="p-2 rounded-xl hover:bg-black/10 bg-black/5"><Menu size={20} /></button>}
-                <h1 className="font-bold text-xs sm:text-sm md:text-base opacity-90 uppercase tracking-widest truncate ml-2">{chapter?.title}</h1>
-              </div>
-              
-              <div className="flex items-center gap-1">
-                <button onClick={() => { setShowBookmarks(!showBookmarks); setShowSettings(false); }} className="p-2 rounded-xl hover:bg-black/10 relative">
-                  <Bookmark size={20} />
-                  {Object.values(bookmarks).some(b => b !== null) && <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full"></span>}
-                </button>
+            if (tab === 'home') renderHome();
+            if (tab === 'books') renderBooks();
+            if (tab === 'courses') renderCourses();
+        };
 
-                {showBookmarks && (
-                  <React.Fragment>
-                    <div className="fixed inset-0 z-40" onClick={() => setShowBookmarks(false)}></div>
-                    <div className={`absolute right-12 top-full mt-2 p-5 rounded-3xl shadow-2xl border w-72 z-50 animate-in fade-in zoom-in-95 flex flex-col gap-4 ${currentTheme.solidMenuClasses}`}>
-                      <span className="text-[11px] font-bold uppercase tracking-wider opacity-60">Fitas de Marcação</span>
-                      {[1, 2, 3].map(slot => {
-                          const bm = bookmarks[slot];
-                          const colorClass = slot === 1 ? 'bg-rose-500' : slot === 2 ? 'bg-blue-500' : 'bg-emerald-500';
-                          const isSpecial = chapter?.type === 'special';
-                          return (
-                            <div key={slot} className="flex items-center gap-2">
-                              {bm ? (
-                                  <div className="flex-1 flex items-center justify-between p-3 rounded-2xl bg-black/5 hover:bg-black/10 cursor-pointer group" onClick={() => handleGoToBookmark(slot)}>
-                                    <div className="flex items-center gap-3 overflow-hidden">
-                                        <div className={`w-6 h-6 rounded-full text-white flex items-center justify-center text-xs font-bold ${colorClass} shrink-0`}>{slot}</div>
-                                        <div className="flex flex-col truncate"><span className="text-[10px] uppercase opacity-50 tracking-widest">{bm.viewMode === 'page' ? 'Página' : 'Rolagem'}</span><span className="text-sm font-bold truncate">{bm.title}</span></div>
-                                    </div>
-                                    <button onClick={(e) => handleClearBookmark(slot, e)} className="opacity-0 group-hover:opacity-100 p-2 hover:text-red-500"><X size={14}/></button>
-                                  </div>
-                              ) : (
-                                  <button disabled={isSpecial} onClick={() => handleSaveBookmark(slot)} className={`w-full flex items-center gap-3 p-3 rounded-2xl border-2 border-dashed ${isSpecial ? 'opacity-20' : 'hover:bg-black/5 border-transparent'} transition-all`}>
-                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${colorClass}`}>{slot}</div>
-                                    <span className="text-sm font-bold opacity-80">{isSpecial ? 'Indisponível aqui' : 'Guardar Posição'}</span>
-                                  </button>
-                              )}
-                            </div>
-                          )
-                      })}
+        // Renderizadores de Interface
+        function renderHome() {
+            const container = document.getElementById('feed-container');
+            container.innerHTML = mockFeed.map(post => `
+                <div class="bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm transition-transform active:scale-[0.98]">
+                    <img src="${post.img}" class="w-full h-40 object-cover">
+                    <div class="p-4">
+                        <h3 class="font-bold text-lg text-gray-800">${post.title}</h3>
+                        <p class="text-gray-500 text-sm mt-1 line-clamp-2">${post.content}</p>
+                        <button class="mt-3 text-blue-600 font-semibold text-sm">Ler mais <i class="fas fa-arrow-right ml-1"></i></button>
                     </div>
-                  </React.Fragment>
-                )}
+                </div>
+            `).join('');
+        }
 
-                <button onClick={toggleLayoutMode} className="p-2 rounded-xl hover:bg-black/10" title="Modo Scholar / Mobile">
-                  {layoutMode === 'pc' ? <Smartphone size={20} /> : <Monitor size={20} />}
-                </button>
+        function renderBooks() {
+            const container = document.getElementById('books-container');
+            container.innerHTML = mockBooks.map(book => `
+                <div class="relative group">
+                    <div class="aspect-[3/4] bg-gray-100 rounded-2xl overflow-hidden shadow-md">
+                        <img src="${book.cover}" class="w-full h-full object-cover">
+                        ${!userEmailAccess ? '<div class="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center"><i class="fas fa-lock text-white text-2xl"></i></div>' : ''}
+                    </div>
+                    <div class="mt-2">
+                        <p class="font-bold text-sm text-gray-800 line-clamp-1">${book.title}</p>
+                        <p class="text-[10px] text-gray-400">${book.author}</p>
+                        ${userEmailAccess ? `<a href="${book.link}" class="block mt-1 text-center bg-blue-100 text-blue-700 text-[10px] py-1 rounded-md font-bold">BAIXAR</a>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
 
-                {!isDesktopLayout && <button onClick={() => setIsStudyPanelOpen(true)} className="p-2 rounded-xl hover:bg-black/10 relative"><MessageCircle size={20} /></button>}
-                
-                <button onClick={() => { setShowSettings(!showSettings); setShowBookmarks(false); }} className="p-2 rounded-xl hover:bg-black/10">
-                  <Settings size={20} className={showSettings ? 'rotate-90 transition-transform' : 'transition-transform'} />
-                </button>
-                
-                {showSettings && (
-                  <React.Fragment>
-                    <div className="fixed inset-0 z-40" onClick={() => setShowSettings(false)}></div>
-                    <div className={`absolute right-4 top-full mt-2 p-5 rounded-3xl shadow-2xl border w-72 z-50 animate-in fade-in zoom-in-95 flex flex-col gap-6 ${currentTheme.solidMenuClasses}`}>
-                      <div>
-                        <span className="text-[11px] font-bold uppercase tracking-wider opacity-60 mb-2 block">Tipografia & Espaçamento</span>
-                        <div className="flex justify-between bg-black/5 rounded-xl p-1 shadow-inner">
-                          <button onClick={handleZoomOut} className="p-3 hover:bg-black/10 rounded-lg flex-1 flex justify-center"><ZoomOut size={18}/></button>
-                          <div className="w-px bg-current opacity-10 mx-1"></div>
-                          <button onClick={handleLineSpacing} className="p-3 hover:bg-black/10 rounded-lg flex-1 flex justify-center"><Menu size={18}/></button>
-                          <div className="w-px bg-current opacity-10 mx-1"></div>
-                          <button onClick={handleZoomIn} className="p-3 hover:bg-black/10 rounded-lg flex-1 flex justify-center"><ZoomIn size={18}/></button>
+        function renderCourses() {
+            const container = document.getElementById('courses-container');
+            container.innerHTML = mockCourses.map(course => `
+                <div class="bg-blue-50 p-4 rounded-3xl flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white">
+                            <i class="fas fa-play text-lg"></i>
                         </div>
-                      </div>
-                      <div>
-                        <span className="text-[11px] font-bold uppercase tracking-wider opacity-60 mb-2 block">Modo de Leitura</span>
-                        <button onClick={toggleViewMode} className="w-full flex items-center justify-between p-3 rounded-xl bg-black/5 hover:bg-black/10 active:scale-95 transition-all text-sm font-bold">
-                          <span className="flex items-center gap-2"><BookOpen size={16} /> {viewMode === 'scroll' ? 'Rolagem Contínua' : 'Páginas'}</span>
-                        </button>
-                      </div>
-                      <div>
-                        <span className="text-[11px] font-bold uppercase tracking-wider opacity-60 mb-2 block">Temas</span>
-                        <div className="grid grid-cols-5 gap-2">
-                          {Object.values(themes).map(theme => (
-                            <button key={theme.id} onClick={() => setCurrentTheme(theme)} className={`w-8 h-8 rounded-full shadow-inner border-2 ${currentTheme.id === theme.id ? 'border-current' : 'border-transparent'} ${theme.preview}`}></button>
-                          ))}
+                        <div>
+                            <p class="font-bold text-gray-800">${course.title}</p>
+                            <p class="text-blue-600 text-sm font-semibold">${course.price}</p>
                         </div>
-                      </div>
                     </div>
-                  </React.Fragment>
-                )}
-              </div>
-            </header>
-
-            <div className="flex-1 w-full relative flex justify-center overflow-hidden bg-black/5">
-              {chapter?.id === 'sumario' ? (
-                <div className="w-full h-full overflow-y-auto p-6 sm:p-12 pb-32 flex justify-center">
-                  <div className={`max-w-2xl w-full p-8 rounded-[2rem] border shadow-xl h-fit ${currentTheme.panelClasses}`}>
-                    <h2 className="text-3xl font-black uppercase tracking-widest opacity-90 mb-8 text-center border-b-2 border-current/10 pb-6">Sumário</h2>
-                    <div className="flex flex-col gap-2">
-                      {selectedBook.chapters.filter(c => c.type !== 'special').map(c => (
-                        <button key={c.id} onClick={() => navigateToChapter(c.id)} className="flex justify-between items-center p-5 bg-black/5 hover:bg-black/10 rounded-2xl transition-all text-left group">
-                          <div className="flex flex-col">
-                            <span className="font-bold opacity-50 text-xs tracking-widest uppercase mb-1">{c.label}</span>
-                            <span className="font-serif text-lg opacity-90">{c.title}</span>
-                          </div>
-                          {completedChapters.includes(c.id) && <CheckCheck size={24} className="text-emerald-500" />}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                    <a href="${course.link}" target="_blank" class="bg-white p-3 rounded-full shadow-sm">
+                        <i class="fas fa-external-link-alt text-blue-600"></i>
+                    </a>
                 </div>
-              ) : (
-                <div className="flex w-full h-full relative">
-                  {viewMode === 'page' && (
-                    <div className="absolute inset-0 pointer-events-none flex justify-between z-10">
-                      <button onClick={() => {
-                         if (scrollContainerRef.current.scrollLeft === 0) {
-                            const currentIdx = selectedBook.chapters.findIndex(c => c.id === activeChapterId);
-                            if (currentIdx > 0) navigateToChapter(selectedBook.chapters[currentIdx - 1].id);
-                         } else {
-                            scrollContainerRef.current.scrollBy({ left: -scrollContainerRef.current.clientWidth, behavior: 'smooth' });
-                         }
-                      }} className="pointer-events-auto h-full w-[15%] flex items-center justify-start pl-2 sm:pl-6 text-current opacity-10 hover:opacity-40 transition-opacity"><ChevronLeft size={48} /></button>
-                      <button onClick={() => {
-                         const container = scrollContainerRef.current;
-                         if (Math.ceil(container.scrollLeft + container.clientWidth) >= container.scrollWidth) {
-                            const currentIdx = selectedBook.chapters.findIndex(c => c.id === activeChapterId);
-                            if (currentIdx < selectedBook.chapters.length - 1) navigateToChapter(selectedBook.chapters[currentIdx + 1].id);
-                         } else {
-                            container.scrollBy({ left: container.clientWidth, behavior: 'smooth' });
-                         }
-                      }} className="pointer-events-auto h-full w-[15%] flex items-center justify-end pr-2 sm:pr-6 text-current opacity-10 hover:opacity-40 transition-opacity"><ChevronRight size={48} /></button>
-                    </div>
-                  )}
+            `).join('');
+        }
 
-                  <div 
-                    ref={scrollContainerRef}
-                    onScroll={handleScroll}
-                    className={`h-full w-full relative scroll-smooth shadow-2xl backdrop-blur-3xl mx-auto ${viewMode === 'scroll' ? 'overflow-y-auto overflow-x-hidden hide-scrollbar' : 'overflow-x-auto overflow-y-hidden hide-scrollbar-completely'} ${currentTheme.panelClasses}`}
-                  >
-                    <div style={viewMode === 'scroll' ? { padding: `40px ${marginPx}px 120px ${marginPx}px` } : { height: '100%' }}>
-                      <article 
-                        className="w-full break-words relative animate-in fade-in duration-500"
-                        style={viewMode === 'page' ? { columnWidth: `${columnWidth}px`, columnGap: `${marginPx * 2}px`, height: '100%', padding: `40px ${marginPx}px 60px ${marginPx}px`, boxSizing: 'border-box' } : {}}
-                      >
-                        <h2 className="font-black mb-10 leading-tight opacity-90 border-b-2 border-current/20 pb-4" style={{ fontSize: `${fontSize * 1.6}px`, breakAfter: 'avoid' }}>
-                          {chapter?.title}
-                        </h2>
-                        
-                        <div 
-                          id="text-content-wrapper"
-                          className="prose-content opacity-90 font-serif text-left hyphens-auto select-text"
-                          style={{ fontSize: `${fontSize}px`, lineHeight: lineSpacing, WebkitTouchCallout: 'none' }}
-                          onContextMenu={e => e.preventDefault()}
-                          dangerouslySetInnerHTML={{ __html: chapter?.content }}
-                        ></div>
+        // Lógica de Validação de Acesso
+        window.checkAccess = () => {
+            document.getElementById('email-modal').classList.remove('hidden');
+            document.getElementById('email-modal').classList.add('flex');
+        };
 
-                        <div className="mt-24 mb-16 flex flex-col items-center justify-center w-full" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
-                          <p className="text-sm italic opacity-70 mb-4 text-center max-w-sm font-sans">
-                            Marque este capítulo como concluído para acompanhar a sua evolução.
-                          </p>
-                          <button
-                            onClick={() => toggleChapterCompletion(activeChapterId)}
-                            className={`flex items-center gap-3 px-8 py-5 rounded-[2rem] font-black shadow-xl transition-all active:scale-95 border-2
-                              ${completedChapters.includes(activeChapterId) ? 'bg-emerald-600 text-white border-emerald-500' : 'bg-current text-white dark:text-black border-transparent'}`}
-                          >
-                            {completedChapters.includes(activeChapterId) ? <CheckCheck size={20} /> : <Check size={20} />}
-                            {completedChapters.includes(activeChapterId) ? 'Lição Concluída!' : 'Marcar como Concluído'}
-                          </button>
-                        </div>
-                      </article>
-                    </div>
-                  </div>
+        window.closeModal = () => {
+            document.getElementById('email-modal').classList.add('hidden');
+            document.getElementById('email-modal').classList.remove('flex');
+        };
 
-                  <div className="absolute bottom-4 left-0 right-0 w-full flex justify-center items-center gap-1.5 sm:gap-2 pointer-events-none z-20 px-4">
-                    {selectedBook.chapters.filter(t => t.type !== 'special').map((t) => {
-                      const isCompleted = completedChapters.includes(t.id);
-                      const isActive = activeChapterId === t.id;
-                      return (
-                        <button
-                          key={`prog-${t.id}`}
-                          onClick={() => navigateToChapter(t.id)}
-                          className={`pointer-events-auto rounded-full transition-all duration-300 shadow-sm ${isCompleted ? 'bg-emerald-500' : 'bg-current opacity-20 hover:opacity-50'} ${isActive ? 'w-4 sm:w-6 h-2 sm:h-2.5 opacity-80' : 'w-2 sm:w-2.5 h-2 sm:h-2.5'}`}
-                          title={t.title}
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-          </main>
+        window.validateEmail = async () => {
+            const email = document.getElementById('user-email').value;
+            if (!email.includes('@')) {
+                alert("Por favor, insira um e-mail válido.");
+                return;
+            }
 
-          {/* COLUNA 3: PAINEL DE ESTUDO */}
-          {!isDesktopLayout && (
-            <div className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 backdrop-blur-sm ${isStudyPanelOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsStudyPanelOpen(false)}></div>
-          )}
+            // Simulação de verificação no Firebase
+            // Aqui você buscaria na coleção: /artifacts/${appId}/public/data/authorized_emails
+            try {
+                // Simulando salvamento do acesso no Firebase para este usuário específico
+                if (currentUser) {
+                    const userRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'settings');
+                    await setDoc(userRef, { email: email, validated: true }, { merge: true });
+                }
 
-          <aside className={`${isDesktopLayout ? 'w-[380px] shrink-0 border-l border-current/10' : 'fixed inset-y-0 right-0 z-50 w-4/5 max-w-[380px] border-l border-current/10 shadow-2xl'} flex flex-col h-[100dvh] transition-transform duration-300 ease-in-out ${currentTheme.panelClasses} ${!isDesktopLayout && !isStudyPanelOpen ? 'translate-x-full' : 'translate-x-0'}`}>
-            <div className="p-4 flex items-center justify-between border-b border-current/10 shrink-0">
-              <div className="flex bg-black/5 p-1 rounded-xl w-full mr-2">
-                <button onClick={() => setActiveStudyTab('feed')} className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${activeStudyTab === 'feed' ? 'bg-current text-white dark:text-black shadow-md' : 'opacity-60 hover:opacity-100'}`}>Comunidade</button>
-                <button onClick={() => setActiveStudyTab('notes')} className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${activeStudyTab === 'notes' ? 'bg-current text-white dark:text-black shadow-md' : 'opacity-60 hover:opacity-100'}`}>Minhas Notas</button>
-              </div>
-              {!isDesktopLayout && <button onClick={() => setIsStudyPanelOpen(false)} className="p-2 rounded-full hover:bg-black/10 shrink-0"><X size={20} /></button>}
-            </div>
+                localStorage.setItem('educator_email_access', email);
+                userEmailAccess = email;
+                alert("Acesso Liberado com Sucesso!");
+                closeModal();
+                renderBooks();
+            } catch (err) {
+                console.error("Erro ao salvar:", err);
+                alert("Houve um erro ao validar seu acesso.");
+            }
+        };
 
-            <div className="flex-1 overflow-hidden p-4">
-              {activeStudyTab === 'feed' ? (
-                <div className="flex flex-col gap-4 animate-in fade-in duration-300 h-full overflow-y-auto hide-scrollbar pb-24">
-                  <div className="p-4 rounded-2xl bg-black/5 border border-current/10">
-                    <textarea placeholder="Partilhe a sua reflexão com a comunidade..." className="w-full bg-transparent outline-none resize-none text-sm placeholder:text-current/40 mb-3" rows="3"></textarea>
-                    <div className="flex justify-end"><button className="bg-current text-white dark:text-black px-4 py-2 rounded-full text-xs font-bold flex items-center gap-2 active:scale-95 transition-all"><Send size={14} /> Publicar</button></div>
-                  </div>
-                  {mockFeedPosts.map(post => (
-                    <div key={post.id} className={`p-4 rounded-2xl border ${post.isAuthor ? 'bg-amber-500/10 border-amber-500/20' : 'bg-black/5 border-current/10'}`}>
-                      <div className="flex justify-between items-center mb-2">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${post.isAuthor ? 'bg-amber-500 text-white' : 'bg-black/10'}`}>{post.author.charAt(0)}</div>
-                          <span className="font-bold text-sm">{post.author}</span>
-                          {post.isAuthor && <span className="bg-amber-500 text-white text-[9px] px-1.5 py-0.5 rounded-full uppercase tracking-wider font-bold">Autor</span>}
-                        </div>
-                        <span className="text-[10px] opacity-50">{post.time}</span>
-                      </div>
-                      <p className="text-sm opacity-80 mb-4 font-serif leading-relaxed">{post.content}</p>
-                      <div className="flex items-center gap-4 border-t border-current/10 pt-3 mt-auto">
-                        <button className="flex items-center gap-1.5 text-xs font-bold opacity-60 hover:opacity-100 transition-opacity"><Heart size={14} /> {post.likes}</button>
-                        <button className="flex items-center gap-1.5 text-xs font-bold opacity-60 hover:opacity-100 transition-opacity"><MessageCircle size={14} /> {post.comments}</button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full opacity-50 text-center px-6">
-                  <BookMarked size={48} className="mb-4 opacity-40" />
-                  <p className="text-sm font-bold uppercase tracking-widest mb-2">Suas Notas</p>
-                  <p className="text-xs font-serif">Selecione trechos do texto durante a leitura para destacar. Os destaques salvos no seu navegador aparecerão aqui.</p>
-                </div>
-              )}
-            </div>
-          </aside>
-
-        </div>
-      </div>
-    );
-  }
-}
+        initAuth();
+    </script>
+</body>
+</html>
