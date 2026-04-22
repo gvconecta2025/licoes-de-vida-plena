@@ -76,18 +76,18 @@
 
     <!-- Header -->
     <header class="gradient-bg text-white p-6 rounded-b-[2.5rem] shadow-lg">
-        <div class="flex justify-between items-start mb-4">
-            <div class="mt-2">
+        <div class="flex justify-between items-center mb-4">
+            <div>
                 <h1 class="text-2xl font-bold">O Caminho</h1>
                 <p class="text-white/80 text-sm mt-1">Seu espaço de estudo e reflexão.</p>
             </div>
-            <div class="flex gap-4 items-start">
+            <div class="flex gap-3 items-center">
                 <!-- Botão de Configurações (Engrenagem) -->
-                <button onclick="toggleSettings()" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors shrink-0 mt-1">
+                <button onclick="toggleSettings()" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors shrink-0 cursor-pointer">
                     <i class="fas fa-cog text-lg"></i>
                 </button>
-                <!-- Foto do Professor (Maior e sem formato de círculo) -->
-                <img src="professor.png" alt="Professor" class="w-20 h-24 object-contain drop-shadow-xl rounded-xl bg-white/5" onerror="this.src='https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80'">
+                <!-- Foto do Professor (Tamanho reduzido e transparência corrigida) -->
+                <img src="professor.png" alt="Professor" class="w-14 h-14 object-contain drop-shadow-md" onerror="this.src='https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80'; this.classList.add('rounded-full', 'object-cover');">
             </div>
         </div>
     </header>
@@ -97,7 +97,7 @@
         <div class="bg-white w-full max-w-md rounded-t-[2.5rem] p-8 shadow-2xl animate-slide-up">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-xl font-bold text-gray-800">Configurações</h3>
-                <button onclick="toggleSettings()" class="text-gray-400 hover:text-gray-600">
+                <button onclick="toggleSettings()" class="text-gray-400 hover:text-gray-600 cursor-pointer p-2">
                     <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
@@ -120,13 +120,13 @@
             <div class="mb-6">
                 <p class="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wider">Tamanho da Fonte</p>
                 <div class="flex items-center justify-between bg-gray-50 p-2 rounded-2xl">
-                    <button onclick="setFontSize(14)" class="flex-1 py-3 text-sm font-medium rounded-xl hover:bg-white transition-all font-btn" data-size="14">Pequeno</button>
-                    <button onclick="setFontSize(16)" class="flex-1 py-3 text-base font-medium rounded-xl hover:bg-white transition-all font-btn bg-white shadow-sm" data-size="16">Médio</button>
-                    <button onclick="setFontSize(20)" class="flex-1 py-3 text-lg font-medium rounded-xl hover:bg-white transition-all font-btn" data-size="20">Grande</button>
+                    <button onclick="setFontSize(14)" class="flex-1 py-3 text-sm font-medium rounded-xl hover:bg-white transition-all font-btn cursor-pointer" data-size="14">Pequeno</button>
+                    <button onclick="setFontSize(16)" class="flex-1 py-3 text-base font-medium rounded-xl hover:bg-white transition-all font-btn bg-white shadow-sm cursor-pointer" data-size="16">Médio</button>
+                    <button onclick="setFontSize(20)" class="flex-1 py-3 text-lg font-medium rounded-xl hover:bg-white transition-all font-btn cursor-pointer" data-size="20">Grande</button>
                 </div>
             </div>
             
-            <button onclick="toggleSettings()" class="w-full gradient-bg text-white font-bold py-4 rounded-2xl shadow-lg mt-4">Pronto</button>
+            <button onclick="toggleSettings()" class="w-full gradient-bg text-white font-bold py-4 rounded-2xl shadow-lg mt-4 cursor-pointer hover:opacity-90">Pronto</button>
         </div>
     </div>
 
@@ -145,12 +145,12 @@
         <section id="view-books" class="hidden space-y-6">
             <div class="flex justify-between items-center">
                 <h2 class="text-xl font-bold text-gray-800">E-books de Fé</h2>
-                <button onclick="checkAccess()" class="text-xs font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-full btn-accent-text hover:bg-blue-100 transition-colors">Validar Acesso</button>
+                <button onclick="checkAccess()" class="text-xs font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-full btn-accent-text hover:bg-blue-100 transition-colors cursor-pointer">Validar Acesso</button>
             </div>
             <div id="books-container" class="grid grid-cols-2 gap-4"></div>
         </section>
 
-        <!-- View: Cursos (Agora em estilo Grid Netflix) -->
+        <!-- View: Cursos -->
         <section id="view-courses" class="hidden space-y-6">
             <h2 class="text-xl font-bold text-gray-800">Formação Teológica</h2>
             <div id="courses-container" class="grid grid-cols-2 gap-4"></div>
@@ -159,17 +159,17 @@
 
     <!-- Navigation Bar -->
     <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-100 px-6 py-3 flex justify-between items-center z-50">
-        <button onclick="switchTab('home')" id="nav-home" class="flex flex-col items-center gap-1 transition-all active-tab nav-btn">
-            <i class="fas fa-hands-praying text-xl"></i>
-            <span class="text-[10px] font-bold uppercase tracking-wider">Início</span>
+        <button onclick="switchTab('home')" id="nav-home" class="flex flex-col items-center gap-1 transition-all active-tab nav-btn cursor-pointer p-2">
+            <i class="fas fa-hands-praying text-xl pointer-events-none"></i>
+            <span class="text-[10px] font-bold uppercase tracking-wider pointer-events-none">Início</span>
         </button>
-        <button onclick="switchTab('books')" id="nav-books" class="flex flex-col items-center gap-1 transition-all text-gray-400 nav-btn">
-            <i class="fas fa-book-bible text-xl"></i>
-            <span class="text-[10px] font-bold uppercase tracking-wider">Estante</span>
+        <button onclick="switchTab('books')" id="nav-books" class="flex flex-col items-center gap-1 transition-all text-gray-400 nav-btn cursor-pointer p-2">
+            <i class="fas fa-book-bible text-xl pointer-events-none"></i>
+            <span class="text-[10px] font-bold uppercase tracking-wider pointer-events-none">Estante</span>
         </button>
-        <button onclick="switchTab('courses')" id="nav-courses" class="flex flex-col items-center gap-1 transition-all text-gray-400 nav-btn">
-            <i class="fas fa-chalkboard-user text-xl"></i>
-            <span class="text-[10px] font-bold uppercase tracking-wider">Cursos</span>
+        <button onclick="switchTab('courses')" id="nav-courses" class="flex flex-col items-center gap-1 transition-all text-gray-400 nav-btn cursor-pointer p-2">
+            <i class="fas fa-chalkboard-user text-xl pointer-events-none"></i>
+            <span class="text-[10px] font-bold uppercase tracking-wider pointer-events-none">Cursos</span>
         </button>
     </nav>
 
@@ -180,8 +180,8 @@
             <h3 class="text-xl font-bold mb-2">Acesso aos Livros</h3>
             <p class="text-gray-500 text-sm mb-6">Insira o e-mail cadastrado para baixar suas obras de estudo.</p>
             <input type="email" id="user-email" placeholder="seu@email.com" class="w-full border p-3 rounded-xl mb-4 outline-none focus:ring-2 focus:ring-blue-500 text-center">
-            <button onclick="validateEmail()" class="w-full gradient-bg text-white font-bold py-3 rounded-xl shadow-lg">Liberar Acesso</button>
-            <button onclick="closeModal()" class="mt-4 text-gray-400 text-sm">Voltar</button>
+            <button onclick="validateEmail()" class="w-full gradient-bg text-white font-bold py-3 rounded-xl shadow-lg cursor-pointer hover:opacity-90">Liberar Acesso</button>
+            <button onclick="closeModal()" class="mt-4 text-gray-400 text-sm cursor-pointer p-2">Voltar</button>
         </div>
     </div>
 
@@ -190,12 +190,7 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, getDocs, doc, setDoc, query, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-
+        // 1. ESTADOS E DADOS (Definidos no topo para evitar que falhas parem a UI)
         let currentUser = null;
         let userEmailAccess = localStorage.getItem('educator_email_access') || null;
 
@@ -209,6 +204,22 @@
             pollen: { start: '#78350f', end: '#f59e0b', accent: '#d97706' }
         };
 
+        const mockFeed = [
+            { id: 1, title: "A Força da Oração", content: "Estudo sobre como a oração constante transforma o ambiente ao nosso redor...", img: "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=400&q=80" },
+            { id: 2, title: "Parábolas Comentadas", content: "Uma análise profunda sobre a parábola do semeador e seus frutos hoje.", img: "https://images.unsplash.com/photo-1490730141103-6ca3d7d6cf70?auto=format&fit=crop&w=400&q=80" }
+        ];
+
+        const mockBooks = [
+            { id: 1, title: "Fundamentos da Fé", author: "Educador de Fé", cover: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=400&q=80", link: "https://seulinkdevendas.com/livro1" },
+            { id: 2, title: "História do Cristianismo", author: "M. Oliveira", cover: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=400&q=80", link: "https://seulinkdevendas.com/livro2" }
+        ];
+
+        const mockCourses = [
+            { id: 1, title: "Teologia para Todos", price: "R$ 147,00", cover: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=400&q=80", link: "https://hotmart.com" },
+            { id: 2, title: "Hermenêutica Avançada", price: "R$ 297,00", cover: "https://images.unsplash.com/photo-1532012197367-280696590650?auto=format&fit=crop&w=400&q=80", link: "https://hotmart.com" }
+        ];
+
+        // 2. FUNÇÕES DE INTERFACE (Anexadas diretamente ao window para garantir o clique)
         window.toggleSettings = () => {
             const panel = document.getElementById('settings-panel');
             if (panel.classList.contains('hidden')) {
@@ -244,80 +255,61 @@
             });
         };
 
-        // Dados estáticos de exemplo
-        const mockFeed = [
-            { id: 1, title: "A Força da Oração", content: "Estudo sobre como a oração constante transforma o ambiente ao nosso redor...", img: "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=400&q=80" },
-            { id: 2, title: "Parábolas Comentadas", content: "Uma análise profunda sobre a parábola do semeador e seus frutos hoje.", img: "https://images.unsplash.com/photo-1490730141103-6ca3d7d6cf70?auto=format&fit=crop&w=400&q=80" }
-        ];
-
-        // Links de livros redirecionam para vendas se bloqueados, ou download direto se liberados
-        const mockBooks = [
-            { id: 1, title: "Fundamentos da Fé", author: "Educador de Fé", cover: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=400&q=80", link: "https://seulinkdevendas.com/livro1" },
-            { id: 2, title: "História do Cristianismo", author: "M. Oliveira", cover: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=400&q=80", link: "https://seulinkdevendas.com/livro2" }
-        ];
-
-        // Cursos com estilo de capa adicionado
-        const mockCourses = [
-            { id: 1, title: "Teologia para Todos", price: "R$ 147,00", cover: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=400&q=80", link: "https://hotmart.com" },
-            { id: 2, title: "Hermenêutica Avançada", price: "R$ 297,00", cover: "https://images.unsplash.com/photo-1532012197367-280696590650?auto=format&fit=crop&w=400&q=80", link: "https://hotmart.com" }
-        ];
-
-        const initAuth = async () => {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-            } else {
-                await signInAnonymously(auth);
-            }
-        };
-
-        onAuthStateChanged(auth, (user) => {
-            currentUser = user;
-            if (user) {
-                const savedTheme = localStorage.getItem('user_theme_pref') || 'blue';
-                const savedFont = parseInt(localStorage.getItem('user_font_pref')) || 16;
-                setTheme(savedTheme);
-                setFontSize(savedFont);
-                
-                renderHome();
-                document.getElementById('loader').classList.add('hidden');
-                switchTab('home');
-            }
-        });
-
         window.switchTab = (tab) => {
             ['home', 'books', 'courses'].forEach(t => {
-                document.getElementById(`view-${t}`).classList.add('hidden');
-                document.getElementById(`nav-${t}`).classList.remove('active-tab');
-                document.getElementById(`nav-${t}`).classList.add('text-gray-400');
+                const view = document.getElementById(`view-${t}`);
+                const nav = document.getElementById(`nav-${t}`);
+                if(view) view.classList.add('hidden');
+                if(nav) {
+                    nav.classList.remove('active-tab');
+                    nav.classList.add('text-gray-400');
+                }
             });
-            document.getElementById(`view-${tab}`).classList.remove('hidden');
-            document.getElementById(`nav-${tab}`).classList.add('active-tab');
-            document.getElementById(`nav-${tab}`).classList.remove('text-gray-400');
+            const activeView = document.getElementById(`view-${tab}`);
+            const activeNav = document.getElementById(`nav-${tab}`);
+            
+            if(activeView) activeView.classList.remove('hidden');
+            if(activeNav) {
+                activeNav.classList.add('active-tab');
+                activeNav.classList.remove('text-gray-400');
+            }
 
             if (tab === 'home') renderHome();
             if (tab === 'books') renderBooks();
             if (tab === 'courses') renderCourses();
         };
 
+        window.checkAccess = () => {
+            document.getElementById('email-modal').classList.remove('hidden');
+            document.getElementById('email-modal').classList.add('flex');
+        };
+
+        window.closeModal = () => {
+            document.getElementById('email-modal').classList.add('hidden');
+            document.getElementById('email-modal').classList.remove('flex');
+        };
+
+        // 3. FUNÇÕES DE RENDERIZAÇÃO
         function renderHome() {
             const container = document.getElementById('feed-container');
+            if(!container) return;
             container.innerHTML = mockFeed.map(post => `
                 <div class="bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm transition-transform active:scale-[0.98]">
                     <img src="${post.img}" class="w-full h-40 object-cover">
                     <div class="p-4">
                         <h3 class="font-bold text-lg text-gray-800">${post.title}</h3>
                         <p class="text-gray-500 text-sm mt-1 line-clamp-2">${post.content}</p>
-                        <button class="mt-3 text-[var(--theme-text-accent)] font-semibold text-sm">Continuar estudo <i class="fas fa-arrow-right ml-1"></i></button>
+                        <button onclick="switchTab('courses')" class="mt-3 text-[var(--theme-text-accent)] font-semibold text-sm cursor-pointer hover:underline">Continuar estudo <i class="fas fa-arrow-right ml-1"></i></button>
                     </div>
                 </div>
             `).join('');
         }
 
-        // Estilo Netflix + Redirecionamento para Vendas
         function renderBooks() {
             const container = document.getElementById('books-container');
+            if(!container) return;
             container.innerHTML = mockBooks.map(book => `
-                <div class="relative group">
+                <div class="relative group cursor-pointer">
                     <a href="${book.link}" target="_blank" class="block aspect-[3/4] bg-gray-100 rounded-2xl overflow-hidden shadow-md relative">
                         <img src="${book.cover}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
                         ${!userEmailAccess ? '<div class="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center"><i class="fas fa-lock text-white text-2xl drop-shadow-md"></i></div>' : ''}
@@ -333,11 +325,11 @@
             `).join('');
         }
 
-        // Estilo Netflix idêntico aos Livros
         function renderCourses() {
             const container = document.getElementById('courses-container');
+            if(!container) return;
             container.innerHTML = mockCourses.map(course => `
-                <div class="relative group">
+                <div class="relative group cursor-pointer">
                     <a href="${course.link}" target="_blank" class="block aspect-[3/4] bg-gray-100 rounded-2xl overflow-hidden shadow-md relative">
                         <img src="${course.cover}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
                         <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 pt-6">
@@ -352,35 +344,71 @@
             `).join('');
         }
 
-        window.checkAccess = () => {
-            document.getElementById('email-modal').classList.remove('hidden');
-            document.getElementById('email-modal').classList.add('flex');
-        };
+        // 4. INICIALIZAÇÃO DA UI (Sempre funciona, independente do Firebase)
+        const savedTheme = localStorage.getItem('user_theme_pref') || 'blue';
+        const savedFont = parseInt(localStorage.getItem('user_font_pref')) || 16;
+        setTheme(savedTheme);
+        setFontSize(savedFont);
+        
+        // Renderiza tudo antes do Firebase para não travar a tela
+        renderHome();
+        const loader = document.getElementById('loader');
+        if(loader) loader.classList.add('hidden');
+        switchTab('home');
 
-        window.closeModal = () => {
-            document.getElementById('email-modal').classList.add('hidden');
-            document.getElementById('email-modal').classList.remove('flex');
-        };
+        // 5. INICIALIZAÇÃO FIREBASE (Protegida)
+        try {
+            const firebaseConfig = JSON.parse(__firebase_config);
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            const db = getFirestore(app);
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-        window.validateEmail = async () => {
-            const email = document.getElementById('user-email').value;
-            if (!email.includes('@')) return;
+            window.validateEmail = async () => {
+                const email = document.getElementById('user-email').value;
+                if (!email.includes('@')) return;
 
-            try {
-                if (currentUser) {
-                    const userRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'settings');
-                    await setDoc(userRef, { email: email, validated: true }, { merge: true });
+                try {
+                    if (currentUser) {
+                        const userRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'settings');
+                        await setDoc(userRef, { email: email, validated: true }, { merge: true });
+                    }
+                    localStorage.setItem('educator_email_access', email);
+                    userEmailAccess = email;
+                    closeModal();
+                    renderBooks();
+                } catch (err) {
+                    console.error("Erro no Firebase:", err);
                 }
+            };
+
+            const initAuth = async () => {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            };
+
+            onAuthStateChanged(auth, (user) => {
+                currentUser = user;
+                // Renderizamos de novo os livros caso o status de acesso mude com o login
+                renderBooks();
+            });
+
+            initAuth();
+        } catch (e) {
+            console.error("Erro ao iniciar Firebase (modo offline simulado ativo):", e);
+            // Fallback para validar e-mail mesmo sem o banco de dados rodando
+            window.validateEmail = () => {
+                const email = document.getElementById('user-email').value;
+                if (!email.includes('@')) return;
                 localStorage.setItem('educator_email_access', email);
                 userEmailAccess = email;
                 closeModal();
                 renderBooks();
-            } catch (err) {
-                console.error("Erro:", err);
-            }
-        };
-
-        initAuth();
+            };
+        }
     </script>
 </body>
 </html>
