@@ -26,17 +26,21 @@
             --theme-start: #1e40af;
             --theme-end: #3b82f6;
             --theme-text-accent: #2563eb;
-            --theme-bg-light: #eff6ff; /* Fundo dinâmico claro */
-            --base-font-size: 16px;
+            --theme-bg-light: #dbeafe; /* Tonalidade clara inicial para o degradê */
+        }
+
+        /* O tamanho da fonte no html (root) controla tudo o que usa 'rem' no Tailwind */
+        html {
+            font-size: 16px;
+            transition: font-size 0.3s ease;
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            /* Fundo com degradê leve e fixo baseado no tema */
-            background: linear-gradient(to bottom, var(--theme-bg-light) 0%, #f8fafc 100%);
+            /* Fundo com degradê temático que vai para o branco */
+            background: linear-gradient(to bottom, var(--theme-bg-light) 0%, #ffffff 100%);
             background-attachment: fixed;
             min-height: 100vh;
-            font-size: var(--base-font-size);
         }
 
         .active-tab {
@@ -159,7 +163,7 @@
             <!-- Área de Conteúdo Rolável do Painel -->
             <div class="overflow-y-auto no-scrollbar flex-1 pb-6">
                 
-                <div class="flex items-center gap-4 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-6">
+                <div class="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100 shadow-sm mb-6">
                     <img src="professor.png" alt="Perfil" class="w-14 h-14 rounded-full object-cover bg-white shadow-sm border-2 border-white" onerror="this.src='https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80'">
                     <div class="flex-1">
                         <h4 class="font-bold text-lg text-gray-800">Administrador</h4>
@@ -234,7 +238,7 @@
 
         <!-- View: FEED INICIAL -->
         <section id="view-home" class="hidden space-y-6">
-            <div id="feed-container" class="space-y-6">
+            <div id="feed-container" class="space-y-6 mt-2">
                 <!-- Posts injetados via JS -->
             </div>
         </section>
@@ -287,13 +291,13 @@
 
         // Configuração dos temas adicionando o 'light' para o degradê do fundo
         const themes = {
-            blue: { start: '#1e40af', end: '#3b82f6', accent: '#2563eb', light: '#eff6ff' },
-            green: { start: '#14532d', end: '#22c55e', accent: '#16a34a', light: '#f0fdf4' },
-            red: { start: '#7f1d1d', end: '#ef4444', accent: '#dc2626', light: '#fef2f2' },
-            coffee: { start: '#3e2723', end: '#8d6e63', accent: '#6d4c41', light: '#efebe9' },
-            petrol: { start: '#083344', end: '#0891b2', accent: '#0e7490', light: '#ecfeff' },
-            light: { start: '#475569', end: '#94a3b8', accent: '#64748b', light: '#f8fafc' },
-            pollen: { start: '#78350f', end: '#f59e0b', accent: '#d97706', light: '#fffbeb' }
+            blue: { start: '#1e40af', end: '#3b82f6', accent: '#2563eb', light: '#dbeafe' },
+            green: { start: '#14532d', end: '#22c55e', accent: '#16a34a', light: '#dcfce7' },
+            red: { start: '#7f1d1d', end: '#ef4444', accent: '#dc2626', light: '#fee2e2' },
+            coffee: { start: '#3e2723', end: '#8d6e63', accent: '#6d4c41', light: '#e7e5e4' },
+            petrol: { start: '#083344', end: '#0891b2', accent: '#0e7490', light: '#cffafe' },
+            light: { start: '#475569', end: '#94a3b8', accent: '#64748b', light: '#f1f5f9' },
+            pollen: { start: '#78350f', end: '#f59e0b', accent: '#d97706', light: '#fef3c7' }
         };
 
         let feedData = [];
@@ -345,7 +349,10 @@
         };
 
         window.setFontSize = (size) => {
-            document.documentElement.style.setProperty('--base-font-size', size + 'px');
+            // MUDANÇA IMPORTANTE: Altera a fonte diretamente no HTML.
+            // O Tailwind usa 'rem', que multiplica pelo tamanho da fonte do HTML (root).
+            // Desta forma, TUDO (textos, espaçamentos, cartões) cresce ou diminui proporcionalmente.
+            document.documentElement.style.fontSize = size + 'px';
             safeStorage.setItem('user_font_pref', size);
             
             document.querySelectorAll('.font-btn').forEach(btn => {
@@ -575,7 +582,7 @@
                 return `
                 <div class="flex justify-between items-center p-3 bg-white border border-gray-100 rounded-lg shadow-sm">
                     <div class="flex-1 pr-2 truncate">
-                        <span class="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-bold uppercase mr-1">${typeLabel}</span>
+                        <span class="text-[9px] bg-white text-gray-500 px-1.5 py-0.5 rounded font-bold uppercase mr-1 border">${typeLabel}</span>
                         <span class="font-semibold text-sm text-gray-700">${finalTitle}</span>
                     </div>
                     <div class="flex gap-2 shrink-0">
