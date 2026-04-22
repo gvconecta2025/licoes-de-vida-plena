@@ -26,7 +26,7 @@
             --theme-start: #1e40af;
             --theme-end: #3b82f6;
             --theme-text-accent: #2563eb;
-            --theme-bg-light: #dbeafe; /* Tonalidade clara inicial para o degradê */
+            --theme-bg-light: #bfdbfe; /* Tonalidade levemente mais escura para o degradê */
         }
 
         /* O tamanho da fonte no html (root) controla tudo o que usa 'rem' no Tailwind */
@@ -289,15 +289,15 @@
         
         let userRole = 'guest'; 
 
-        // Configuração dos temas adicionando o 'light' para o degradê do fundo
+        // Configuração dos temas adicionando o 'light' para o degradê do fundo, agora levemente mais escuros
         const themes = {
-            blue: { start: '#1e40af', end: '#3b82f6', accent: '#2563eb', light: '#dbeafe' },
-            green: { start: '#14532d', end: '#22c55e', accent: '#16a34a', light: '#dcfce7' },
-            red: { start: '#7f1d1d', end: '#ef4444', accent: '#dc2626', light: '#fee2e2' },
-            coffee: { start: '#3e2723', end: '#8d6e63', accent: '#6d4c41', light: '#e7e5e4' },
-            petrol: { start: '#083344', end: '#0891b2', accent: '#0e7490', light: '#cffafe' },
-            light: { start: '#475569', end: '#94a3b8', accent: '#64748b', light: '#f1f5f9' },
-            pollen: { start: '#78350f', end: '#f59e0b', accent: '#d97706', light: '#fef3c7' }
+            blue: { start: '#1e40af', end: '#3b82f6', accent: '#2563eb', light: '#bfdbfe' }, // blue-200
+            green: { start: '#14532d', end: '#22c55e', accent: '#16a34a', light: '#bbf7d0' }, // green-200
+            red: { start: '#7f1d1d', end: '#ef4444', accent: '#dc2626', light: '#fecaca' }, // red-200
+            coffee: { start: '#3e2723', end: '#8d6e63', accent: '#6d4c41', light: '#d6d3d1' }, // stone-300
+            petrol: { start: '#083344', end: '#0891b2', accent: '#0e7490', light: '#a5f3fc' }, // cyan-200
+            light: { start: '#475569', end: '#94a3b8', accent: '#64748b', light: '#e2e8f0' }, // slate-200
+            pollen: { start: '#78350f', end: '#f59e0b', accent: '#d97706', light: '#fde68a' } // amber-200
         };
 
         let feedData = [];
@@ -559,6 +559,7 @@
                         <div class="p-5 flex-1">
                             <h3 class="font-bold text-xl text-gray-800 leading-tight">${post.title}</h3>
                             <p class="text-gray-500 text-sm mt-2 line-clamp-3 whitespace-pre-wrap leading-relaxed">${textSnippet}</p>
+                            <!-- LINK REAL PARA A PASTA DO BLOG - PASSA O ID -->
                             <a href="blog/index.html?id=${post.id}" class="mt-4 text-[var(--theme-text-accent)] font-bold text-sm cursor-pointer hover:underline inline-flex items-center">Ler artigo completo <i class="fas fa-arrow-right ml-1.5"></i></a>
                         </div>
                     </div>`;
@@ -582,7 +583,7 @@
                 return `
                 <div class="flex justify-between items-center p-3 bg-white border border-gray-100 rounded-lg shadow-sm">
                     <div class="flex-1 pr-2 truncate">
-                        <span class="text-[9px] bg-white text-gray-500 px-1.5 py-0.5 rounded font-bold uppercase mr-1 border">${typeLabel}</span>
+                        <span class="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-bold uppercase mr-1">${typeLabel}</span>
                         <span class="font-semibold text-sm text-gray-700">${finalTitle}</span>
                     </div>
                     <div class="flex gap-2 shrink-0">
