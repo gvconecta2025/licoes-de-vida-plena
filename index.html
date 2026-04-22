@@ -149,10 +149,13 @@
                 
                 <div class="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100 shadow-sm mb-6">
                     <img src="professor.png" alt="Perfil" class="w-14 h-14 rounded-full object-cover bg-white shadow-sm border-2 border-white" onerror="this.src='https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80'">
-                    <div>
+                    <div class="flex-1">
                         <h4 class="font-bold text-lg text-gray-800">Administrador</h4>
-                        <p class="text-xs text-[var(--theme-text-accent)] font-semibold mt-0.5">Gestão de Estudos</p>
+                        <p class="text-xs text-[var(--theme-text-accent)] font-semibold mt-0.5" id="admin-email-display">Gestão de Estudos</p>
                     </div>
+                    <button onclick="logoutAdmin()" class="text-red-500 hover:bg-red-50 p-2 rounded-lg text-sm transition-colors" title="Sair">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
                 </div>
 
                 <h4 class="text-sm font-bold text-gray-800 border-b pb-2 mb-4 flex items-center gap-2 mt-4">
@@ -225,27 +228,15 @@
             </div>
         </section>
 
-        <!-- View: ARTIGO COMPLETO -->
-        <section id="view-article" class="hidden relative">
-            <!-- Botão Voltar no canto superior esquerdo da área útil -->
-            <button onclick="switchTab('home')" class="mb-5 text-gray-500 hover:text-[var(--theme-text-accent)] flex items-center gap-2 font-bold transition-colors cursor-pointer text-sm">
-                <i class="fas fa-arrow-left"></i> Voltar
-            </button>
-            
-            <div id="article-content" class="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm text-gray-800">
-                <!-- Conteúdo do artigo injetado via JS -->
-            </div>
-        </section>
-
     </main>
 
     <!-- Navigation Bar -->
     <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-100 px-6 py-3 flex justify-between items-center z-50">
-        <button onclick="switchTab('home')" id="nav-home" class="flex flex-col items-center gap-1 transition-all active-tab nav-btn cursor-pointer p-2 w-full">
+        <button onclick="window.scrollTo({ top: 0, behavior: 'smooth' })" id="nav-home" class="flex flex-col items-center gap-1 transition-all active-tab nav-btn cursor-pointer p-2 w-full">
             <i class="fas fa-hands-praying text-xl pointer-events-none"></i>
             <span class="text-[10px] font-bold uppercase tracking-wider pointer-events-none mt-1">Início</span>
         </button>
-        <!-- Links para áreas que ficarão em pastas do GitHub -->
+        <!-- Links para as áreas que ficarão em pastas reais do site -->
         <a href="estante/index.html" class="flex flex-col items-center gap-1 transition-all text-gray-400 hover:text-gray-600 nav-btn cursor-pointer p-2 w-full">
             <i class="fas fa-book-bible text-xl pointer-events-none"></i>
             <span class="text-[10px] font-bold uppercase tracking-wider pointer-events-none mt-1">Estante</span>
@@ -256,21 +247,9 @@
         </a>
     </nav>
 
-    <!-- Modal de Validação - Clicar no fundo fecha -->
-    <div id="email-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-6 z-[60]" onclick="if(event.target === this) closeModal()">
-        <div class="bg-white rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl">
-            <i class="fas fa-envelope-open-text text-blue-600 text-4xl mb-4 icon-accent"></i>
-            <h3 class="text-xl font-bold mb-2">Acesso aos Livros</h3>
-            <p class="text-gray-500 text-sm mb-6">Insira o e-mail cadastrado para descarregar as suas obras de estudo.</p>
-            <input type="email" id="user-email" placeholder="seu@email.com" class="w-full border p-3 rounded-xl mb-4 outline-none focus:ring-2 focus:ring-blue-500 text-center">
-            <button onclick="validateEmail()" class="w-full gradient-bg text-white font-bold py-3 rounded-xl shadow-lg cursor-pointer hover:opacity-90">Liberar Acesso</button>
-            <button onclick="closeModal()" class="mt-4 text-gray-400 text-sm cursor-pointer p-2 font-semibold">Voltar</button>
-        </div>
-    </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, addDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // 1. SAFE STORAGE WRAPPER
@@ -288,12 +267,9 @@
         // ==========================================
         // SISTEMA DE ACESSOS (ADMIN VS USUÁRIO)
         // ==========================================
-        // E-mails que possuem controle total (Criação, Edição, Exclusão)
         const ADMIN_EMAILS = ['gvconeta2025@gmail.com', 'professoragiselle.edu2@gmail.com'];
         const isAdmin = (email) => email && ADMIN_EMAILS.includes(email.toLowerCase());
-
-        // Variável que definirá o acesso do usuário na sessão atual.
-        // Futuramente, quando construirmos a área de usuários logados, eles receberão 'user'.
+        
         let userRole = 'guest'; // 'admin', 'user' ou 'guest'
 
         const themes = {
@@ -345,26 +321,11 @@
             });
         };
 
-        window.switchTab = (tab) => {
-            // Oculta todas as views internas controladas por esta página
-            ['home', 'article'].forEach(t => {
-                const view = document.getElementById(`view-${t}`);
-                if(view) view.classList.add('hidden');
-            });
-            
-            const activeView = document.getElementById(`view-${tab}`);
-            if(activeView) activeView.classList.remove('hidden');
-
-            if (tab === 'home') renderHome();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        };
-
-        // Alterna os campos do formulário no painel admin dependendo do tipo de postagem
         window.togglePostFields = () => {
             const type = document.getElementById('post-type').value;
             const isArticle = type === 'article';
             
-            document.getElementById('field-title').style.display = 'block'; // Título sempre útil para controle admin
+            document.getElementById('field-title').style.display = 'block';
             document.getElementById('field-excerpt').style.display = isArticle ? 'block' : 'none';
             document.getElementById('field-content').style.display = isArticle ? 'block' : 'none';
             
@@ -383,7 +344,6 @@
             const content = document.getElementById('post-content').value;
             const mediaUrl = document.getElementById('post-media').value;
 
-            // Validações Baseadas no Tipo
             if (type === 'article' && (!title || !content)) {
                 alert("O Título e o Conteúdo Completo são obrigatórios para um artigo.");
                 return;
@@ -461,18 +421,15 @@
             window.togglePostFields();
         };
 
-        // Renderiza visualização de leitura do Artigo
-        window.readArticle = (id) => {
-            const post = feedData.find(p => p.id === id);
-            if(!post) return;
-            const container = document.getElementById('article-content');
-            
-            container.innerHTML = `
-                <h2 class="text-2xl font-bold mb-4 text-gray-900 leading-tight">${post.title}</h2>
-                ${post.mediaUrl ? `<img src="${post.mediaUrl}" class="w-full aspect-video object-cover rounded-2xl mb-6 shadow-sm border border-gray-100">` : ''}
-                <div class="text-[15px] leading-relaxed text-gray-700 whitespace-pre-wrap">${post.content}</div>
-            `;
-            window.switchTab('article');
+        // Logout
+        window.logoutAdmin = async () => {
+            try {
+                await signOut(auth);
+                alert("Sessão encerrada com sucesso.");
+                window.toggleCentralPanel();
+            } catch (error) {
+                console.error("Erro ao deslogar", error);
+            }
         };
 
         // 5. FUNÇÕES DE RENDERIZAÇÃO DA TELA
@@ -536,7 +493,9 @@
                         <div class="p-5">
                             <h3 class="font-bold text-xl text-gray-800 leading-tight">${post.title}</h3>
                             <p class="text-gray-500 text-sm mt-2 line-clamp-3 whitespace-pre-wrap leading-relaxed">${textSnippet}</p>
-                            <button onclick="readArticle('${post.id}')" class="mt-4 text-[var(--theme-text-accent)] font-bold text-sm cursor-pointer hover:underline inline-flex items-center">Ler artigo completo <i class="fas fa-arrow-right ml-1.5"></i></button>
+                            
+                            <!-- LINK REAL PARA A PASTA DO BLOG -->
+                            <a href="blog/index.html?id=${post.id}" class="mt-4 text-[var(--theme-text-accent)] font-bold text-sm cursor-pointer hover:underline inline-flex items-center">Ler artigo completo <i class="fas fa-arrow-right ml-1.5"></i></a>
                         </div>
                     </div>`;
                 }
@@ -576,16 +535,17 @@
             const savedFont = parseInt(safeStorage.getItem('user_font_pref')) || 16;
             window.setTheme(savedTheme);
             window.setFontSize(savedFont);
-            window.togglePostFields(); // Prepara layout inicial do form
+            window.togglePostFields(); 
             
             const loader = document.getElementById('loader');
             if(loader) loader.classList.add('hidden');
-            window.switchTab('home');
+            
+            document.getElementById('view-home').classList.remove('hidden');
         } catch (err) {
             console.error("Erro Crítico na UI:", err);
         }
 
-        // 7. INICIALIZAÇÃO DO FIREBASE (PARA SUBIR NO VERCEL/GITHUB)
+        // 7. INICIALIZAÇÃO DO FIREBASE (AUTENTICAÇÃO SEGURA)
         try {
             const firebaseConfig = {
                 apiKey: "AIzaSyCW_Hjw1HAXu2pyPIYjtqPCQHsQ-WhZehs",
@@ -600,7 +560,7 @@
             auth = getAuth(app);
             db = getFirestore(app);
 
-            // Lógica de Acesso de Administrador
+            // Lógica de Acesso
             window.handleAdminAccess = async () => {
                 if (currentUser && userRole === 'admin') {
                     window.toggleCentralPanel();
@@ -610,11 +570,7 @@
                         provider.setCustomParameters({ prompt: 'select_account' }); 
                         const result = await signInWithPopup(auth, provider);
                         
-                        if (isAdmin(result.user.email)) {
-                            userRole = 'admin'; // Atualiza a permissão dinamicamente
-                            window.toggleCentralPanel();
-                        } else {
-                            userRole = 'user'; // Login feito, mas não é administrador
+                        if (!isAdmin(result.user.email)) {
                             alert("Acesso Negado: Este e-mail não tem permissão de administrador.");
                         }
                     } catch (error) {
@@ -626,32 +582,30 @@
                 }
             };
 
-            // Login silencioso para visitantes verem os posts
-            const initAuth = async () => {
-                try {
-                    await signInAnonymously(auth);
-                } catch(e) {
-                    console.error("Falha ao logar anonimamente.", e);
-                    alert("Atenção: O Login Anônimo não está ativado no Firebase. As postagens podem não carregar para visitantes. Acesse o Painel do Firebase > Autenticação > Métodos de Login > Ative o 'Anônimo'.");
-                }
-            };
-
-            // Observer de Auth e Setup de Sincronização do Feed
+            // Observer de Auth: Trata login/logout de forma persistente
             onAuthStateChanged(auth, (user) => {
-                currentUser = user;
                 
-                // Define a Role ao detectar mudança no usuário
-                if (user && isAdmin(user.email)) {
-                    userRole = 'admin';
-                } else if (user && !user.isAnonymous) {
-                    userRole = 'user';
+                if (user) {
+                    currentUser = user;
+                    // Define a Role 
+                    if (isAdmin(user.email)) {
+                        userRole = 'admin';
+                        document.getElementById('admin-email-display').innerText = user.email;
+                    } else if (!user.isAnonymous) {
+                        userRole = 'user';
+                    } else {
+                        userRole = 'guest';
+                    }
                 } else {
+                    // SE não houver utilizador NENHUM logado, entra como anônimo automaticamente
+                    currentUser = null;
                     userRole = 'guest';
+                    signInAnonymously(auth).catch(e => console.error("Falha login anônimo", e));
                 }
 
-                if (user && db) {
+                // Sincronização do Feed
+                if (db) {
                     const postsRef = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
-                    
                     onSnapshot(postsRef, (snapshot) => {
                         feedData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                         feedData.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
@@ -660,12 +614,12 @@
                         renderAdminPosts();
                     }, (error) => {
                         console.error("Erro ao sincronizar posts:", error);
-                        alert("Erro ao ler dados do Firebase. Verifique as regras do banco de dados ou o provedor Anônimo.");
+                        if (error.code === 'permission-denied') {
+                            console.warn("Acesso negado ao ler o banco. Verifique se o Firebase permite leitura a utilizadores anónimos.");
+                        }
                     });
                 }
             });
-
-            initAuth();
             
         } catch (e) {
             console.error("Erro ao carregar o Firebase.", e);
