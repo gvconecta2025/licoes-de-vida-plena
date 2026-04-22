@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>O Caminho - Artigo</title>
+    
+    <!-- Tags PWA para instalação no telemóvel -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#1e40af">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Firebase SDKs -->
@@ -14,62 +21,90 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
         
         :root {
-            /* Pega o tema salvo, se houver */
-            --theme-text-accent: #2563eb; 
+            --theme-start: #1e40af;
+            --theme-end: #3b82f6;
+            --theme-text-accent: #2563eb;
+            --theme-bg-light: #eff6ff; /* Fundo dinâmico claro */
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f8fafc;
+            /* Fundo com degradê acompanhando a página inicial */
+            background: linear-gradient(to bottom, var(--theme-bg-light) 0%, #f8fafc 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
         }
 
-        /* Estilo para formatar o texto do artigo */
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--theme-start) 0%, var(--theme-end) 100%);
+            transition: background 0.4s ease;
+        }
+
         .article-body p {
             margin-bottom: 1.5em;
             line-height: 1.8;
-            color: #374151; /* gray-700 */
+            color: #374151;
         }
     </style>
 </head>
-<body class="max-w-md mx-auto min-h-screen shadow-2xl bg-white relative pb-10">
+<body class="max-w-md mx-auto shadow-2xl relative pb-10">
 
-    <!-- Header Simples com Botão Voltar no Canto Esquerdo -->
-    <header class="bg-white px-6 pt-8 pb-4 sticky top-0 z-10 bg-opacity-90 backdrop-blur-sm">
-        <a href="../index.html" class="text-gray-500 hover:text-[var(--theme-text-accent)] flex items-center gap-2 font-bold transition-colors text-sm w-fit">
-            <i class="fas fa-arrow-left"></i> Voltar
-        </a>
+    <!-- Cabeçalho "ARTIGOS" acompanhando o Design da Página Inicial -->
+    <header class="gradient-bg text-white p-6 rounded-b-[2.5rem] shadow-lg relative z-10 mb-8">
+        <div class="flex justify-between items-center mb-4">
+            <div>
+                <h1 class="text-2xl font-bold">ARTIGOS</h1>
+                <p class="text-white/80 text-sm mt-1">O Caminho - Estudo da Palavra</p>
+            </div>
+            <div class="flex gap-4 items-center">
+                <a href="../index.html" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors shrink-0 cursor-pointer text-white" title="Voltar ao Feed">
+                    <i class="fas fa-arrow-left text-lg pointer-events-none"></i>
+                </a>
+            </div>
+        </div>
     </header>
 
     <main class="px-6" id="article-container">
-        <!-- Loader -->
         <div id="loader" class="flex justify-center items-center h-64">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
-        
-        <!-- O conteúdo será injetado aqui -->
     </main>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Tentar aplicar as preferências de design salvas pelo usuário
+        // Registo de Service Worker para funcionar offline
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('../sw.js').catch(err => console.log('SW falhou', err));
+            });
+        }
+
         try {
             const savedTheme = localStorage.getItem('user_theme_pref');
             const savedFont = localStorage.getItem('user_font_pref');
-            
             if (savedFont) document.body.style.fontSize = savedFont + 'px';
             
-            const themeColors = {
-                blue: '#2563eb', green: '#16a34a', red: '#dc2626', 
-                coffee: '#6d4c41', petrol: '#0e7490', light: '#64748b', pollen: '#d97706'
+            const themes = {
+                blue: { start: '#1e40af', end: '#3b82f6', accent: '#2563eb', light: '#eff6ff' },
+                green: { start: '#14532d', end: '#22c55e', accent: '#16a34a', light: '#f0fdf4' },
+                red: { start: '#7f1d1d', end: '#ef4444', accent: '#dc2626', light: '#fef2f2' },
+                coffee: { start: '#3e2723', end: '#8d6e63', accent: '#6d4c41', light: '#efebe9' },
+                petrol: { start: '#083344', end: '#0891b2', accent: '#0e7490', light: '#ecfeff' },
+                light: { start: '#475569', end: '#94a3b8', accent: '#64748b', light: '#f8fafc' },
+                pollen: { start: '#78350f', end: '#f59e0b', accent: '#d97706', light: '#fffbeb' }
             };
-            if (savedTheme && themeColors[savedTheme]) {
-                document.documentElement.style.setProperty('--theme-text-accent', themeColors[savedTheme]);
+
+            if (savedTheme && themes[savedTheme]) {
+                const theme = themes[savedTheme];
+                document.documentElement.style.setProperty('--theme-start', theme.start);
+                document.documentElement.style.setProperty('--theme-end', theme.end);
+                document.documentElement.style.setProperty('--theme-text-accent', theme.accent);
+                document.documentElement.style.setProperty('--theme-bg-light', theme.light);
             }
         } catch(e) {}
 
-        // Firebase Configuração Oficial
         const firebaseConfig = {
             apiKey: "AIzaSyCW_Hjw1HAXu2pyPIYjtqPCQHsQ-WhZehs",
             authDomain: "licoes-de-vida-plena.firebaseapp.com",
@@ -82,7 +117,25 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Pega o ID da URL (?id=xxxxxx)
+        // Função global para ativar os vídeos interativos (som e controlos)
+        window.activateVideo = (overlayElement, videoId, isYoutube, elementId) => {
+            if(window.event) {
+                window.event.preventDefault();
+                window.event.stopPropagation();
+            }
+            overlayElement.style.display = 'none';
+            const mediaEl = document.getElementById(elementId);
+            
+            if (mediaEl && isYoutube) {
+                mediaEl.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&controls=1&playsinline=1`;
+                mediaEl.classList.remove('pointer-events-none', 'scale-[1.05]');
+            } else if (mediaEl) {
+                mediaEl.muted = false;
+                mediaEl.controls = true;
+                mediaEl.classList.remove('pointer-events-none');
+            }
+        };
+
         const urlParams = new URLSearchParams(window.location.search);
         const postId = urlParams.get('id');
 
@@ -100,66 +153,72 @@
 
                 if (docSnap.exists()) {
                     const post = docSnap.data();
-                    
-                    // Atualizar título da aba do navegador para o título do artigo
                     document.title = post.title + " - O Caminho";
 
-                    // Processamento Dinâmico de Mídia (YouTube e Google Drive)
                     let mediaHtml = '';
+                    const mediaId = 'main-vid';
+                    
                     if (post.mediaUrl) {
                         let url = post.mediaUrl;
                         let isVideo = false;
                         let embedUrl = '';
+                        let ytVideoId = '';
                         
-                        // Verificar se é link do YouTube
-                        const ytMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+                        const ytMatch = url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|v\/)|youtu\.be\/)([\w-]{11})/);
                         if (ytMatch) {
                             isVideo = true;
-                            const videoId = ytMatch[1];
-                            // Adiciona loop e remove controles (playlist é obrigatório para loop no YouTube)
-                            embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&playsinline=1`;
+                            ytVideoId = ytMatch[1];
+                            embedUrl = `https://www.youtube.com/embed/${ytVideoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${ytVideoId}&playsinline=1`;
                         } else {
-                            // Extração de ID melhorada para links do Google Drive
                             const gdMatch1 = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
                             const gdMatch2 = url.match(/id=([a-zA-Z0-9_-]+)/);
-                            let gdId = null;
-
-                            if (gdMatch1) {
-                                gdId = gdMatch1[1];
-                            } else if (gdMatch2) {
-                                gdId = gdMatch2[1];
-                            }
-
-                            if (gdId) {
-                                // lh3.googleusercontent.com é a forma mais robusta e atual de contornar bloqueios de hotlink do GDrive
-                                url = `https://lh3.googleusercontent.com/d/${gdId}`;
-                            }
+                            let gdId = gdMatch1 ? gdMatch1[1] : (gdMatch2 ? gdMatch2[1] : null);
+                            if (gdId) url = `https://lh3.googleusercontent.com/d/${gdId}`;
                         }
 
                         if (isVideo) {
                             mediaHtml = `
                                 <div class="relative w-full aspect-video rounded-2xl overflow-hidden mb-8 shadow-sm border border-gray-100 bg-black">
-                                    <iframe src="${embedUrl}" class="w-full h-full pointer-events-none" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-                                    <!-- Símbolo de vídeo translúcido no centro -->
-                                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                        <i class="fas fa-play text-white text-5xl opacity-40 drop-shadow-lg"></i>
+                                    <iframe id="${mediaId}" src="${embedUrl}" class="w-full h-full pointer-events-none scale-[1.05]" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                                    <div class="absolute inset-0 flex items-center justify-center cursor-pointer z-10 bg-black/20 hover:bg-black/10 transition-colors" onclick="activateVideo(this, '${ytVideoId}', true, '${mediaId}')">
+                                        <i class="fas fa-play text-white text-5xl opacity-70 drop-shadow-lg hover:scale-110 transition-transform"></i>
                                     </div>
                                 </div>
                             `;
                         } else {
-                            // object-cover e aspect-video garantem o corte automático de 9:16 para 16:9, e o object-center foca no meio
                             mediaHtml = `<img src="${url}" class="w-full aspect-video object-cover object-center rounded-2xl mb-8 shadow-sm border border-gray-100" onerror="this.style.display='none'">`;
                         }
                     }
 
+                    let articleContent = post.content || '';
+                    const inlineYtRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|v\/)|youtu\.be\/)([\w-]{11})/g;
+                    
+                    let vidCounter = 0;
+                    articleContent = articleContent.replace(inlineYtRegex, (match, videoId) => {
+                        vidCounter++;
+                        const inlineVidId = `inline-vid-${vidCounter}`;
+                        const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&playsinline=1`;
+                        return `
+                            <div class="relative w-full aspect-video rounded-2xl overflow-hidden my-6 shadow-sm border border-gray-100 bg-black block">
+                                <iframe id="${inlineVidId}" src="${embedUrl}" class="w-full h-full pointer-events-none scale-[1.05]" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                                <div class="absolute inset-0 flex items-center justify-center cursor-pointer z-10 bg-black/20 hover:bg-black/10 transition-colors" onclick="activateVideo(this, '${videoId}', true, '${inlineVidId}')">
+                                    <i class="fas fa-play text-white text-5xl opacity-70 drop-shadow-lg hover:scale-110 transition-transform"></i>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    // O painel do conteúdo do artigo com o fundo branco fica envolto por esta tag
                     container.innerHTML = `
-                        <h1 class="text-3xl font-bold mb-6 text-gray-900 leading-tight">${post.title}</h1>
-                        ${mediaHtml}
-                        <article class="article-body whitespace-pre-wrap">${post.content}</article>
+                        <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-50 mb-8">
+                            <h1 class="text-3xl font-bold mb-6 text-gray-900 leading-tight">${post.title}</h1>
+                            ${mediaHtml}
+                            <article class="article-body whitespace-pre-wrap">${articleContent}</article>
+                        </div>
                         
-                        <div class="mt-12 pt-6 border-t border-gray-100 flex items-center justify-between">
-                            <span class="text-xs text-gray-400 font-semibold uppercase tracking-wider">O Caminho</span>
-                            <button onclick="navigator.clipboard.writeText(window.location.href); alert('Link copiado!');" class="text-[var(--theme-text-accent)] bg-blue-50 px-4 py-2 rounded-full text-xs font-bold transition-colors">
+                        <div class="pt-6 border-t border-gray-200/60 flex items-center justify-between px-2">
+                            <span class="text-xs text-gray-500 font-bold uppercase tracking-wider">O Caminho</span>
+                            <button onclick="navigator.clipboard.writeText(window.location.href); alert('Link copiado!');" class="text-[var(--theme-text-accent)] bg-white shadow-sm border border-gray-100 px-4 py-2 rounded-full text-xs font-bold transition-colors">
                                 <i class="fas fa-share-alt mr-1"></i> Partilhar
                             </button>
                         </div>
