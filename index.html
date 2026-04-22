@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>O Caminho</title>
     
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e40af">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -116,7 +116,7 @@
                     <i class="fas fa-cog text-lg pointer-events-none"></i>
                 </button>
                 <div onclick="handleAdminAccess()" class="w-12 h-12 rounded-full overflow-hidden bg-white shadow-md border-2 border-white shrink-0 flex items-center justify-center cursor-pointer hover:scale-105 transition-transform" title="Área do Educador">
-                    <img src="professor.png" alt="Professor" class="w-full h-full object-cover pointer-events-none" onerror="this.src='https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80'">
+                    <img src="professor.png" alt="Professor" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80'">
                 </div>
             </div>
         </div>
@@ -170,7 +170,7 @@
 
             <div class="overflow-y-auto no-scrollbar flex-1 pb-6">
                 <div class="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100 shadow-sm mb-6">
-                    <img src="professor.png" alt="Perfil" class="w-14 h-14 rounded-full object-cover bg-white shadow-sm border-2 border-white" onerror="this.src='https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80'">
+                    <img src="professor.png" alt="Perfil" class="w-14 h-14 rounded-full object-cover bg-white shadow-sm border-2 border-white" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80'">
                     <div class="flex-1">
                         <h4 class="font-bold text-lg text-gray-800">Administrador</h4>
                         <p class="text-xs text-[var(--theme-text-accent)] font-semibold mt-0.5" id="admin-email-display">Gestão de Estudos</p>
@@ -246,11 +246,11 @@
             <i class="fas fa-hands-praying text-xl pointer-events-none"></i>
             <span class="text-[10px] font-bold uppercase tracking-wider pointer-events-none mt-1">Início</span>
         </button>
-        <a href="/estante/index.html" class="flex flex-col items-center gap-1 transition-all text-gray-400 hover:text-gray-600 nav-btn cursor-pointer p-2 w-full">
+        <a href="estante/index.html" class="flex flex-col items-center gap-1 transition-all text-gray-400 hover:text-gray-600 nav-btn cursor-pointer p-2 w-full">
             <i class="fas fa-book-bible text-xl pointer-events-none"></i>
             <span class="text-[10px] font-bold uppercase tracking-wider pointer-events-none mt-1">Estante</span>
         </a>
-        <a href="/cursos/index.html" class="flex flex-col items-center gap-1 transition-all text-gray-400 hover:text-gray-600 nav-btn cursor-pointer p-2 w-full">
+        <a href="cursos/index.html" class="flex flex-col items-center gap-1 transition-all text-gray-400 hover:text-gray-600 nav-btn cursor-pointer p-2 w-full">
             <i class="fas fa-chalkboard-user text-xl pointer-events-none"></i>
             <span class="text-[10px] font-bold uppercase tracking-wider pointer-events-none mt-1">Cursos</span>
         </a>
@@ -263,7 +263,7 @@
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW falhou:', err));
+                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW falhou:', err));
             });
         }
 
@@ -518,6 +518,9 @@
                         }
                     } else {
                         mediaHtml = `<img src="${url}" class="w-full aspect-video object-cover object-center shrink-0 bg-gray-100 ${type === 'image' && !post.title ? 'rounded-3xl' : 'rounded-t-3xl'}" onerror="this.style.display='none'">`;
+                        if (type === 'article') {
+                            mediaHtml = `<a href="blog/index.html?id=${post.id}" class="block cursor-pointer transition-opacity hover:opacity-90" title="Ler artigo completo">${mediaHtml}</a>`;
+                        }
                     }
                 }
 
@@ -532,16 +535,16 @@
                     const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|v\/)|youtu\.be\/)([\w-]{11})/g;
                     textSnippet = textSnippet.replace(ytRegex, '[Vídeo Anexado]');
 
-                    // Cartão do artigo agora é um bloco <a> inteiro que leva diretamente ao artigo, de forma muito mais segura
+                    // Revertido: O cartão volta a ser uma div e os links ficam apenas na imagem e no botão separadamente!
                     return `
-                    <a href="/blog/index.html?id=${post.id}" class="bg-white rounded-3xl overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] transition-transform active:scale-[0.98] flex flex-col relative z-10 cursor-pointer hover:bg-gray-50 block">
+                    <div class="bg-white rounded-3xl overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] flex flex-col relative z-10">
                         ${mediaHtml}
                         <div class="p-5 flex-1">
                             <h3 class="font-bold text-xl text-gray-900 leading-tight mb-2">${post.title}</h3>
                             <p class="text-gray-600 text-sm line-clamp-3 whitespace-pre-wrap leading-relaxed">${textSnippet}</p>
-                            <span class="mt-4 text-[var(--theme-text-accent)] font-bold text-sm inline-flex items-center">Ler artigo completo <i class="fas fa-arrow-right ml-1.5"></i></span>
+                            <a href="blog/index.html?id=${post.id}" class="mt-4 text-[var(--theme-text-accent)] font-bold text-sm inline-flex items-center hover:underline cursor-pointer">Ler artigo completo <i class="fas fa-arrow-right ml-1.5"></i></a>
                         </div>
-                    </a>`;
+                    </div>`;
                 }
             }).join('');
         }
