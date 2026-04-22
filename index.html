@@ -3,627 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>O Caminho</title>
+    <title>O Caminho - Artigo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js" type="module"></script>
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
         
         :root {
-            --theme-start: #1e40af;
-            --theme-end: #3b82f6;
-            --theme-text-accent: #2563eb;
-            --base-font-size: 16px;
+            /* Pega o tema salvo, se houver */
+            --theme-text-accent: #2563eb; 
         }
 
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc;
-            font-size: var(--base-font-size);
         }
 
-        .active-tab {
-            color: var(--theme-text-accent);
-            border-bottom: 3px solid var(--theme-text-accent);
-        }
-
-        .gradient-bg {
-            background: linear-gradient(135deg, var(--theme-start) 0%, var(--theme-end) 100%);
-            transition: background 0.4s ease;
-        }
-
-        .theme-dot {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: 2px solid white;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .theme-dot:active {
-            transform: scale(0.9);
-        }
-
-        /* Esconder scrollbar mas manter funcionalidade */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-
-        .settings-panel {
-            transition: transform 0.3s ease-in-out;
-        }
-
-        @keyframes slide-up {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
-        }
-        .animate-slide-up {
-            animation: slide-up 0.3s ease-out;
+        /* Estilo para formatar o texto do artigo */
+        .article-body p {
+            margin-bottom: 1.5em;
+            line-height: 1.8;
+            color: #374151; /* gray-700 */
         }
     </style>
 </head>
-<body class="max-w-md mx-auto min-h-screen shadow-2xl bg-white relative pb-24">
+<body class="max-w-md mx-auto min-h-screen shadow-2xl bg-white relative pb-10">
 
-    <!-- Header -->
-    <header class="gradient-bg text-white p-6 rounded-b-[2.5rem] shadow-lg relative z-10">
-        <div class="flex justify-between items-center mb-4">
-            <div>
-                <h1 class="text-2xl font-bold">O Caminho</h1>
-                <p class="text-white/80 text-sm mt-1">Seu espaço de estudo da Palavra de Deus.</p>
-            </div>
-            <div class="flex gap-4 items-center">
-                <!-- Botão de Configurações (Engrenagem) -->
-                <button onclick="toggleSettings()" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors shrink-0 cursor-pointer">
-                    <i class="fas fa-cog text-lg pointer-events-none"></i>
-                </button>
-                <!-- Foto do Professor (Clicável para Login do Admin / Abrir Painel) -->
-                <div onclick="handleAdminAccess()" class="w-12 h-12 rounded-full overflow-hidden bg-white shadow-md border-2 border-white shrink-0 flex items-center justify-center cursor-pointer hover:scale-105 transition-transform" title="Área do Educador">
-                    <img src="professor.png" alt="Professor" class="w-full h-full object-cover pointer-events-none" onerror="this.src='https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80'">
-                </div>
-            </div>
-        </div>
+    <!-- Header Simples com Botão Voltar no Canto Esquerdo -->
+    <header class="bg-white px-6 pt-8 pb-4 sticky top-0 z-10 bg-opacity-90 backdrop-blur-sm">
+        <a href="../index.html" class="text-gray-500 hover:text-[var(--theme-text-accent)] flex items-center gap-2 font-bold transition-colors text-sm w-fit">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </a>
     </header>
 
-    <!-- Painel de Configurações (Overlay) - Clicar no fundo escuro fecha o painel -->
-    <div id="settings-panel" class="fixed inset-0 bg-black/40 z-[100] hidden items-end justify-center" onclick="if(event.target === this) toggleSettings()">
-        <div class="bg-white w-full max-w-md rounded-t-[2.5rem] p-8 shadow-2xl animate-slide-up">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold text-gray-800">Configurações</h3>
-                <button onclick="toggleSettings()" class="text-gray-400 hover:text-gray-600 cursor-pointer p-2">
-                    <i class="fas fa-times text-xl pointer-events-none"></i>
-                </button>
-            </div>
-
-            <!-- Seleção de Cores -->
-            <div class="mb-8">
-                <p class="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wider">Cor do Tema</p>
-                <div class="flex flex-wrap gap-4">
-                    <div onclick="setTheme('blue')" class="theme-dot bg-blue-600"></div>
-                    <div onclick="setTheme('green')" class="theme-dot bg-green-600"></div>
-                    <div onclick="setTheme('red')" class="theme-dot bg-red-600"></div>
-                    <div onclick="setTheme('coffee')" class="theme-dot" style="background-color: #5d4037;"></div>
-                    <div onclick="setTheme('petrol')" class="theme-dot bg-cyan-800"></div>
-                    <div onclick="setTheme('light')" class="theme-dot bg-slate-400"></div>
-                    <div onclick="setTheme('pollen')" class="theme-dot bg-amber-500"></div>
-                </div>
-            </div>
-
-            <!-- Seleção de Fonte -->
-            <div class="mb-6">
-                <p class="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wider">Tamanho da Fonte</p>
-                <div class="flex items-center justify-between bg-gray-50 p-2 rounded-2xl">
-                    <button onclick="setFontSize(14)" class="flex-1 py-3 text-sm font-medium rounded-xl hover:bg-white transition-all font-btn cursor-pointer" data-size="14">Pequeno</button>
-                    <button onclick="setFontSize(16)" class="flex-1 py-3 text-base font-medium rounded-xl hover:bg-white transition-all font-btn bg-white shadow-sm cursor-pointer" data-size="16">Médio</button>
-                    <button onclick="setFontSize(20)" class="flex-1 py-3 text-lg font-medium rounded-xl hover:bg-white transition-all font-btn cursor-pointer" data-size="20">Grande</button>
-                </div>
-            </div>
-            
-            <button onclick="toggleSettings()" class="w-full gradient-bg text-white font-bold py-4 rounded-2xl shadow-lg mt-4 cursor-pointer hover:opacity-90">Pronto</button>
-        </div>
-    </div>
-
-    <!-- Painel Central (Overlay) - Clicar no fundo escuro fecha o painel -->
-    <div id="central-panel" class="fixed inset-0 bg-black/50 z-[105] hidden items-end justify-center" onclick="if(event.target === this) toggleCentralPanel()">
-        <div class="bg-white w-full max-w-md rounded-t-[2.5rem] p-6 shadow-2xl animate-slide-up h-[90vh] flex flex-col relative">
-            <div class="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-gray-300 rounded-full"></div>
-
-            <div class="flex justify-between items-center mb-6 mt-4 shrink-0">
-                <h3 class="text-2xl font-bold text-gray-800">Painel Central</h3>
-                <button onclick="toggleCentralPanel()" class="text-gray-400 hover:text-gray-600 cursor-pointer w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center transition-colors hover:bg-gray-200">
-                    <i class="fas fa-times pointer-events-none"></i>
-                </button>
-            </div>
-
-            <!-- Área de Conteúdo Rolável do Painel -->
-            <div class="overflow-y-auto no-scrollbar flex-1 pb-6">
-                
-                <div class="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100 shadow-sm mb-6">
-                    <img src="professor.png" alt="Perfil" class="w-14 h-14 rounded-full object-cover bg-white shadow-sm border-2 border-white" onerror="this.src='https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80'">
-                    <div class="flex-1">
-                        <h4 class="font-bold text-lg text-gray-800">Administrador</h4>
-                        <p class="text-xs text-[var(--theme-text-accent)] font-semibold mt-0.5" id="admin-email-display">Gestão de Estudos</p>
-                    </div>
-                    <button onclick="logoutAdmin()" class="text-red-500 hover:bg-red-50 p-2 rounded-lg text-sm transition-colors" title="Sair">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </button>
-                </div>
-
-                <h4 class="text-sm font-bold text-gray-800 border-b pb-2 mb-4 flex items-center gap-2 mt-4">
-                    <i class="fas fa-pen-nib text-[var(--theme-text-accent)]"></i> Gerenciamento de Postagens
-                </h4>
-                
-                <div class="space-y-4 mb-8">
-                    <!-- Formulário de Criação/Edição -->
-                    <div id="post-form-container" class="bg-blue-50/50 border border-blue-100 rounded-xl p-4 shadow-sm">
-                        <input type="hidden" id="post-id">
-                        <div class="space-y-3 text-sm">
-                            
-                            <div>
-                                <label class="block text-[10px] text-gray-500 font-bold uppercase mb-1">Tipo de Publicação</label>
-                                <select id="post-type" onchange="togglePostFields()" class="w-full border border-gray-200 rounded-lg p-2 text-gray-700 outline-none focus:border-[var(--theme-text-accent)] bg-white cursor-pointer">
-                                    <option value="article">Artigo (Blog)</option>
-                                    <option value="image">Apenas Imagem</option>
-                                    <option value="video">Apenas Vídeo</option>
-                                </select>
-                            </div>
-
-                            <div id="field-title">
-                                <label class="block text-[10px] text-gray-500 font-bold uppercase mb-1">Título</label>
-                                <input type="text" id="post-title" placeholder="Ex: O Poder da Fé" class="w-full border border-gray-200 rounded-lg p-2 text-gray-700 outline-none focus:border-[var(--theme-text-accent)] bg-white">
-                            </div>
-
-                            <div id="field-media">
-                                <label id="label-media" class="block text-[10px] text-gray-500 font-bold uppercase mb-1">URL da Imagem (16:9)</label>
-                                <input type="text" id="post-media" placeholder="https://..." class="w-full border border-gray-200 rounded-lg p-2 text-gray-700 outline-none focus:border-[var(--theme-text-accent)] bg-white">
-                            </div>
-
-                            <div id="field-excerpt">
-                                <label class="block text-[10px] text-gray-500 font-bold uppercase mb-1">Descrição Breve (Aparece no Feed)</label>
-                                <textarea id="post-excerpt" rows="2" placeholder="Resumo de até 3 linhas..." class="w-full border border-gray-200 rounded-lg p-2 text-gray-700 outline-none focus:border-[var(--theme-text-accent)] bg-white"></textarea>
-                            </div>
-
-                            <div id="field-content">
-                                <label class="block text-[10px] text-gray-500 font-bold uppercase mb-1">Conteúdo Completo (Artigo)</label>
-                                <textarea id="post-content" rows="4" placeholder="Escreva a mensagem completa aqui..." class="w-full border border-gray-200 rounded-lg p-2 text-gray-700 outline-none focus:border-[var(--theme-text-accent)] bg-white"></textarea>
-                            </div>
-                            
-                            <div class="flex gap-2 pt-2">
-                                <button onclick="savePost()" class="flex-1 bg-[var(--theme-text-accent)] text-white font-bold py-2.5 rounded-lg text-xs hover:opacity-90 transition-colors cursor-pointer">Publicar</button>
-                                <button onclick="clearPostForm()" class="bg-gray-200 text-gray-700 font-bold py-2.5 px-4 rounded-lg text-xs hover:bg-gray-300 transition-colors cursor-pointer hidden" id="btn-cancel-post">Cancelar</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Lista de Posts Cadastrados -->
-                    <div id="admin-posts-list" class="space-y-2 mt-4">
-                        <!-- Itens renderizados pelo JS -->
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Content Area -->
-    <main id="app-content" class="p-5">
+    <main class="px-6" id="article-container">
+        <!-- Loader -->
         <div id="loader" class="flex justify-center items-center h-64">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
-
-        <!-- View: FEED INICIAL -->
-        <section id="view-home" class="hidden space-y-6">
-            <h2 class="text-xl font-bold text-gray-800">Publicações Recentes</h2>
-            <div id="feed-container" class="space-y-6">
-                <!-- Posts injetados via JS -->
-            </div>
-        </section>
-
+        
+        <!-- O conteúdo será injetado aqui -->
     </main>
-
-    <!-- Navigation Bar -->
-    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-100 px-6 py-3 flex justify-between items-center z-50">
-        <button onclick="window.scrollTo({ top: 0, behavior: 'smooth' })" id="nav-home" class="flex flex-col items-center gap-1 transition-all active-tab nav-btn cursor-pointer p-2 w-full">
-            <i class="fas fa-hands-praying text-xl pointer-events-none"></i>
-            <span class="text-[10px] font-bold uppercase tracking-wider pointer-events-none mt-1">Início</span>
-        </button>
-        <!-- Links para as áreas que ficarão em pastas reais do site -->
-        <a href="estante/index.html" class="flex flex-col items-center gap-1 transition-all text-gray-400 hover:text-gray-600 nav-btn cursor-pointer p-2 w-full">
-            <i class="fas fa-book-bible text-xl pointer-events-none"></i>
-            <span class="text-[10px] font-bold uppercase tracking-wider pointer-events-none mt-1">Estante</span>
-        </a>
-        <a href="cursos/index.html" class="flex flex-col items-center gap-1 transition-all text-gray-400 hover:text-gray-600 nav-btn cursor-pointer p-2 w-full">
-            <i class="fas fa-chalkboard-user text-xl pointer-events-none"></i>
-            <span class="text-[10px] font-bold uppercase tracking-wider pointer-events-none mt-1">Cursos</span>
-        </a>
-    </nav>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, addDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // 1. SAFE STORAGE WRAPPER
-        const safeStorage = {
-            getItem(key) { try { return localStorage.getItem(key); } catch (e) { return null; } },
-            setItem(key, value) { try { localStorage.setItem(key, value); } catch (e) { console.warn("Storage bloqueado"); } }
-        };
-
-        // 2. ESTADOS E DADOS
-        let currentUser = null;
-        let db = null;
-        let auth = null;
-        let appId = "licoes-de-vida-plena"; 
-
-        // ==========================================
-        // SISTEMA DE ACESSOS (ADMIN VS USUÁRIO)
-        // ==========================================
-        const ADMIN_EMAILS = ['gvconeta2025@gmail.com', 'professoragiselle.edu2@gmail.com'];
-        const isAdmin = (email) => email && ADMIN_EMAILS.includes(email.toLowerCase());
-        
-        let userRole = 'guest'; // 'admin', 'user' ou 'guest'
-
-        const themes = {
-            blue: { start: '#1e40af', end: '#3b82f6', accent: '#2563eb' },
-            green: { start: '#14532d', end: '#22c55e', accent: '#16a34a' },
-            red: { start: '#7f1d1d', end: '#ef4444', accent: '#dc2626' },
-            coffee: { start: '#3e2723', end: '#8d6e63', accent: '#6d4c41' },
-            petrol: { start: '#083344', end: '#0891b2', accent: '#0e7490' },
-            light: { start: '#475569', end: '#94a3b8', accent: '#64748b' },
-            pollen: { start: '#78350f', end: '#f59e0b', accent: '#d97706' }
-        };
-
-        let feedData = [];
-
-        // 3. FUNÇÕES GLOBAIS DE INTERFACE
-        window.toggleSettings = () => {
-            const panel = document.getElementById('settings-panel');
-            panel.classList.toggle('hidden');
-            panel.classList.toggle('flex');
-        };
-
-        window.toggleCentralPanel = () => {
-            const panel = document.getElementById('central-panel');
-            panel.classList.toggle('hidden');
-            panel.classList.toggle('flex');
-        };
-
-        window.setTheme = (themeName) => {
-            const theme = themes[themeName];
-            document.documentElement.style.setProperty('--theme-start', theme.start);
-            document.documentElement.style.setProperty('--theme-end', theme.end);
-            document.documentElement.style.setProperty('--theme-text-accent', theme.accent);
+        // Tentar aplicar as preferências de design salvas pelo usuário
+        try {
+            const savedTheme = localStorage.getItem('user_theme_pref');
+            const savedFont = localStorage.getItem('user_font_pref');
             
-            document.querySelectorAll('.btn-accent-text').forEach(el => el.style.color = theme.accent);
-            document.querySelectorAll('.icon-accent').forEach(el => el.style.color = theme.accent);
+            if (savedFont) document.body.style.fontSize = savedFont + 'px';
             
-            safeStorage.setItem('user_theme_pref', themeName);
-        };
-
-        window.setFontSize = (size) => {
-            document.documentElement.style.setProperty('--base-font-size', size + 'px');
-            safeStorage.setItem('user_font_pref', size);
-            
-            document.querySelectorAll('.font-btn').forEach(btn => {
-                btn.classList.remove('bg-white', 'shadow-sm');
-                if(parseInt(btn.getAttribute('data-size')) === size) {
-                    btn.classList.add('bg-white', 'shadow-sm');
-                }
-            });
-        };
-
-        window.togglePostFields = () => {
-            const type = document.getElementById('post-type').value;
-            const isArticle = type === 'article';
-            
-            document.getElementById('field-title').style.display = 'block';
-            document.getElementById('field-excerpt').style.display = isArticle ? 'block' : 'none';
-            document.getElementById('field-content').style.display = isArticle ? 'block' : 'none';
-            
-            const mediaLabel = document.getElementById('label-media');
-            if(type === 'video') mediaLabel.innerText = 'URL do Vídeo (YouTube ou direto)';
-            else if (type === 'image') mediaLabel.innerText = 'URL da Imagem';
-            else mediaLabel.innerText = 'URL da Imagem de Capa (16:9)';
-        };
-
-        // 4. LÓGICA DE GERENCIAMENTO DE POSTS
-        window.savePost = async () => {
-            const id = document.getElementById('post-id').value;
-            const type = document.getElementById('post-type').value;
-            const title = document.getElementById('post-title').value;
-            const excerpt = document.getElementById('post-excerpt').value;
-            const content = document.getElementById('post-content').value;
-            const mediaUrl = document.getElementById('post-media').value;
-
-            if (type === 'article' && (!title || !content)) {
-                alert("O Título e o Conteúdo Completo são obrigatórios para um artigo.");
-                return;
+            const themeColors = {
+                blue: '#2563eb', green: '#16a34a', red: '#dc2626', 
+                coffee: '#6d4c41', petrol: '#0e7490', light: '#64748b', pollen: '#d97706'
+            };
+            if (savedTheme && themeColors[savedTheme]) {
+                document.documentElement.style.setProperty('--theme-text-accent', themeColors[savedTheme]);
             }
-            if ((type === 'image' || type === 'video') && !mediaUrl) {
-                alert("A URL da Mídia é obrigatória para postagens de Imagem ou Vídeo.");
-                return;
-            }
+        } catch(e) {}
 
-            if (!db || !currentUser || userRole !== 'admin') {
-                alert("Acesso Negado: Apenas administradores podem publicar.");
-                return;
-            }
-
-            const postData = { type, title, excerpt, content, mediaUrl, updatedAt: Date.now() };
-
-            try {
-                const postsRef = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
-                if (id) {
-                    await setDoc(doc(postsRef, id), postData, { merge: true });
-                } else {
-                    postData.createdAt = Date.now();
-                    await addDoc(postsRef, postData);
-                }
-                
-                clearPostForm();
-                alert("Publicação salva com sucesso!");
-
-            } catch (err) {
-                console.error("Erro ao guardar post:", err);
-                alert("Houve um erro ao tentar salvar no Firebase. Verifique a conexão.");
-            }
+        // Firebase Configuração Oficial
+        const firebaseConfig = {
+            apiKey: "AIzaSyCW_Hjw1HAXu2pyPIYjtqPCQHsQ-WhZehs",
+            authDomain: "licoes-de-vida-plena.firebaseapp.com",
+            projectId: "licoes-de-vida-plena",
+            storageBucket: "licoes-de-vida-plena.firebasestorage.app",
+            messagingSenderId: "814651383731",
+            appId: "1:814651383731:web:136a823c6d6c61e350f5c6"
         };
 
-        window.editPost = (id) => {
-            const post = feedData.find(p => p.id === id);
-            if(!post) return;
-            
-            document.getElementById('post-id').value = post.id;
-            document.getElementById('post-type').value = post.type || 'article';
-            document.getElementById('post-title').value = post.title || '';
-            document.getElementById('post-excerpt').value = post.excerpt || '';
-            document.getElementById('post-content').value = post.content || '';
-            document.getElementById('post-media').value = post.mediaUrl || '';
-            document.getElementById('btn-cancel-post').classList.remove('hidden');
-            
-            window.togglePostFields();
-            document.getElementById('post-form-container').scrollIntoView({ behavior: 'smooth', block: 'center' });
-        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-        window.deletePost = async (id) => {
-            if(!confirm("Tem a certeza que deseja excluir esta publicação permanentemente?")) return;
+        // Pega o ID da URL (?id=xxxxxx)
+        const urlParams = new URLSearchParams(window.location.search);
+        const postId = urlParams.get('id');
+
+        async function loadArticle() {
+            const container = document.getElementById('article-container');
             
-            if (!db || !currentUser || userRole !== 'admin') {
-                alert("Acesso Negado: Você precisa ser administrador.");
+            if (!postId) {
+                container.innerHTML = `<p class="text-center text-gray-500 mt-10">Artigo não encontrado.</p>`;
                 return;
             }
 
             try {
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'posts', id));
-            } catch(err) {
-                console.error("Erro ao excluir:", err);
-                alert("Houve um erro ao excluir a postagem.");
-            }
-        };
+                const docRef = doc(db, 'artifacts', 'licoes-de-vida-plena', 'public', 'data', 'posts', postId);
+                const docSnap = await getDoc(docRef);
 
-        window.clearPostForm = () => {
-            document.getElementById('post-id').value = '';
-            document.getElementById('post-type').value = 'article';
-            document.getElementById('post-title').value = '';
-            document.getElementById('post-excerpt').value = '';
-            document.getElementById('post-content').value = '';
-            document.getElementById('post-media').value = '';
-            document.getElementById('btn-cancel-post').classList.add('hidden');
-            window.togglePostFields();
-        };
-
-        // Logout
-        window.logoutAdmin = async () => {
-            try {
-                await signOut(auth);
-                alert("Sessão encerrada com sucesso.");
-                window.toggleCentralPanel();
-            } catch (error) {
-                console.error("Erro ao deslogar", error);
-            }
-        };
-
-        // 5. FUNÇÕES DE RENDERIZAÇÃO DA TELA
-        function renderHome() {
-            const container = document.getElementById('feed-container');
-            if(!container) return;
-            
-            if (feedData.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center text-gray-500 py-10 bg-white rounded-3xl border border-gray-100 shadow-sm">
-                        <i class="fas fa-pen-nib text-3xl text-gray-300 mb-3"></i>
-                        <p class="text-sm">Nenhuma publicação efetuada.</p>
-                    </div>`;
-                return;
-            }
-
-            container.innerHTML = feedData.map(post => {
-                const type = post.type || 'article';
-
-                if (type === 'image') {
-                    return `
-                    <div class="bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm">
-                        <img src="${post.mediaUrl}" class="w-full object-cover">
-                        ${post.title ? `<div class="p-4"><p class="font-semibold text-gray-700 text-sm">${post.title}</p></div>` : ''}
-                    </div>`;
-                } 
-                
-                else if (type === 'video') {
-                    let isYoutube = post.mediaUrl.includes('youtube.com') || post.mediaUrl.includes('youtu.be');
-                    let embedUrl = post.mediaUrl;
+                if (docSnap.exists()) {
+                    const post = docSnap.data();
                     
-                    if(isYoutube) {
-                        let videoId = '';
-                        if(post.mediaUrl.includes('v=')) {
-                            videoId = post.mediaUrl.split('v=')[1].split('&')[0];
-                        } else if (post.mediaUrl.includes('youtu.be/')) {
-                            videoId = post.mediaUrl.split('youtu.be/')[1].split('?')[0];
-                        }
-                        embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                    // Atualizar título da aba do navegador para o título do artigo
+                    document.title = post.title + " - O Caminho";
+
+                    // Processamento Dinâmico de Mídia (YouTube e Google Drive)
+                    let mediaHtml = '';
+                    if (post.mediaUrl) {
+                        let url = post.mediaUrl;
+                        let isVideo = false;
+                        let embedUrl = '';
                         
-                        return `
-                        <div class="bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm">
-                            <iframe class="w-full aspect-video" src="${embedUrl}" frameborder="0" allowfullscreen></iframe>
-                            ${post.title ? `<div class="p-4"><p class="font-semibold text-gray-700 text-sm">${post.title}</p></div>` : ''}
-                        </div>`;
-                    } else {
-                        return `
-                        <div class="bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm">
-                            <video controls class="w-full aspect-video bg-black"><source src="${post.mediaUrl}"></video>
-                            ${post.title ? `<div class="p-4"><p class="font-semibold text-gray-700 text-sm">${post.title}</p></div>` : ''}
-                        </div>`;
+                        // Verificar se é link do YouTube
+                        const ytMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+                        if (ytMatch) {
+                            isVideo = true;
+                            const videoId = ytMatch[1];
+                            // Adiciona loop e remove controles (playlist é obrigatório para loop no YouTube)
+                            embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&playsinline=1`;
+                        } else {
+                            // Extração de ID melhorada para links do Google Drive
+                            const gdMatch1 = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+                            const gdMatch2 = url.match(/id=([a-zA-Z0-9_-]+)/);
+                            let gdId = null;
+
+                            if (gdMatch1) {
+                                gdId = gdMatch1[1];
+                            } else if (gdMatch2) {
+                                gdId = gdMatch2[1];
+                            }
+
+                            if (gdId) {
+                                // lh3.googleusercontent.com é a forma mais robusta e atual de contornar bloqueios de hotlink do GDrive
+                                url = `https://lh3.googleusercontent.com/d/${gdId}`;
+                            }
+                        }
+
+                        if (isVideo) {
+                            mediaHtml = `
+                                <div class="relative w-full aspect-video rounded-2xl overflow-hidden mb-8 shadow-sm border border-gray-100 bg-black">
+                                    <iframe src="${embedUrl}" class="w-full h-full pointer-events-none" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                                    <!-- Símbolo de vídeo translúcido no centro -->
+                                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                        <i class="fas fa-play text-white text-5xl opacity-40 drop-shadow-lg"></i>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            // object-cover e aspect-video garantem o corte automático de 9:16 para 16:9, e o object-center foca no meio
+                            mediaHtml = `<img src="${url}" class="w-full aspect-video object-cover object-center rounded-2xl mb-8 shadow-sm border border-gray-100" onerror="this.style.display='none'">`;
+                        }
                     }
-                } 
-                
-                else {
-                    // ARTIGO (Blog)
-                    const textSnippet = post.excerpt || post.content || '';
-                    return `
-                    <div class="bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm transition-transform active:scale-[0.98]">
-                        ${post.mediaUrl ? `<img src="${post.mediaUrl}" class="w-full aspect-video object-cover" onerror="this.style.display='none'">` : ''}
-                        <div class="p-5">
-                            <h3 class="font-bold text-xl text-gray-800 leading-tight">${post.title}</h3>
-                            <p class="text-gray-500 text-sm mt-2 line-clamp-3 whitespace-pre-wrap leading-relaxed">${textSnippet}</p>
-                            
-                            <!-- LINK REAL PARA A PASTA DO BLOG -->
-                            <a href="blog/index.html?id=${post.id}" class="mt-4 text-[var(--theme-text-accent)] font-bold text-sm cursor-pointer hover:underline inline-flex items-center">Ler artigo completo <i class="fas fa-arrow-right ml-1.5"></i></a>
+
+                    container.innerHTML = `
+                        <h1 class="text-3xl font-bold mb-6 text-gray-900 leading-tight">${post.title}</h1>
+                        ${mediaHtml}
+                        <article class="article-body whitespace-pre-wrap">${post.content}</article>
+                        
+                        <div class="mt-12 pt-6 border-t border-gray-100 flex items-center justify-between">
+                            <span class="text-xs text-gray-400 font-semibold uppercase tracking-wider">O Caminho</span>
+                            <button onclick="navigator.clipboard.writeText(window.location.href); alert('Link copiado!');" class="text-[var(--theme-text-accent)] bg-blue-50 px-4 py-2 rounded-full text-xs font-bold transition-colors">
+                                <i class="fas fa-share-alt mr-1"></i> Partilhar
+                            </button>
                         </div>
-                    </div>`;
+                    `;
+                } else {
+                    container.innerHTML = `<p class="text-center text-gray-500 mt-10">Este artigo não existe mais ou foi removido.</p>`;
                 }
-            }).join('');
-        }
-
-        function renderAdminPosts() {
-            const container = document.getElementById('admin-posts-list');
-            if(!container) return;
-            
-            if(feedData.length === 0) {
-                container.innerHTML = `<p class="text-xs text-gray-400 text-center py-4 bg-white rounded-xl border border-gray-100">Sem publicações.</p>`;
-                return;
+            } catch (error) {
+                console.error("Erro ao procurar artigo:", error);
+                container.innerHTML = `<p class="text-center text-red-500 mt-10">Houve um erro ao carregar a leitura. Verifique sua conexão.</p>`;
             }
-
-            container.innerHTML = feedData.map(post => {
-                const typeLabel = post.type === 'image' ? 'Imagem' : post.type === 'video' ? 'Vídeo' : 'Blog';
-                const finalTitle = post.title || "(Sem título)";
-                
-                return `
-                <div class="flex justify-between items-center p-3 bg-white border border-gray-100 rounded-lg shadow-sm">
-                    <div class="flex-1 pr-2 truncate">
-                        <span class="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-bold uppercase mr-1">${typeLabel}</span>
-                        <span class="font-semibold text-sm text-gray-700">${finalTitle}</span>
-                    </div>
-                    <div class="flex gap-2 shrink-0">
-                        <button onclick="editPost('${post.id}')" class="text-blue-500 p-1.5 hover:bg-blue-50 rounded transition-colors" title="Editar"><i class="fas fa-edit"></i></button>
-                        <button onclick="deletePost('${post.id}')" class="text-red-500 p-1.5 hover:bg-red-50 rounded transition-colors" title="Eliminar"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>`;
-            }).join('');
         }
 
-        // 6. INICIALIZAÇÃO DA UI
-        try {
-            const savedTheme = safeStorage.getItem('user_theme_pref') || 'blue';
-            const savedFont = parseInt(safeStorage.getItem('user_font_pref')) || 16;
-            window.setTheme(savedTheme);
-            window.setFontSize(savedFont);
-            window.togglePostFields(); 
-            
-            const loader = document.getElementById('loader');
-            if(loader) loader.classList.add('hidden');
-            
-            document.getElementById('view-home').classList.remove('hidden');
-        } catch (err) {
-            console.error("Erro Crítico na UI:", err);
-        }
-
-        // 7. INICIALIZAÇÃO DO FIREBASE (AUTENTICAÇÃO SEGURA)
-        try {
-            const firebaseConfig = {
-                apiKey: "AIzaSyCW_Hjw1HAXu2pyPIYjtqPCQHsQ-WhZehs",
-                authDomain: "licoes-de-vida-plena.firebaseapp.com",
-                projectId: "licoes-de-vida-plena",
-                storageBucket: "licoes-de-vida-plena.firebasestorage.app",
-                messagingSenderId: "814651383731",
-                appId: "1:814651383731:web:136a823c6d6c61e350f5c6"
-            };
-
-            const app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
-
-            // Lógica de Acesso
-            window.handleAdminAccess = async () => {
-                if (currentUser && userRole === 'admin') {
-                    window.toggleCentralPanel();
-                } else {
-                    try {
-                        const provider = new GoogleAuthProvider();
-                        provider.setCustomParameters({ prompt: 'select_account' }); 
-                        const result = await signInWithPopup(auth, provider);
-                        
-                        if (!isAdmin(result.user.email)) {
-                            alert("Acesso Negado: Este e-mail não tem permissão de administrador.");
-                        }
-                    } catch (error) {
-                        console.error("Erro no login:", error);
-                        if(error.code !== 'auth/popup-closed-by-user') {
-                            alert(`Falha na autenticação.\nDetalhe: ${error.message}`);
-                        }
-                    }
-                }
-            };
-
-            // Observer de Auth: Trata login/logout de forma persistente
-            onAuthStateChanged(auth, (user) => {
-                
-                if (user) {
-                    currentUser = user;
-                    // Define a Role 
-                    if (isAdmin(user.email)) {
-                        userRole = 'admin';
-                        document.getElementById('admin-email-display').innerText = user.email;
-                    } else if (!user.isAnonymous) {
-                        userRole = 'user';
-                    } else {
-                        userRole = 'guest';
-                    }
-                } else {
-                    // SE não houver utilizador NENHUM logado, entra como anônimo automaticamente
-                    currentUser = null;
-                    userRole = 'guest';
-                    signInAnonymously(auth).catch(e => console.error("Falha login anônimo", e));
-                }
-
-                // Sincronização do Feed
-                if (db) {
-                    const postsRef = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
-                    onSnapshot(postsRef, (snapshot) => {
-                        feedData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        feedData.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-                        
-                        renderHome();
-                        renderAdminPosts();
-                    }, (error) => {
-                        console.error("Erro ao sincronizar posts:", error);
-                        if (error.code === 'permission-denied') {
-                            console.warn("Acesso negado ao ler o banco. Verifique se o Firebase permite leitura a utilizadores anónimos.");
-                        }
-                    });
-                }
-            });
-            
-        } catch (e) {
-            console.error("Erro ao carregar o Firebase.", e);
-        }
+        loadArticle();
     </script>
 </body>
 </html>
