@@ -15,6 +15,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js" type="module"></script>
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
 
     <style>
@@ -50,6 +51,25 @@
             line-height: 1.8;
             color: #374151;
         }
+        
+        /* Estilo para a notificação de cópia (Toast) */
+        .toast-msg {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(31, 41, 55, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 9999px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
     </style>
 </head>
 <body class="max-w-md mx-auto shadow-2xl relative pb-10">
@@ -61,19 +81,15 @@
     
     <!-- PONTOS DE LUZ DO ESQUELETO (Adaptado para o Blog) -->
     <div class="fixed top-0 bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md pointer-events-none z-0">
-        <!-- Superior Esquerdo/Direito -->
         <div class="absolute top-[30px] left-[18px] w-1.5 h-1.5 bg-white rounded-full opacity-90" style="box-shadow: 0 0 10px 4px var(--theme-start);"></div>
         <div class="absolute top-[30px] right-[18px] w-1.5 h-1.5 bg-white rounded-full opacity-90" style="box-shadow: 0 0 10px 4px var(--theme-start);"></div>
-        <!-- Centro Base Cabeçalho -->
         <div class="absolute top-[105px] left-1/2 w-2 h-2 bg-white rounded-full opacity-90 -translate-x-1/2" style="box-shadow: 0 0 12px 5px var(--theme-start);"></div>
-        <!-- Laterais Centro -->
         <div class="absolute top-1/2 left-[12px] w-1.5 h-1.5 bg-white rounded-full opacity-70 -translate-y-1/2" style="box-shadow: 0 0 10px 3px var(--theme-start);"></div>
         <div class="absolute top-1/2 right-[12px] w-1.5 h-1.5 bg-white rounded-full opacity-70 -translate-y-1/2" style="box-shadow: 0 0 10px 3px var(--theme-start);"></div>
-        <!-- Centro Fundo (Na base, já que não tem menu de navegação) -->
         <div class="absolute bottom-[12px] left-1/2 w-2 h-2 bg-white rounded-full opacity-90 -translate-x-1/2" style="box-shadow: 0 0 12px 5px var(--theme-start);"></div>
     </div>
 
-    <!-- Cabeçalho "ARTIGOS" acompanhando o Design da Página Inicial -->
+    <!-- Cabeçalho "ARTIGOS" -->
     <header class="gradient-bg text-white p-6 rounded-b-[2.5rem] shadow-lg relative z-10 mb-8">
         <div class="flex justify-between items-center mb-4">
             <div>
@@ -81,8 +97,8 @@
                 <p class="text-white/80 text-sm mt-1">O Caminho - Estudo da Palavra</p>
             </div>
             <div class="flex gap-4 items-center">
-                <!-- Botão voltar com caminho absoluto para a página inicial -->
-                <a href="/index.html" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors shrink-0 cursor-pointer text-white" title="Voltar ao Feed">
+                <!-- Rota Limpa para a Página Inicial -->
+                <a href="/" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors shrink-0 cursor-pointer text-white" title="Voltar ao Feed">
                     <i class="fas fa-arrow-left text-lg pointer-events-none"></i>
                 </a>
             </div>
@@ -96,11 +112,14 @@
         </div>
     </main>
 
+    <!-- Contentor para o Toast de Cópia de Link -->
+    <div id="copy-toast" class="toast-msg">Link copiado com sucesso!</div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Registo de Service Worker com caminho absoluto
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW falhou', err));
@@ -142,9 +161,31 @@
         };
 
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Função para ativar os vídeos interativos
+        window.copyArticleLink = () => {
+            const url = window.location.href;
+            try {
+                const textArea = document.createElement("textarea");
+                textArea.value = url;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-999999px";
+                textArea.style.top = "-999999px";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                document.execCommand("copy");
+                textArea.remove();
+                
+                const toast = document.getElementById('copy-toast');
+                toast.style.opacity = '1';
+                setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+            } catch (err) {
+                console.error("Falha ao copiar:", err);
+            }
+        };
+
         window.activateVideo = (overlayElement, videoId, isYoutube, elementId) => {
             if(window.event) {
                 window.event.preventDefault();
@@ -166,11 +207,30 @@
         const urlParams = new URLSearchParams(window.location.search);
         const postId = urlParams.get('id');
 
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Erro na autenticação:", error);
+            }
+        };
+
         async function loadArticle() {
             const container = document.getElementById('article-container');
             
             if (!postId) {
                 container.innerHTML = `<p class="text-center text-gray-500 mt-10">Artigo não encontrado. ID não fornecido.</p>`;
+                return;
+            }
+
+            await initAuth();
+
+            if (!auth.currentUser) {
+                container.innerHTML = `<p class="text-center text-red-500 mt-10">Erro de permissão: Falha ao conectar-se ao servidor.</p>`;
                 return;
             }
 
@@ -244,7 +304,7 @@
                         
                         <div class="pt-6 border-t border-gray-300/50 flex items-center justify-between px-2">
                             <span class="text-xs text-gray-500 font-bold uppercase tracking-wider">O Caminho</span>
-                            <button onclick="navigator.clipboard.writeText(window.location.href); alert('Link copiado!');" class="text-[var(--theme-text-accent)] bg-white/60 backdrop-blur-sm shadow-sm border border-white px-4 py-2 rounded-full text-xs font-bold transition-colors hover:bg-white">
+                            <button onclick="copyArticleLink()" class="text-[var(--theme-text-accent)] bg-white/60 backdrop-blur-sm shadow-sm border border-white px-4 py-2 rounded-full text-xs font-bold transition-colors hover:bg-white cursor-pointer">
                                 <i class="fas fa-share-alt mr-1"></i> Partilhar
                             </button>
                         </div>
