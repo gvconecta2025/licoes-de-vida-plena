@@ -18,11 +18,13 @@
             --theme-start: #1e40af;
             --theme-end: #3b82f6;
             --theme-text-accent: #2563eb;
+            --base-font-size: 16px;
         }
 
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc;
+            font-size: var(--base-font-size);
         }
 
         .active-tab {
@@ -36,8 +38,8 @@
         }
 
         .theme-dot {
-            width: 24px;
-            height: 24px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             border: 2px solid white;
             cursor: pointer;
@@ -56,67 +58,102 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+
+        .settings-panel {
+            transition: transform 0.3s ease-in-out;
+        }
+
+        @keyframes slide-up {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .animate-slide-up {
+            animation: slide-up 0.3s ease-out;
+        }
     </style>
 </head>
 <body class="max-w-md mx-auto min-h-screen shadow-2xl bg-white relative pb-20">
 
-    <!-- Header / Perfil -->
+    <!-- Header -->
     <header class="gradient-bg text-white p-6 rounded-b-[2.5rem] shadow-lg">
-        <div class="flex justify-between items-center mb-6">
+        <div class="flex justify-between items-start mb-4">
             <div>
                 <h1 class="text-2xl font-bold">Caminho da Fé</h1>
                 <p class="text-white/80 text-sm">Seu espaço de estudo e reflexão.</p>
             </div>
-            <div class="w-12 h-12 rounded-full border-2 border-white overflow-hidden bg-white/20 flex items-center justify-center">
-                <i class="fas fa-dove text-xl"></i>
+            <div class="flex gap-3">
+                <!-- Botão de Configurações (Engrenagem) -->
+                <button onclick="toggleSettings()" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
+                    <i class="fas fa-cog text-lg"></i>
+                </button>
+                <!-- Foto do Professor (Substituindo a pomba) -->
+                <div class="w-10 h-10 rounded-full border-2 border-white overflow-hidden bg-white flex items-center justify-center shadow-sm">
+                    <img src="professor.png" alt="Professor" class="w-full h-full object-cover" onerror="this.innerHTML='<i class=\'fas fa-user text-gray-400\'></i>'; this.type='icon';">
+                </div>
             </div>
-        </div>
-        
-        <!-- Seletor de Temas (Substituindo Pesquisa) -->
-        <div class="flex items-center gap-3 overflow-x-auto no-scrollbar py-2">
-            <span class="text-[10px] font-bold uppercase tracking-widest opacity-70 whitespace-nowrap">Temas:</span>
-            <div onclick="setTheme('blue')" class="theme-dot bg-blue-600" title="Azul"></div>
-            <div onclick="setTheme('green')" class="theme-dot bg-green-600" title="Verde"></div>
-            <div onclick="setTheme('red')" class="theme-dot bg-red-600" title="Vermelho"></div>
-            <div onclick="setTheme('coffee')" class="theme-dot bg-[795548]" style="background-color: #5d4037;" title="Café"></div>
-            <div onclick="setTheme('petrol')" class="theme-dot bg-cyan-800" title="Azul Petróleo"></div>
-            <div onclick="setTheme('light')" class="theme-dot bg-slate-400" title="Claro"></div>
-            <div onclick="setTheme('pollen')" class="theme-dot bg-amber-500" title="Polen"></div>
         </div>
     </header>
 
+    <!-- Painel de Configurações (Overlay) -->
+    <div id="settings-panel" class="fixed inset-0 bg-black/40 z-[100] hidden items-end justify-center">
+        <div class="bg-white w-full max-w-md rounded-t-[2.5rem] p-8 shadow-2xl animate-slide-up">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800">Configurações</h3>
+                <button onclick="toggleSettings()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Seleção de Cores -->
+            <div class="mb-8">
+                <p class="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wider">Cor do Tema</p>
+                <div class="flex flex-wrap gap-4">
+                    <div onclick="setTheme('blue')" class="theme-dot bg-blue-600"></div>
+                    <div onclick="setTheme('green')" class="theme-dot bg-green-600"></div>
+                    <div onclick="setTheme('red')" class="theme-dot bg-red-600"></div>
+                    <div onclick="setTheme('coffee')" class="theme-dot" style="background-color: #5d4037;"></div>
+                    <div onclick="setTheme('petrol')" class="theme-dot bg-cyan-800"></div>
+                    <div onclick="setTheme('light')" class="theme-dot bg-slate-400"></div>
+                    <div onclick="setTheme('pollen')" class="theme-dot bg-amber-500"></div>
+                </div>
+            </div>
+
+            <!-- Seleção de Fonte -->
+            <div class="mb-6">
+                <p class="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wider">Tamanho da Fonte</p>
+                <div class="flex items-center justify-between bg-gray-50 p-2 rounded-2xl">
+                    <button onclick="setFontSize(14)" class="flex-1 py-3 text-sm font-medium rounded-xl hover:bg-white transition-all font-btn" data-size="14">Pequeno</button>
+                    <button onclick="setFontSize(16)" class="flex-1 py-3 text-base font-medium rounded-xl hover:bg-white transition-all font-btn bg-white shadow-sm" data-size="16">Médio</button>
+                    <button onclick="setFontSize(20)" class="flex-1 py-3 text-lg font-medium rounded-xl hover:bg-white transition-all font-btn" data-size="20">Grande</button>
+                </div>
+            </div>
+            
+            <button onclick="toggleSettings()" class="w-full gradient-bg text-white font-bold py-4 rounded-2xl shadow-lg mt-4">Pronto</button>
+        </div>
+    </div>
+
     <!-- Main Content Area -->
     <main id="app-content" class="p-5">
-        <!-- Loader inicial -->
         <div id="loader" class="flex justify-center items-center h-64">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
 
-        <!-- View: Feed (Home) -->
         <section id="view-home" class="hidden space-y-6">
             <h2 class="text-xl font-bold text-gray-800">Reflexões Diárias</h2>
-            <div id="feed-container" class="space-y-4">
-                <!-- Posts injetados via JS -->
-            </div>
+            <div id="feed-container" class="space-y-4"></div>
         </section>
 
-        <!-- View: Livros (Estante) -->
         <section id="view-books" class="hidden space-y-6">
             <div class="flex justify-between items-center">
                 <h2 class="text-xl font-bold text-gray-800">E-books de Fé</h2>
                 <button onclick="checkAccess()" class="text-xs font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-full btn-accent-text">Validar Acesso</button>
             </div>
-            <div id="books-container" class="grid grid-cols-2 gap-4">
-                <!-- Livros injetados via JS -->
-            </div>
+            <div id="books-container" class="grid grid-cols-2 gap-4"></div>
         </section>
 
-        <!-- View: Cursos -->
         <section id="view-courses" class="hidden space-y-6">
             <h2 class="text-xl font-bold text-gray-800">Formação Teológica</h2>
-            <div id="courses-container" class="space-y-4">
-                <!-- Cursos injetados via JS -->
-            </div>
+            <div id="courses-container" class="space-y-4"></div>
         </section>
     </main>
 
@@ -136,7 +173,7 @@
         </button>
     </nav>
 
-    <!-- Modal de Validação de Email -->
+    <!-- Modal de Validação -->
     <div id="email-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-6 z-[60]">
         <div class="bg-white rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl">
             <i class="fas fa-envelope-open-text text-blue-600 text-4xl mb-4 icon-accent"></i>
@@ -153,7 +190,6 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, getDocs, doc, setDoc, query, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Configuração Firebase
         const firebaseConfig = JSON.parse(__firebase_config);
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -163,7 +199,6 @@
         let currentUser = null;
         let userEmailAccess = localStorage.getItem('educator_email_access') || null;
 
-        // Paleta de Cores dos Temas
         const themes = {
             blue: { start: '#1e40af', end: '#3b82f6', accent: '#2563eb' },
             green: { start: '#14532d', end: '#22c55e', accent: '#16a34a' },
@@ -174,20 +209,42 @@
             pollen: { start: '#78350f', end: '#f59e0b', accent: '#d97706' }
         };
 
+        window.toggleSettings = () => {
+            const panel = document.getElementById('settings-panel');
+            if (panel.classList.contains('hidden')) {
+                panel.classList.remove('hidden');
+                panel.classList.add('flex');
+            } else {
+                panel.classList.add('hidden');
+                panel.classList.remove('flex');
+            }
+        };
+
         window.setTheme = (themeName) => {
             const theme = themes[themeName];
             document.documentElement.style.setProperty('--theme-start', theme.start);
             document.documentElement.style.setProperty('--theme-end', theme.end);
             document.documentElement.style.setProperty('--theme-text-accent', theme.accent);
             
-            // Atualizar cor de botões de acento via JS
             document.querySelectorAll('.btn-accent-text').forEach(el => el.style.color = theme.accent);
             document.querySelectorAll('.icon-accent').forEach(el => el.style.color = theme.accent);
             
             localStorage.setItem('user_theme_pref', themeName);
         };
 
-        // Dados Temáticos: Fé
+        window.setFontSize = (size) => {
+            document.documentElement.style.setProperty('--base-font-size', size + 'px');
+            localStorage.setItem('user_font_pref', size);
+            
+            document.querySelectorAll('.font-btn').forEach(btn => {
+                btn.classList.remove('bg-white', 'shadow-sm');
+                if(parseInt(btn.getAttribute('data-size')) === size) {
+                    btn.classList.add('bg-white', 'shadow-sm');
+                }
+            });
+        };
+
+        // Dados estáticos de exemplo
         const mockFeed = [
             { id: 1, title: "A Força da Oração", content: "Estudo sobre como a oração constante transforma o ambiente ao nosso redor...", img: "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=400&q=80" },
             { id: 2, title: "Parábolas Comentadas", content: "Uma análise profunda sobre a parábola do semeador e seus frutos hoje.", img: "https://images.unsplash.com/photo-1490730141103-6ca3d7d6cf70?auto=format&fit=crop&w=400&q=80" }
@@ -215,7 +272,10 @@
             currentUser = user;
             if (user) {
                 const savedTheme = localStorage.getItem('user_theme_pref') || 'blue';
+                const savedFont = parseInt(localStorage.getItem('user_font_pref')) || 16;
                 setTheme(savedTheme);
+                setFontSize(savedFont);
+                
                 renderHome();
                 document.getElementById('loader').classList.add('hidden');
                 switchTab('home');
