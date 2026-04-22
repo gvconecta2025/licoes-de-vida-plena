@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Espaço de Fé - Educador</title>
+    <title>O Caminho</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Firebase SDKs -->
@@ -77,19 +77,17 @@
     <!-- Header -->
     <header class="gradient-bg text-white p-6 rounded-b-[2.5rem] shadow-lg">
         <div class="flex justify-between items-start mb-4">
-            <div>
-                <h1 class="text-2xl font-bold">Caminho da Fé</h1>
-                <p class="text-white/80 text-sm">Seu espaço de estudo e reflexão.</p>
+            <div class="mt-2">
+                <h1 class="text-2xl font-bold">O Caminho</h1>
+                <p class="text-white/80 text-sm mt-1">Seu espaço de estudo e reflexão.</p>
             </div>
-            <div class="flex gap-3">
+            <div class="flex gap-4 items-start">
                 <!-- Botão de Configurações (Engrenagem) -->
-                <button onclick="toggleSettings()" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
+                <button onclick="toggleSettings()" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors shrink-0 mt-1">
                     <i class="fas fa-cog text-lg"></i>
                 </button>
-                <!-- Foto do Professor (Substituindo a pomba) -->
-                <div class="w-10 h-10 rounded-full border-2 border-white overflow-hidden bg-white flex items-center justify-center shadow-sm">
-                    <img src="professor.png" alt="Professor" class="w-full h-full object-cover" onerror="this.innerHTML='<i class=\'fas fa-user text-gray-400\'></i>'; this.type='icon';">
-                </div>
+                <!-- Foto do Professor (Maior e sem formato de círculo) -->
+                <img src="professor.png" alt="Professor" class="w-20 h-24 object-contain drop-shadow-xl rounded-xl bg-white/5" onerror="this.src='https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80'">
             </div>
         </div>
     </header>
@@ -143,17 +141,19 @@
             <div id="feed-container" class="space-y-4"></div>
         </section>
 
+        <!-- View: Livros -->
         <section id="view-books" class="hidden space-y-6">
             <div class="flex justify-between items-center">
                 <h2 class="text-xl font-bold text-gray-800">E-books de Fé</h2>
-                <button onclick="checkAccess()" class="text-xs font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-full btn-accent-text">Validar Acesso</button>
+                <button onclick="checkAccess()" class="text-xs font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-full btn-accent-text hover:bg-blue-100 transition-colors">Validar Acesso</button>
             </div>
             <div id="books-container" class="grid grid-cols-2 gap-4"></div>
         </section>
 
+        <!-- View: Cursos (Agora em estilo Grid Netflix) -->
         <section id="view-courses" class="hidden space-y-6">
             <h2 class="text-xl font-bold text-gray-800">Formação Teológica</h2>
-            <div id="courses-container" class="space-y-4"></div>
+            <div id="courses-container" class="grid grid-cols-2 gap-4"></div>
         </section>
     </main>
 
@@ -250,14 +250,16 @@
             { id: 2, title: "Parábolas Comentadas", content: "Uma análise profunda sobre a parábola do semeador e seus frutos hoje.", img: "https://images.unsplash.com/photo-1490730141103-6ca3d7d6cf70?auto=format&fit=crop&w=400&q=80" }
         ];
 
+        // Links de livros redirecionam para vendas se bloqueados, ou download direto se liberados
         const mockBooks = [
-            { id: 1, title: "Fundamentos da Fé", author: "Educador de Fé", cover: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=400&q=80", link: "#" },
-            { id: 2, title: "História do Cristianismo", author: "M. Oliveira", cover: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=400&q=80", link: "#" }
+            { id: 1, title: "Fundamentos da Fé", author: "Educador de Fé", cover: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=400&q=80", link: "https://seulinkdevendas.com/livro1" },
+            { id: 2, title: "História do Cristianismo", author: "M. Oliveira", cover: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=400&q=80", link: "https://seulinkdevendas.com/livro2" }
         ];
 
+        // Cursos com estilo de capa adicionado
         const mockCourses = [
-            { id: 1, title: "Teologia para Todos", price: "R$ 147,00", link: "https://hotmart.com" },
-            { id: 2, title: "Hermenêutica Avançada", price: "R$ 297,00", link: "https://hotmart.com" }
+            { id: 1, title: "Teologia para Todos", price: "R$ 147,00", cover: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=400&q=80", link: "https://hotmart.com" },
+            { id: 2, title: "Hermenêutica Avançada", price: "R$ 297,00", cover: "https://images.unsplash.com/photo-1532012197367-280696590650?auto=format&fit=crop&w=400&q=80", link: "https://hotmart.com" }
         ];
 
         const initAuth = async () => {
@@ -311,39 +313,41 @@
             `).join('');
         }
 
+        // Estilo Netflix + Redirecionamento para Vendas
         function renderBooks() {
             const container = document.getElementById('books-container');
             container.innerHTML = mockBooks.map(book => `
                 <div class="relative group">
-                    <div class="aspect-[3/4] bg-gray-100 rounded-2xl overflow-hidden shadow-md">
-                        <img src="${book.cover}" class="w-full h-full object-cover">
-                        ${!userEmailAccess ? '<div class="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center"><i class="fas fa-lock text-white text-2xl"></i></div>' : ''}
-                    </div>
-                    <div class="mt-2">
+                    <a href="${book.link}" target="_blank" class="block aspect-[3/4] bg-gray-100 rounded-2xl overflow-hidden shadow-md relative">
+                        <img src="${book.cover}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
+                        ${!userEmailAccess ? '<div class="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center"><i class="fas fa-lock text-white text-2xl drop-shadow-md"></i></div>' : ''}
+                    </a>
+                    <div class="mt-2 flex flex-col h-full">
                         <p class="font-bold text-sm text-gray-800 line-clamp-1">${book.title}</p>
-                        <p class="text-[10px] text-gray-400">${book.author}</p>
-                        ${userEmailAccess ? `<a href="${book.link}" class="block mt-1 text-center bg-blue-50 text-[var(--theme-text-accent)] text-[10px] py-1 rounded-md font-bold">BAIXAR PDF</a>` : ''}
+                        <p class="text-[10px] text-gray-400 mb-1">${book.author}</p>
+                        ${userEmailAccess 
+                            ? `<a href="${book.link}" target="_blank" class="mt-auto block text-center bg-green-50 text-green-600 text-[10px] py-1.5 rounded-md font-bold uppercase transition-colors hover:bg-green-100">Baixar PDF</a>` 
+                            : `<a href="${book.link}" target="_blank" class="mt-auto block text-center bg-blue-50 text-[var(--theme-text-accent)] text-[10px] py-1.5 rounded-md font-bold uppercase transition-colors hover:bg-blue-100 btn-accent-text">Página de Vendas</a>`}
                     </div>
                 </div>
             `).join('');
         }
 
+        // Estilo Netflix idêntico aos Livros
         function renderCourses() {
             const container = document.getElementById('courses-container');
             container.innerHTML = mockCourses.map(course => `
-                <div class="bg-slate-50 p-4 rounded-3xl flex items-center justify-between border border-slate-100">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 gradient-bg rounded-2xl flex items-center justify-center text-white">
-                            <i class="fas fa-play text-sm"></i>
+                <div class="relative group">
+                    <a href="${course.link}" target="_blank" class="block aspect-[3/4] bg-gray-100 rounded-2xl overflow-hidden shadow-md relative">
+                        <img src="${course.cover}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
+                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 pt-6">
+                            <p class="text-white font-bold text-xs"><i class="fas fa-tag mr-1"></i> ${course.price}</p>
                         </div>
-                        <div>
-                            <p class="font-bold text-gray-800 text-sm">${course.title}</p>
-                            <p class="text-[var(--theme-text-accent)] text-xs font-semibold">${course.price}</p>
-                        </div>
-                    </div>
-                    <a href="${course.link}" target="_blank" class="bg-white p-3 rounded-full shadow-sm text-[var(--theme-text-accent)]">
-                        <i class="fas fa-external-link-alt"></i>
                     </a>
+                    <div class="mt-2 flex flex-col h-full">
+                        <p class="font-bold text-sm text-gray-800 line-clamp-1">${course.title}</p>
+                        <a href="${course.link}" target="_blank" class="mt-1 block text-center bg-blue-50 text-[var(--theme-text-accent)] text-[10px] py-1.5 rounded-md font-bold uppercase transition-colors hover:bg-blue-100 btn-accent-text">Página de Vendas</a>
+                    </div>
                 </div>
             `).join('');
         }
