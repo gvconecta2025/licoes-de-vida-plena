@@ -518,9 +518,6 @@
                         }
                     } else {
                         mediaHtml = `<img src="${url}" class="w-full aspect-video object-cover object-center shrink-0 bg-gray-100 ${type === 'image' && !post.title ? 'rounded-3xl' : 'rounded-t-3xl'}" onerror="this.style.display='none'">`;
-                        if (type === 'article') {
-                            mediaHtml = `<a href="blog/index.html?id=${post.id}" class="block cursor-pointer transition-opacity hover:opacity-90" title="Ler artigo completo">${mediaHtml}</a>`;
-                        }
                     }
                 }
 
@@ -535,13 +532,14 @@
                     const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|v\/)|youtu\.be\/)([\w-]{11})/g;
                     textSnippet = textSnippet.replace(ytRegex, '[Vídeo Anexado]');
 
+                    // ADICIONADO ONCLICK AQUI: Transforma o card todo em um botão
                     return `
-                    <div class="bg-white rounded-3xl overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] transition-transform active:scale-[0.98] flex flex-col relative z-10">
+                    <div onclick="window.location.href='blog/index.html?id=${post.id}'" class="bg-white rounded-3xl overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] transition-transform active:scale-[0.98] flex flex-col relative z-10 cursor-pointer hover:bg-gray-50">
                         ${mediaHtml}
                         <div class="p-5 flex-1">
                             <h3 class="font-bold text-xl text-gray-900 leading-tight mb-2">${post.title}</h3>
                             <p class="text-gray-600 text-sm line-clamp-3 whitespace-pre-wrap leading-relaxed">${textSnippet}</p>
-                            <a href="blog/index.html?id=${post.id}" class="mt-4 text-[var(--theme-text-accent)] font-bold text-sm cursor-pointer hover:underline inline-flex items-center">Ler artigo completo <i class="fas fa-arrow-right ml-1.5"></i></a>
+                            <span class="mt-4 text-[var(--theme-text-accent)] font-bold text-sm inline-flex items-center">Ler artigo completo <i class="fas fa-arrow-right ml-1.5"></i></span>
                         </div>
                     </div>`;
                 }
