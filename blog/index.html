@@ -119,13 +119,20 @@
                             // Adiciona loop e remove controles (playlist é obrigatório para loop no YouTube)
                             embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&playsinline=1`;
                         } else {
-                            // Verificar se é link do Google Drive
-                            const gdMatch1 = url.match(/drive\.google\.com\/file\/d\/([^\/\?]+)/);
-                            const gdMatch2 = url.match(/drive\.google\.com\/open\?id=([^\/\?&]+)/);
+                            // Extração de ID melhorada para links do Google Drive
+                            const gdMatch1 = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+                            const gdMatch2 = url.match(/id=([a-zA-Z0-9_-]+)/);
+                            let gdId = null;
+
                             if (gdMatch1) {
-                                url = `https://drive.google.com/uc?id=${gdMatch1[1]}`;
+                                gdId = gdMatch1[1];
                             } else if (gdMatch2) {
-                                url = `https://drive.google.com/uc?id=${gdMatch2[1]}`;
+                                gdId = gdMatch2[1];
+                            }
+
+                            if (gdId) {
+                                // lh3.googleusercontent.com é a forma mais robusta e atual de contornar bloqueios de hotlink do GDrive
+                                url = `https://lh3.googleusercontent.com/d/${gdId}`;
                             }
                         }
 
@@ -140,7 +147,8 @@
                                 </div>
                             `;
                         } else {
-                            mediaHtml = `<img src="${url}" class="w-full aspect-video object-cover rounded-2xl mb-8 shadow-sm border border-gray-100" onerror="this.style.display='none'">`;
+                            // object-cover e aspect-video garantem o corte automático de 9:16 para 16:9, e o object-center foca no meio
+                            mediaHtml = `<img src="${url}" class="w-full aspect-video object-cover object-center rounded-2xl mb-8 shadow-sm border border-gray-100" onerror="this.style.display='none'">`;
                         }
                     }
 
