@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>O Caminho - Artigo</title>
     
-    <!-- Tags PWA para instalação no telemóvel (Caminhos absolutos) -->
-    <link rel="manifest" href="/manifest.json">
+    <!-- Tags PWA para instalação no telemóvel (Caminhos relativos restaurados) -->
+    <link rel="manifest" href="../manifest.json">
     <meta name="theme-color" content="#1e40af">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -97,8 +97,8 @@
                 <p class="text-white/80 text-sm mt-1">O Caminho - Estudo da Palavra</p>
             </div>
             <div class="flex gap-4 items-center">
-                <!-- Rota explícita para a Página Inicial (Caminho absoluto Vercel) -->
-                <a href="/" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors shrink-0 cursor-pointer text-white" title="Voltar ao Feed">
+                <!-- Rota relativa correta para a Página Inicial -->
+                <a href="../index.html" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors shrink-0 cursor-pointer text-white" title="Voltar ao Feed">
                     <i class="fas fa-arrow-left text-lg pointer-events-none"></i>
                 </a>
             </div>
@@ -120,9 +120,10 @@
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // Registo de Service Worker com caminho relativo
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW falhou', err));
+                navigator.serviceWorker.register('../sw.js').catch(err => console.log('SW falhou', err));
             });
         }
 
@@ -308,8 +309,8 @@
                         <div class="pt-6 border-t border-gray-300/50 flex flex-wrap items-center justify-between gap-4 px-2">
                             <span class="text-xs text-gray-500 font-bold uppercase tracking-wider hidden sm:block">O Caminho</span>
                             <div class="flex gap-2 w-full sm:w-auto justify-between sm:justify-end">
-                                <!-- BOTÃO VOLTAR -->
-                                <a href="/" class="flex-1 sm:flex-none text-center text-gray-600 bg-white/60 backdrop-blur-sm shadow-sm border border-white px-4 py-2 rounded-full text-xs font-bold transition-colors hover:bg-white cursor-pointer">
+                                <!-- BOTÃO VOLTAR (Caminho relativo) -->
+                                <a href="../index.html" class="flex-1 sm:flex-none text-center text-gray-600 bg-white/60 backdrop-blur-sm shadow-sm border border-white px-4 py-2 rounded-full text-xs font-bold transition-colors hover:bg-white cursor-pointer">
                                     <i class="fas fa-arrow-left mr-1"></i> Voltar
                                 </a>
                                 <!-- BOTÃO PARTILHAR -->
