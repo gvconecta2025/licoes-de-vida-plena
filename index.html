@@ -252,12 +252,12 @@
             <i class="fas fa-hands-praying text-xl pointer-events-none"></i>
             <span class="text-[10px] font-bold uppercase tracking-wider pointer-events-none mt-1">Início</span>
         </button>
-        <!-- Links seguros com Caminho Absoluto -->
-        <a href="/estante/index.html" class="flex flex-col items-center gap-1 transition-all text-gray-400 hover:text-gray-600 nav-btn cursor-pointer p-2 w-full">
+        <!-- Links corrigidos para Rotas Limpas seguras no Vercel -->
+        <a href="/estante/" class="flex flex-col items-center gap-1 transition-all text-gray-400 hover:text-gray-600 nav-btn cursor-pointer p-2 w-full">
             <i class="fas fa-book-bible text-xl pointer-events-none"></i>
             <span class="text-[10px] font-bold uppercase tracking-wider pointer-events-none mt-1">Estante</span>
         </a>
-        <a href="/cursos/index.html" class="flex flex-col items-center gap-1 transition-all text-gray-400 hover:text-gray-600 nav-btn cursor-pointer p-2 w-full">
+        <a href="/cursos/" class="flex flex-col items-center gap-1 transition-all text-gray-400 hover:text-gray-600 nav-btn cursor-pointer p-2 w-full">
             <i class="fas fa-chalkboard-user text-xl pointer-events-none"></i>
             <span class="text-[10px] font-bold uppercase tracking-wider pointer-events-none mt-1">Cursos</span>
         </a>
@@ -301,10 +301,11 @@
 
         let feedData = [];
 
-        window.activateVideo = (overlayElement, videoId, isYoutube, elementId) => {
-            if(window.event) {
-                window.event.preventDefault();
-                window.event.stopPropagation();
+        // BUG MOBILE CORRIGIDO: Agora recebe o evento "e" explicito do clique.
+        window.activateVideo = (e, overlayElement, videoId, isYoutube, elementId) => {
+            if(e) {
+                e.preventDefault();
+                e.stopPropagation();
             }
             overlayElement.style.display = 'none';
             const mediaEl = document.getElementById(elementId);
@@ -508,7 +509,7 @@
                             mediaHtml = `
                                 <div class="relative w-full aspect-video overflow-hidden bg-black shrink-0 ${type === 'video' && !post.title ? 'rounded-3xl' : 'rounded-t-3xl'}">
                                     <iframe id="${mediaId}" src="${embedUrl}" class="w-full h-full pointer-events-none scale-[1.05]" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-                                    <div class="absolute inset-0 flex items-center justify-center cursor-pointer z-10 bg-black/20 hover:bg-black/10 transition-colors" onclick="activateVideo(this, '${ytVideoId}', true, '${mediaId}')">
+                                    <div class="absolute inset-0 flex items-center justify-center cursor-pointer z-10 bg-black/20 hover:bg-black/10 transition-colors" onclick="activateVideo(event, this, '${ytVideoId}', true, '${mediaId}')">
                                         <i class="fas fa-play text-white text-5xl opacity-70 drop-shadow-lg hover:scale-110 transition-transform"></i>
                                     </div>
                                 </div>
@@ -517,7 +518,7 @@
                             mediaHtml = `
                                 <div class="relative w-full aspect-video overflow-hidden bg-black shrink-0 ${type === 'video' && !post.title ? 'rounded-3xl' : 'rounded-t-3xl'}">
                                     <video id="${mediaId}" src="${url}" class="w-full h-full object-cover pointer-events-none" autoplay muted loop playsinline></video>
-                                    <div class="absolute inset-0 flex items-center justify-center cursor-pointer z-10 bg-black/20 hover:bg-black/10 transition-colors" onclick="activateVideo(this, null, false, '${mediaId}')">
+                                    <div class="absolute inset-0 flex items-center justify-center cursor-pointer z-10 bg-black/20 hover:bg-black/10 transition-colors" onclick="activateVideo(event, this, null, false, '${mediaId}')">
                                         <i class="fas fa-play text-white text-5xl opacity-70 drop-shadow-lg hover:scale-110 transition-transform"></i>
                                     </div>
                                 </div>
@@ -526,8 +527,8 @@
                     } else {
                         mediaHtml = `<img src="${url}" class="w-full aspect-video object-cover object-center shrink-0 bg-gray-100 ${type === 'image' && !post.title ? 'rounded-3xl' : 'rounded-t-3xl'}" onerror="this.style.display='none'">`;
                         if (type === 'article') {
-                            // Link absoluto para a pasta do blog
-                            mediaHtml = `<a href="/blog/index.html?id=${post.id}" class="block cursor-pointer transition-opacity hover:opacity-90" title="Ler artigo completo">${mediaHtml}</a>`;
+                            // Link Corrigido com Rota Limpa (Vercel Fix)
+                            mediaHtml = `<a href="/blog/?id=${post.id}" class="block cursor-pointer transition-opacity hover:opacity-90" title="Ler artigo completo">${mediaHtml}</a>`;
                         }
                     }
                 }
@@ -549,8 +550,8 @@
                         <div class="p-5 flex-1">
                             <h3 class="font-bold text-xl text-gray-900 leading-tight mb-2">${post.title}</h3>
                             <p class="text-gray-600 text-sm line-clamp-3 whitespace-pre-wrap leading-relaxed">${textSnippet}</p>
-                            <!-- Link absoluto para a pasta do blog -->
-                            <a href="/blog/index.html?id=${post.id}" class="mt-4 text-[var(--theme-text-accent)] font-bold text-sm inline-flex items-center hover:underline cursor-pointer">Ler artigo completo <i class="fas fa-arrow-right ml-1.5"></i></a>
+                            <!-- Link Corrigido com Rota Limpa (Vercel Fix) -->
+                            <a href="/blog/?id=${post.id}" class="mt-4 text-[var(--theme-text-accent)] font-bold text-sm inline-flex items-center hover:underline cursor-pointer">Ler artigo completo <i class="fas fa-arrow-right ml-1.5"></i></a>
                         </div>
                     </div>`;
                 }
