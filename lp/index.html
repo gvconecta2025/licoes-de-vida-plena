@@ -106,7 +106,99 @@
             40% { transform: translateX(-50%) translateY(-20px); }
             60% { transform: translateX(-50%) translateY(-10px); }
         }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1 id="mainTitle">☕ Jessica Code Editora</h1>
+        </div>
+    </header>
 
+    <main id="mainContent">
+        <!-- O conteúdo aqui será gerado dinamicamente pelo JavaScript -->
+    </main>
+
+    <!-- Painel de Detalhes do Livro -->
+    <div class="book-detail-overlay" id="bookDetailOverlay"></div>
+    <div class="book-detail-panel" id="bookDetailPanel">
+        <button class="panel-close" id="bookDetailClose">✕</button>
+        <div class="panel-content" id="bookDetailContent">
+            <!-- Conteúdo será preenchido dinamicamente -->
+        </div>
+    </div>
+
+    <!-- Painel de Administração -->
+    <div class="admin-panel-overlay" id="adminPanelOverlay"></div>
+    <div class="admin-panel" id="adminPanel">
+        <button class="panel-close" id="adminPanelClose">✕</button>
+        <div class="panel-content">
+            <h2>Gerenciador de Livros</h2>
+            
+            <div class="admin-form" id="lpTitleForm">
+                <div class="form-group full-width">
+                    <label for="lpTitle">Título da Landing Page (em negrito)</label>
+                    <input type="text" id="lpTitle" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn" id="saveLpTitle">Salvar Título</button>
+                </div>
+            </div>
+
+            <div class="admin-book-list" id="adminBookList">
+                <!-- Lista de livros será preenchida aqui -->
+            </div>
+            
+            <button class="btn" id="addNewBookBtn" style="margin-top: 20px; width: 100%;">+ Adicionar Novo Livro</button>
+
+            <form class="admin-form" id="adminForm" style="display: none;">
+                <input type="hidden" id="bookId">
+                <h3 id="formTitle" class="full-width" style="color: #f0d68a; margin-bottom: 10px;"></h3>
+                
+                <div class="form-group">
+                    <label for="bookTitle">Título</label>
+                    <input type="text" id="bookTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="bookSubtitle">Subtítulo</label>
+                    <input type="text" id="bookSubtitle">
+                </div>
+                <div class="form-group">
+                    <label for="bookAuthor">Autor</label>
+                    <input type="text" id="bookAuthor" required>
+                </div>
+                <div class="form-group">
+                    <label for="bookPrice">Preço Promocional (ex: R$ 49,90)</label>
+                    <input type="text" id="bookPrice" required>
+                </div>
+                <div class="form-group">
+                    <label for="bookOldPrice">Preço Original (ex: R$ 89,90)</label>
+                    <input type="text" id="bookOldPrice" required>
+                </div>
+                <div class="form-group full-width">
+                    <label for="bookImage">URL da Imagem da Capa</label>
+                    <input type="url" id="bookImage" placeholder="https://exemplo.com/capa.jpg">
+                </div>
+                <div class="form-group full-width">
+                    <label for="bookSynopsis">Sinopse (pode colar texto formatado)</label>
+                    <textarea id="bookSynopsis" required></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelFormBtn">Cancelar</button>
+                    <button type="submit" class="btn">Salvar Livro</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>© 2024 <span id="footerTitle">Jessica Code Editora</span> - Todos os direitos reservados</p>
+            <p>Feito com ☕ para desenvolvedores | <a href="#">Termos de Uso</a> | <a href="#">Privacidade</a></p>
+        </div>
+    </footer>
+
+    <style>
         /* Faixa de Sinopse */
         .synopsis-bar { background: rgba(26, 15, 10, 0.9); padding: 40px 0; border-top: 2px solid rgba(212, 175, 55, 0.3); border-bottom: 2px solid rgba(212, 175, 55, 0.3); margin: 20px 0; position: relative; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 0 30px rgba(212, 175, 55, 0.05); }
         .synopsis-bar .container { display: flex; align-items: center; gap: 40px; flex-wrap: wrap; }
@@ -247,99 +339,8 @@
             .mobile-hero .mobile-cover { width: 160px; height: 220px; }
             .mobile-hero h2 { font-size: 1.6rem; }
         }
-    </style>
-</head>
-<body>
-    <header>
-        <div class="container">
-            <h1 id="mainTitle">☕ Jessica Code Editora</h1>
-        </div>
-    </header>
-
-    <main id="mainContent">
-        <!-- O conteúdo aqui será gerado dinamicamente pelo JavaScript -->
-    </main>
-
-    <!-- Painel de Detalhes do Livro -->
-    <div class="book-detail-overlay" id="bookDetailOverlay"></div>
-    <div class="book-detail-panel" id="bookDetailPanel">
-        <button class="panel-close" id="bookDetailClose">✕</button>
-        <div class="panel-content" id="bookDetailContent">
-            <!-- Conteúdo será preenchido dinamicamente -->
-        </div>
-    </div>
-
-    <!-- Painel de Administração -->
-    <div class="admin-panel-overlay" id="adminPanelOverlay"></div>
-    <div class="admin-panel" id="adminPanel">
-        <button class="panel-close" id="adminPanelClose">✕</button>
-        <div class="panel-content">
-            <h2>Gerenciador de Livros</h2>
-            
-            <div class="admin-form" id="lpTitleForm">
-                <div class="form-group full-width">
-                    <label for="lpTitle">Título da Landing Page (em negrito)</label>
-                    <input type="text" id="lpTitle" required>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn" id="saveLpTitle">Salvar Título</button>
-                </div>
-            </div>
-
-            <div class="admin-book-list" id="adminBookList">
-                <!-- Lista de livros será preenchida aqui -->
-            </div>
-            
-            <button class="btn" id="addNewBookBtn" style="margin-top: 20px; width: 100%;">+ Adicionar Novo Livro</button>
-
-            <form class="admin-form" id="adminForm" style="display: none;">
-                <input type="hidden" id="bookId">
-                <h3 id="formTitle" class="full-width" style="color: #f0d68a; margin-bottom: 10px;"></h3>
-                
-                <div class="form-group">
-                    <label for="bookTitle">Título</label>
-                    <input type="text" id="bookTitle" required>
-                </div>
-                <div class="form-group">
-                    <label for="bookSubtitle">Subtítulo</label>
-                    <input type="text" id="bookSubtitle">
-                </div>
-                <div class="form-group">
-                    <label for="bookAuthor">Autor</label>
-                    <input type="text" id="bookAuthor" required>
-                </div>
-                <div class="form-group">
-                    <label for="bookPrice">Preço Promocional (ex: R$ 49,90)</label>
-                    <input type="text" id="bookPrice" required>
-                </div>
-                <div class="form-group">
-                    <label for="bookOldPrice">Preço Original (ex: R$ 89,90)</label>
-                    <input type="text" id="bookOldPrice" required>
-                </div>
-                <div class="form-group full-width">
-                    <label for="bookImage">URL da Imagem da Capa</label>
-                    <input type="url" id="bookImage" placeholder="https://exemplo.com/capa.jpg">
-                </div>
-                <div class="form-group full-width">
-                    <label for="bookSynopsis">Sinopse (pode colar texto formatado)</label>
-                    <textarea id="bookSynopsis" required></textarea>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" id="cancelFormBtn">Cancelar</button>
-                    <button type="submit" class="btn">Salvar Livro</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <footer>
-        <div class="container">
-            <p>© 2024 <span id="footerTitle">Jessica Code Editora</span> - Todos os direitos reservados</p>
-            <p>Feito com ☕ para desenvolvedores | <a href="#">Termos de Uso</a> | <a href="#">Privacidade</a></p>
-        </div>
-    </footer>
-
-    <script>
+    </style>    
+        <script>
     document.addEventListener('DOMContentLoaded', () => {
         // --- ESTADO E DADOS INICIAIS ---
         let books = [];
@@ -406,13 +407,7 @@
         const adminPanel = document.getElementById('adminPanel');
         const adminPanelClose = document.getElementById('adminPanelClose');
         const adminBookList = document.getElementById('adminBookList');
-        const addNewBook
-
-<div class="flex justify-between items-center text-[10px] text-slate-500 mt-6 pt-3 border-t border-slate-800/60 select-none">
-            <span class="flex items-center gap-1.5 uppercase font-bold tracking-widest"><i class="fa-solid fa-brain text-emerald-500/50"></i> DeepSeek <span class="text-slate-600 font-mono font-normal tracking-normal lowercase ml-1">(deepseek-chat)</span></span>
-            <span class="font-mono tracking-wider opacity-70">27/05/2026 • 17:21 BRT</span>
-        </div>
-              const addNewBookBtn = document.getElementById('addNewBookBtn');
+        const addNewBookBtn = document.getElementById('addNewBookBtn');
         const adminForm = document.getElementById('adminForm');
         const cancelFormBtn = document.getElementById('cancelFormBtn');
         const formTitle = document.getElementById('formTitle');
@@ -425,7 +420,6 @@
 
         // --- FUNÇÕES DE RENDERIZAÇÃO ---
         function renderLandingPage() {
-            // Atualiza título
             mainTitle.textContent = lpTitle;
             footerTitle.textContent = lpTitle.replace('☕ ', '');
 
@@ -753,4 +747,4 @@
     });
     </script>
 </body>
-</html>  
+</html>
