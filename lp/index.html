@@ -412,3 +412,345 @@
             <span class="flex items-center gap-1.5 uppercase font-bold tracking-widest"><i class="fa-solid fa-brain text-emerald-500/50"></i> DeepSeek <span class="text-slate-600 font-mono font-normal tracking-normal lowercase ml-1">(deepseek-chat)</span></span>
             <span class="font-mono tracking-wider opacity-70">27/05/2026 • 17:21 BRT</span>
         </div>
+              const addNewBookBtn = document.getElementById('addNewBookBtn');
+        const adminForm = document.getElementById('adminForm');
+        const cancelFormBtn = document.getElementById('cancelFormBtn');
+        const formTitle = document.getElementById('formTitle');
+        const lpTitleInput = document.getElementById('lpTitle');
+        const saveLpTitleBtn = document.getElementById('saveLpTitle');
+        const bookDetailOverlay = document.getElementById('bookDetailOverlay');
+        const bookDetailPanel = document.getElementById('bookDetailPanel');
+        const bookDetailContent = document.getElementById('bookDetailContent');
+        const bookDetailClose = document.getElementById('bookDetailClose');
+
+        // --- FUNÇÕES DE RENDERIZAÇÃO ---
+        function renderLandingPage() {
+            // Atualiza título
+            mainTitle.textContent = lpTitle;
+            footerTitle.textContent = lpTitle.replace('☕ ', '');
+
+            if (books.length === 0) {
+                mainContent.innerHTML = `
+                    <div class="mobile-hero" style="display: flex;">
+                        <h2>Nenhum livro cadastrado</h2>
+                        <p style="color: #c4a882; margin-top: 20px;">Clique 5 vezes no título para abrir o painel admin</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const mainBook = books[0];
+            const otherBooks = books.slice(1);
+
+            // Versão Desktop
+            const heroDesktop = `
+                <section class="hero container">
+                    <div class="book-cover" style="${mainBook.image ? `background-image: url('${mainBook.image}')` : 'background: linear-gradient(145deg, #1a0f0a, #3d2317);'}">
+                        ${!mainBook.image ? `<div class="book-cover-content">
+                            <h2>${mainBook.title.replace(' ', '<br>')}</h2>
+                            <p>${mainBook.author}</p>
+                        </div>` : ''}
+                    </div>
+                    <div class="book-info">
+                        <h2>${mainBook.title}</h2>
+                        ${mainBook.subtitle ? `<p class="subtitle">${mainBook.subtitle}</p>` : ''}
+                        <p class="author">Por ${mainBook.author}</p>
+                        <p class="price">
+                            ${mainBook.price} <span>${mainBook.oldPrice}</span>
+                        </p>
+                        <a href="#" class="btn">📖 Comprar Agora</a>
+                        <a href="#" class="btn btn-secondary">📄 Ler Amostra</a>
+                    </div>
+                </section>
+            `;
+
+            // Versão Mobile
+            const heroMobile = `
+                <section class="mobile-hero">
+                    <div class="mobile-cover" style="${mainBook.image ? `background-image: url('${mainBook.image}')` : 'background: linear-gradient(145deg, #1a0f0a, #3d2317);'}">
+                        ${!mainBook.image ? `<div class="book-cover-content">
+                            <h2>${mainBook.title.replace(' ', '<br>')}</h2>
+                            <p>${mainBook.author}</p>
+                        </div>` : ''}
+                    </div>
+                    <h2>${mainBook.title}</h2>
+                    ${mainBook.subtitle ? `<p class="mobile-subtitle">${mainBook.subtitle}</p>` : ''}
+                    <p class="mobile-author">Por ${mainBook.author}</p>
+                    <p class="mobile-price">
+                        ${mainBook.price} <span>${mainBook.oldPrice}</span>
+                    </p>
+                    <div class="mobile-buttons">
+                        <a href="#" class="btn">📖 Comprar</a>
+                        <a href="#" class="btn btn-secondary">📄 Amostra</a>
+                    </div>
+                    <div class="scroll-indicator">↓</div>
+                </section>
+            `;
+
+            const synopsisHTML = `
+                <section class="synopsis-bar">
+                    <div class="container">
+                        <div class="synopsis-icon">📖</div>
+                        <div class="synopsis-text">
+                            <h3>Sinopse</h3>
+                            <p>${mainBook.synopsis.replace(/\n/g, '<br>')}</p>
+                        </div>
+                    </div>
+                </section>
+            `;
+
+            const otherBooksHTML = otherBooks.length > 0 ? `
+                <section class="other-books">
+                    <div class="container">
+                        <h2>📕 Outros Títulos que Você Pode Gostar</h2>
+                        <div class="books-grid">
+                            ${otherBooks.map(book => `
+                                <div class="book-card" data-id="${book.id}">
+                                    <div class="mini-cover" style="${book.image ? `background-image: url('${book.image}')` : 'background: linear-gradient(135deg, #4a2c1e, #2c1810);'}">
+                                        ${!book.image ? `<div class="mini-cover-content"><span>${book.title}</span></div>` : ''}
+                                    </div>
+                                    <h3>${book.title}</h3>
+                                    <p class="card-author">${book.author}</p>
+                                    <p class="card-price">${book.price} <span>${book.oldPrice}</span></p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </section>
+            ` : '';
+
+            mainContent.innerHTML = heroDesktop + heroMobile + synopsisHTML + otherBooksHTML;
+
+            // Adiciona eventos aos cards de outros livros
+            document.querySelectorAll('.book-card').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    const bookId = parseInt(this.dataset.id);
+                    openBookDetail(bookId);
+                });
+            });
+        }
+
+        function renderAdminPanel() {
+            adminBookList.innerHTML = books.map((book, index) => `
+                <div class="book-item">
+                    <img src="${book.image || 'https://via.placeholder.com/40x60/2c1810/d4af37?text=Capa'}" alt="Capa de ${book.title}">
+                    <div class="info">
+                        <strong>${book.title}</strong> ${index === 0 ? '<span style="color: #d4af37;">(Principal)</span>' : ''}<br>
+                        <span>${book.author}</span>
+                        ${book.subtitle ? `<br><span style="font-size: 0.85em; color: #8b7355;">${book.subtitle}</span>` : ''}
+                    </div>
+                    <div class="actions">
+                        <button class="btn-admin btn-edit" data-id="${book.id}">Editar</button>
+                        <button class="btn-admin btn-delete" data-id="${book.id}">Excluir</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- FUNÇÕES DE DADOS (LocalStorage) ---
+        function saveData() {
+            const data = {
+                books: books,
+                lpTitle: lpTitle
+            };
+            localStorage.setItem('jessicaCodeData', JSON.stringify(data));
+        }
+
+        function loadData() {
+            const storedData = localStorage.getItem('jessicaCodeData');
+            if (storedData) {
+                const data = JSON.parse(storedData);
+                books = data.books || [];
+                lpTitle = data.lpTitle || '☕ Jessica Code Editora';
+            } else {
+                books = initialBooks;
+                lpTitle = '☕ Jessica Code Editora';
+                saveData();
+            }
+        }
+
+        // --- FUNÇÕES DO PAINEL DE DETALHES ---
+        function openBookDetail(bookId) {
+            const book = books.find(b => b.id === bookId);
+            if (!book) return;
+
+            bookDetailContent.innerHTML = `
+                <div class="panel-header">
+                    <div class="panel-cover" style="${book.image ? `background-image: url('${book.image}')` : 'background: linear-gradient(135deg, #1a0f0a, #3d2317);'}">
+                        ${!book.image ? `<span>${book.title}</span>` : ''}
+                    </div>
+                    <div class="panel-info">
+                        <h2>${book.title}</h2>
+                        ${book.subtitle ? `<p class="panel-subtitle">${book.subtitle}</p>` : ''}
+                        <p class="panel-author">Por ${book.author}</p>
+                        <p class="panel-synopsis">${book.synopsis.replace(/\n/g, '<br>')}</p>
+                        <p class="panel-price">
+                            ${book.price} <span>${book.oldPrice}</span>
+                        </p>
+                        <div class="panel-buttons">
+                            <a href="#" class="btn">📖 Comprar Agora</a>
+                            <a href="#" class="btn btn-secondary">📄 Ler Amostra</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            bookDetailOverlay.classList.add('active');
+            bookDetailPanel.classList.add('active');
+            document.body.classList.add('no-scroll');
+        }
+
+        function closeBookDetail() {
+            bookDetailOverlay.classList.remove('active');
+            bookDetailPanel.classList.remove('active');
+            document.body.classList.remove('no-scroll');
+        }
+
+        bookDetailClose.addEventListener('click', closeBookDetail);
+        bookDetailOverlay.addEventListener('click', closeBookDetail);
+
+        // --- LÓGICA DO PAINEL ADMIN ---
+        let clickCount = 0;
+        let clickTimer = null;
+
+        mainTitle.addEventListener('click', () => {
+            clickCount++;
+            if (clickTimer) clearTimeout(clickTimer);
+            clickTimer = setTimeout(() => { clickCount = 0; }, 1500);
+            if (clickCount === 5) {
+                clickCount = 0;
+                openAdminPanel();
+            }
+        });
+
+        function openAdminPanel() {
+            lpTitleInput.value = lpTitle;
+            renderAdminPanel();
+            adminPanelOverlay.classList.add('active');
+            adminPanel.classList.add('active');
+            document.body.classList.add('no-scroll');
+        }
+
+        function closeAdminPanel() {
+            adminPanelOverlay.classList.remove('active');
+            adminPanel.classList.remove('active');
+            document.body.classList.remove('no-scroll');
+            hideForm();
+        }
+
+        adminPanelClose.addEventListener('click', closeAdminPanel);
+        adminPanelOverlay.addEventListener('click', closeAdminPanel);
+
+        // --- SALVAR TÍTULO DA LP ---
+        saveLpTitleBtn.addEventListener('click', () => {
+            const newTitle = lpTitleInput.value.trim();
+            if (newTitle) {
+                lpTitle = newTitle;
+                saveData();
+                renderLandingPage();
+                alert('Título atualizado com sucesso!');
+            }
+        });
+
+        // --- LÓGICA DO FORMULÁRIO ---
+        function showForm(type = 'new', book = null) {
+            adminForm.style.display = 'grid';
+            addNewBookBtn.style.display = 'none';
+            adminForm.reset();
+            document.getElementById('bookId').value = '';
+
+            if (type === 'edit' && book) {
+                formTitle.textContent = 'Editando Livro';
+                document.getElementById('bookId').value = book.id;
+                document.getElementById('bookTitle').value = book.title;
+                document.getElementById('bookSubtitle').value = book.subtitle || '';
+                document.getElementById('bookAuthor').value = book.author;
+                document.getElementById('bookPrice').value = book.price;
+                document.getElementById('bookOldPrice').value = book.oldPrice;
+                document.getElementById('bookImage').value = book.image || '';
+                document.getElementById('bookSynopsis').value = book.synopsis;
+            } else {
+                formTitle.textContent = 'Adicionar Novo Livro';
+            }
+        }
+
+        function hideForm() {
+            adminForm.style.display = 'none';
+            addNewBookBtn.style.display = 'block';
+        }
+
+        addNewBookBtn.addEventListener('click', () => showForm('new'));
+        cancelFormBtn.addEventListener('click', hideForm);
+
+        adminForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = document.getElementById('bookId').value;
+            const bookData = {
+                title: document.getElementById('bookTitle').value,
+                subtitle: document.getElementById('bookSubtitle').value,
+                author: document.getElementById('bookAuthor').value,
+                price: document.getElementById('bookPrice').value,
+                oldPrice: document.getElementById('bookOldPrice').value,
+                image: document.getElementById('bookImage').value,
+                synopsis: document.getElementById('bookSynopsis').value,
+            };
+
+            if (id) {
+                const index = books.findIndex(b => b.id == id);
+                if (index > -1) {
+                    books[index] = { ...books[index], ...bookData };
+                }
+            } else {
+                bookData.id = Date.now();
+                books.push(bookData);
+            }
+
+            saveData();
+            renderLandingPage();
+            renderAdminPanel();
+            hideForm();
+        });
+
+        // --- AÇÕES DE EDITAR/EXCLUIR ---
+        adminBookList.addEventListener('click', (e) => {
+            const target = e.target;
+            const bookId = target.dataset.id;
+
+            if (target.classList.contains('btn-edit')) {
+                const bookToEdit = books.find(b => b.id == bookId);
+                if (bookToEdit) showForm('edit', bookToEdit);
+            }
+
+            if (target.classList.contains('btn-delete')) {
+                if (confirm('Tem certeza que deseja excluir este livro?')) {
+                    books = books.filter(b => b.id != bookId);
+                    saveData();
+                    renderLandingPage();
+                    renderAdminPanel();
+                }
+            }
+        });
+
+        // --- FECHAR COM TECLA ESC ---
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (bookDetailPanel.classList.contains('active')) {
+                    closeBookDetail();
+                }
+                if (adminPanel.classList.contains('active')) {
+                    closeAdminPanel();
+                }
+            }
+        });
+
+        // --- INICIALIZAÇÃO ---
+        function init() {
+            loadData();
+            renderLandingPage();
+        }
+
+        init();
+    });
+    </script>
+</body>
+</html>  
