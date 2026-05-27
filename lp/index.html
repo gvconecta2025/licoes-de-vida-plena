@@ -14,25 +14,46 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f5e6d3 0%, #e8d5c4 30%, #d4b896 60%, #c4a882 100%);
-            color: #3d2b1f;
+            background: linear-gradient(135deg, #1a0f0a 0%, #2c1810 30%, #3d2317 60%, #4a2c1e 100%);
+            color: #f5e6d3;
             min-height: 100vh;
             line-height: 1.6;
+            position: relative;
+        }
+
+        /* Fios dourados decorativos */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(ellipse at 20% 50%, rgba(212, 175, 55, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 50%, rgba(212, 175, 55, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 20%, rgba(212, 175, 55, 0.04) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: 0;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 20px;
+            position: relative;
+            z-index: 1;
         }
 
         /* Header */
         header {
             padding: 20px 0;
             text-align: center;
-            border-bottom: 1px solid rgba(61, 43, 31, 0.15);
-            background: rgba(255, 255, 255, 0.3);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            background: rgba(26, 15, 10, 0.8);
             backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 1;
         }
 
         header h1 {
@@ -40,7 +61,8 @@
             font-weight: 300;
             letter-spacing: 3px;
             text-transform: uppercase;
-            color: #6b4c3b;
+            color: #d4af37;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
         }
 
         /* Seção principal do livro */
@@ -56,7 +78,7 @@
         .book-cover {
             flex: 0 0 300px;
             height: 450px;
-            background: linear-gradient(145deg, #8B6914, #D4A574);
+            background: linear-gradient(145deg, #1a0f0a, #3d2317);
             border-radius: 12px;
             display: flex;
             align-items: center;
@@ -64,9 +86,13 @@
             font-size: 1.2rem;
             text-align: center;
             padding: 20px;
-            box-shadow: 0 20px 60px rgba(139, 105, 20, 0.3);
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                0 0 40px rgba(212, 175, 55, 0.1),
+                inset 0 0 30px rgba(212, 175, 55, 0.05);
             position: relative;
             overflow: hidden;
+            border: 1px solid rgba(212, 175, 55, 0.2);
         }
 
         .book-cover::before {
@@ -76,8 +102,26 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
             animation: shine 6s infinite;
+        }
+
+        .book-cover::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(212, 175, 55, 0.03) 2px,
+                    rgba(212, 175, 55, 0.03) 4px
+                );
+            pointer-events: none;
         }
 
         @keyframes shine {
@@ -88,13 +132,14 @@
         .book-cover-content {
             position: relative;
             z-index: 1;
-            color: #fff;
+            color: #f5e6d3;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
         }
 
         .book-cover h2 {
             font-size: 2rem;
             margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
         }
 
         .book-cover p {
@@ -110,25 +155,27 @@
         .book-info h2 {
             font-size: 2.5rem;
             margin-bottom: 15px;
-            color: #3d2b1f;
+            color: #d4af37;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
         }
 
         .book-info .author {
             font-size: 1.1rem;
-            color: #6b4c3b;
+            color: #c4a882;
             margin-bottom: 20px;
         }
 
         .book-info .price {
             font-size: 2rem;
             font-weight: 700;
-            color: #8B6914;
+            color: #d4af37;
             margin-bottom: 25px;
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
         }
 
         .book-info .price span {
             font-size: 1rem;
-            color: #9ca3af;
+            color: #8b7355;
             text-decoration: line-through;
             margin-left: 10px;
             font-weight: 400;
@@ -137,8 +184,8 @@
         .btn {
             display: inline-block;
             padding: 16px 40px;
-            background: linear-gradient(90deg, #8B6914, #D4A574);
-            color: #fff;
+            background: linear-gradient(90deg, #d4af37, #f0d68a);
+            color: #1a0f0a;
             text-decoration: none;
             border-radius: 50px;
             font-weight: 600;
@@ -146,32 +193,60 @@
             transition: all 0.3s ease;
             border: none;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(139, 105, 20, 0.4);
+            box-shadow: 
+                0 4px 15px rgba(212, 175, 55, 0.4),
+                0 0 30px rgba(212, 175, 55, 0.1);
         }
 
         .btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(139, 105, 20, 0.6);
+            box-shadow: 
+                0 8px 25px rgba(212, 175, 55, 0.6),
+                0 0 40px rgba(212, 175, 55, 0.2);
         }
 
         .btn-secondary {
             background: transparent;
-            border: 2px solid #8B6914;
-            color: #8B6914;
+            border: 2px solid #d4af37;
+            color: #d4af37;
             margin-left: 15px;
+            box-shadow: none;
         }
 
         .btn-secondary:hover {
-            background: rgba(139, 105, 20, 0.1);
+            background: rgba(212, 175, 55, 0.1);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
         }
 
         /* Faixa de Sinopse */
         .synopsis-bar {
-            background: rgba(61, 43, 31, 0.08);
+            background: rgba(26, 15, 10, 0.9);
             padding: 40px 0;
-            border-top: 2px solid rgba(139, 105, 20, 0.2);
-            border-bottom: 2px solid rgba(139, 105, 20, 0.2);
+            border-top: 2px solid rgba(212, 175, 55, 0.3);
+            border-bottom: 2px solid rgba(212, 175, 55, 0.3);
             margin: 20px 0;
+            position: relative;
+            box-shadow: 
+                0 10px 30px rgba(0, 0, 0, 0.3),
+                inset 0 0 30px rgba(212, 175, 55, 0.05);
+        }
+
+        .synopsis-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 20px,
+                    rgba(212, 175, 55, 0.02) 20px,
+                    rgba(212, 175, 55, 0.02) 22px
+                );
+            pointer-events: none;
         }
 
         .synopsis-bar .container {
@@ -183,7 +258,8 @@
 
         .synopsis-bar .synopsis-icon {
             font-size: 3rem;
-            color: #8B6914;
+            color: #d4af37;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
         }
 
         .synopsis-bar .synopsis-text {
@@ -193,13 +269,14 @@
 
         .synopsis-bar .synopsis-text h3 {
             font-size: 1.3rem;
-            color: #3d2b1f;
+            color: #d4af37;
             margin-bottom: 10px;
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
         }
 
         .synopsis-bar .synopsis-text p {
             font-size: 1.05rem;
-            color: #5c4033;
+            color: #e8d5c4;
             line-height: 1.8;
         }
 
@@ -212,7 +289,8 @@
             text-align: center;
             font-size: 2rem;
             margin-bottom: 50px;
-            color: #3d2b1f;
+            color: #d4af37;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
         }
 
         .books-grid {
@@ -222,20 +300,26 @@
         }
 
         .book-card {
-            background: rgba(255, 255, 255, 0.6);
+            background: rgba(26, 15, 10, 0.8);
             border-radius: 12px;
             padding: 30px;
             text-align: center;
             transition: all 0.3s ease;
-            border: 1px solid rgba(139, 105, 20, 0.15);
+            border: 1px solid rgba(212, 175, 55, 0.2);
             backdrop-filter: blur(10px);
             cursor: pointer;
+            box-shadow: 
+                0 10px 30px rgba(0, 0, 0, 0.3),
+                inset 0 0 20px rgba(212, 175, 55, 0.03);
         }
 
         .book-card:hover {
             transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.8);
-            border-color: #8B6914;
+            background: rgba(26, 15, 10, 0.9);
+            border-color: #d4af37;
+            box-shadow: 
+                0 15px 40px rgba(0, 0, 0, 0.4),
+                0 0 30px rgba(212, 175, 55, 0.1);
         }
 
         .book-card .mini-cover {
@@ -247,34 +331,39 @@
             align-items: center;
             justify-content: center;
             font-size: 0.8rem;
-            color: #fff;
+            color: #f5e6d3;
             font-weight: 600;
+            box-shadow: 
+                0 10px 20px rgba(0, 0, 0, 0.3),
+                inset 0 0 20px rgba(212, 175, 55, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.2);
         }
 
         .book-card h3 {
             font-size: 1.2rem;
             margin-bottom: 8px;
-            color: #3d2b1f;
+            color: #f5e6d3;
         }
 
         .book-card .card-author {
             font-size: 0.9rem;
-            color: #6b4c3b;
+            color: #c4a882;
             margin-bottom: 10px;
         }
 
         .book-card .card-price {
             font-size: 1.3rem;
             font-weight: 700;
-            color: #8B6914;
+            color: #d4af37;
             margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
         }
 
         .book-card .btn-small {
             display: inline-block;
             padding: 10px 25px;
-            background: linear-gradient(90deg, #8B6914, #D4A574);
-            color: #fff;
+            background: linear-gradient(90deg, #d4af37, #f0d68a);
+            color: #1a0f0a;
             text-decoration: none;
             border-radius: 50px;
             font-weight: 600;
@@ -282,11 +371,16 @@
             transition: all 0.3s ease;
             border: none;
             cursor: pointer;
+            box-shadow: 
+                0 4px 10px rgba(212, 175, 55, 0.3),
+                0 0 20px rgba(212, 175, 55, 0.1);
         }
 
         .book-card .btn-small:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(139, 105, 20, 0.4);
+            box-shadow: 
+                0 6px 15px rgba(212, 175, 55, 0.4),
+                0 0 30px rgba(212, 175, 55, 0.2);
         }
 
         /* Painel Deslizante */
@@ -297,7 +391,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.7);
             z-index: 1000;
             opacity: 0;
             transition: opacity 0.3s ease;
@@ -314,12 +408,15 @@
             left: 0;
             width: 100%;
             height: 85%;
-            background: linear-gradient(135deg, #f5e6d3, #e8d5c4);
+            background: linear-gradient(135deg, #1a0f0a, #2c1810);
             border-radius: 30px 30px 0 0;
             z-index: 1001;
             transition: bottom 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
+            box-shadow: 
+                0 -10px 40px rgba(0, 0, 0, 0.5),
+                0 0 60px rgba(212, 175, 55, 0.1);
             overflow-y: auto;
+            border-top: 1px solid rgba(212, 175, 55, 0.3);
         }
 
         .book-panel.active {
@@ -338,12 +435,12 @@
             right: 20px;
             width: 40px;
             height: 40px;
-            background: rgba(61, 43, 31, 0.1);
-            border: none;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.3);
             border-radius: 50%;
             font-size: 1.5rem;
             cursor: pointer;
-            color: #3d2b1f;
+            color: #d4af37;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
@@ -351,8 +448,9 @@
         }
 
         .book-panel .panel-close:hover {
-            background: rgba(61, 43, 31, 0.2);
+            background: rgba(212, 175, 55, 0.2);
             transform: rotate(90deg);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
         }
 
         .book-panel .panel-header {
@@ -371,11 +469,15 @@
             align-items: center;
             justify-content: center;
             font-size: 1rem;
-            color: #fff;
+            color: #f5e6d3;
             font-weight: 600;
             text-align: center;
             padding: 20px;
             flex-shrink: 0;
+            box-shadow: 
+                0 15px 30px rgba(0, 0, 0, 0.4),
+                0 0 30px rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.2);
         }
 
         .book-panel .panel-info {
@@ -385,19 +487,20 @@
 
         .book-panel .panel-info h2 {
             font-size: 2rem;
-            color: #3d2b1f;
+            color: #d4af37;
             margin-bottom: 10px;
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
         }
 
         .book-panel .panel-info .panel-author {
             font-size: 1.1rem;
-            color: #6b4c3b;
+            color: #c4a882;
             margin-bottom: 15px;
         }
 
         .book-panel .panel-info .panel-synopsis {
             font-size: 1rem;
-            color: #5c4033;
+            color: #e8d5c4;
             line-height: 1.8;
             margin-bottom: 20px;
         }
@@ -405,13 +508,14 @@
         .book-panel .panel-info .panel-price {
             font-size: 1.8rem;
             font-weight: 700;
-            color: #8B6914;
+            color: #d4af37;
             margin-bottom: 25px;
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
         }
 
         .book-panel .panel-info .panel-price span {
             font-size: 1rem;
-            color: #9ca3af;
+            color: #8b7355;
             text-decoration: line-through;
             margin-left: 10px;
             font-weight: 400;
@@ -427,15 +531,21 @@
         footer {
             text-align: center;
             padding: 40px 0;
-            border-top: 1px solid rgba(61, 43, 31, 0.15);
-            color: #6b4c3b;
+            border-top: 1px solid rgba(212, 175, 55, 0.2);
+            color: #c4a882;
             font-size: 0.9rem;
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(26, 15, 10, 0.8);
+            backdrop-filter: blur(10px);
         }
 
         footer a {
-            color: #8B6914;
+            color: #d4af37;
             text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        footer a:hover {
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
         }
 
         /* Responsivo */
@@ -531,7 +641,7 @@
                 <h2>📕 Outros Títulos que Você Pode Gostar</h2>
                 <div class="books-grid">
                     <div class="book-card" data-book="1">
-                        <div class="mini-cover" style="background: linear-gradient(135deg, #f472b6, #ec4899);">
+                        <div class="mini-cover" style="background: linear-gradient(135deg, #8B4513, #D2691E);">
                             <span>Algoritmos<br>do Amor</span>
                         </div>
                         <h3>Algoritmos do Amor</h3>
@@ -541,7 +651,7 @@
                     </div>
 
                     <div class="book-card" data-book="2">
-                        <div class="mini-cover" style="background: linear-gradient(135deg, #34d399, #059669);">
+                        <div class="mini-cover" style="background: linear-gradient(135deg, #2F4F4F, #556B2F);">
                             <span>Estruturas<br>de Dados</span>
                         </div>
                         <h3>Estruturas de Dados na Prática</h3>
@@ -551,7 +661,7 @@
                     </div>
 
                     <div class="book-card" data-book="3">
-                        <div class="mini-cover" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                        <div class="mini-cover" style="background: linear-gradient(135deg, #8B0000, #B22222);">
                             <span>React<br>Profundo</span>
                         </div>
                         <h3>React Profundo</h3>
@@ -561,7 +671,7 @@
                     </div>
 
                     <div class="book-card" data-book="4">
-                        <div class="mini-cover" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
+                        <div class="mini-cover" style="background: linear-gradient(135deg, #4B0082, #6A0DAD);">
                             <span>Python<br>para Todos</span>
                         </div>
                         <h3>Python para Todos</h3>
@@ -599,7 +709,7 @@
                 price: 'R$ 39,90',
                 oldPrice: 'R$ 69,90',
                 synopsis: 'Descubra como os algoritmos podem ajudar a encontrar o amor verdadeiro. Uma abordagem única que une programação e relacionamentos, mostrando como padrões de comportamento podem ser decodificados para criar conexões mais profundas e significativas.',
-                coverColor: 'linear-gradient(135deg, #f472b6, #ec4899)'
+                coverColor: 'linear-gradient(135deg, #8B4513, #D2691E)'
             },
             2: {
                 title: 'Estruturas de Dados na Prática',
@@ -607,7 +717,7 @@
                 price: 'R$ 59,90',
                 oldPrice: 'R$ 89,90',
                 synopsis: 'Domine as estruturas de dados mais importantes do mercado. Este livro aborda desde listas encadeadas até árvores balanceadas, com exemplos práticos em Python e JavaScript. Ideal para quem quer se preparar para entrevistas técnicas.',
-                coverColor: 'linear-gradient(135deg, #34d399, #059669)'
+                coverColor: 'linear-gradient(135deg, #2F4F4F, #556B2F)'
             },
             3: {
                 title: 'React Profundo',
@@ -615,7 +725,7 @@
                 price: 'R$ 69,90',
                 oldPrice: 'R$ 99,90',
                 synopsis: 'Vá além do básico do React e aprenda padrões avançados, otimização de performance, gerenciamento de estado complexo e arquitetura de componentes. Um guia completo para desenvolvedores que querem dominar o ecossistema React.',
-                coverColor: 'linear-gradient(135deg, #f59e0b, #d97706)'
+                coverColor: 'linear-gradient(135deg, #8B0000, #B22222)'
             },
             4: {
                 title: 'Python para Todos',
@@ -623,7 +733,7 @@
                 price: 'R$ 44,90',
                 oldPrice: 'R$ 74,90',
                 synopsis: 'Aprenda Python do zero de forma prática e divertida. Este livro cobre desde conceitos básicos até tópicos avançados como web scraping, automação e análise de dados. Perfeito para iniciantes e profissionais que querem expandir seus horizontes.',
-                coverColor: 'linear-gradient(135deg, #8b5cf6, #6d28d9)'
+                coverColor: 'linear-gradient(135deg, #4B0082, #6A0DAD)'
             }
         };
 
