@@ -109,7 +109,9 @@
     </style>
 </head>
 <body>
-    <header>
+
+//comentario
+        <header>
         <div class="container">
             <h1 id="mainTitle">☕ Jessica Code Editora</h1>
         </div>
@@ -339,7 +341,10 @@
             .mobile-hero .mobile-cover { width: 160px; height: 220px; }
             .mobile-hero h2 { font-size: 1.6rem; }
         }
-    </style>    
+    </style>
+
+
+    //comentario
         <script>
     document.addEventListener('DOMContentLoaded', () => {
         // --- ESTADO E DADOS INICIAIS ---
@@ -418,6 +423,25 @@
         const bookDetailContent = document.getElementById('bookDetailContent');
         const bookDetailClose = document.getElementById('bookDetailClose');
 
+        // --- FUNÇÃO PARA GERAR HTML DO LIVRO PRINCIPAL ---
+        function generateMainBookHTML(book) {
+            const coverStyle = book.image ? `background-image: url('${book.image}')` : 'background: linear-gradient(145deg, #1a0f0a, #3d2317);';
+            const coverContent = !book.image ? `<div class="book-cover-content">
+                <h2>${book.title.replace(' ', '<br>')}</h2>
+                <p>${book.author}</p>
+            </div>` : '';
+
+            return {
+                coverStyle,
+                coverContent,
+                title: book.title,
+                subtitle: book.subtitle,
+                author: book.author,
+                price: book.price,
+                oldPrice: book.oldPrice
+            };
+        }
+
         // --- FUNÇÕES DE RENDERIZAÇÃO ---
         function renderLandingPage() {
             mainTitle.textContent = lpTitle;
@@ -434,23 +458,21 @@
             }
 
             const mainBook = books[0];
+            const bookData = generateMainBookHTML(mainBook);
             const otherBooks = books.slice(1);
 
             // Versão Desktop
             const heroDesktop = `
                 <section class="hero container">
-                    <div class="book-cover" style="${mainBook.image ? `background-image: url('${mainBook.image}')` : 'background: linear-gradient(145deg, #1a0f0a, #3d2317);'}">
-                        ${!mainBook.image ? `<div class="book-cover-content">
-                            <h2>${mainBook.title.replace(' ', '<br>')}</h2>
-                            <p>${mainBook.author}</p>
-                        </div>` : ''}
+                    <div class="book-cover" style="${bookData.coverStyle}">
+                        ${bookData.coverContent}
                     </div>
                     <div class="book-info">
-                        <h2>${mainBook.title}</h2>
-                        ${mainBook.subtitle ? `<p class="subtitle">${mainBook.subtitle}</p>` : ''}
-                        <p class="author">Por ${mainBook.author}</p>
+                        <h2>${bookData.title}</h2>
+                        ${bookData.subtitle ? `<p class="subtitle">${bookData.subtitle}</p>` : ''}
+                        <p class="author">Por ${bookData.author}</p>
                         <p class="price">
-                            ${mainBook.price} <span>${mainBook.oldPrice}</span>
+                            ${bookData.price} <span>${bookData.oldPrice}</span>
                         </p>
                         <a href="#" class="btn">📖 Comprar Agora</a>
                         <a href="#" class="btn btn-secondary">📄 Ler Amostra</a>
@@ -458,20 +480,17 @@
                 </section>
             `;
 
-            // Versão Mobile
+            // Versão Mobile - MESMOS DADOS
             const heroMobile = `
                 <section class="mobile-hero">
-                    <div class="mobile-cover" style="${mainBook.image ? `background-image: url('${mainBook.image}')` : 'background: linear-gradient(145deg, #1a0f0a, #3d2317);'}">
-                        ${!mainBook.image ? `<div class="book-cover-content">
-                            <h2>${mainBook.title.replace(' ', '<br>')}</h2>
-                            <p>${mainBook.author}</p>
-                        </div>` : ''}
+                    <div class="mobile-cover" style="${bookData.coverStyle}">
+                        ${bookData.coverContent}
                     </div>
-                    <h2>${mainBook.title}</h2>
-                    ${mainBook.subtitle ? `<p class="mobile-subtitle">${mainBook.subtitle}</p>` : ''}
-                    <p class="mobile-author">Por ${mainBook.author}</p>
+                    <h2>${bookData.title}</h2>
+                    ${bookData.subtitle ? `<p class="mobile-subtitle">${bookData.subtitle}</p>` : ''}
+                    <p class="mobile-author">Por ${bookData.author}</p>
                     <p class="mobile-price">
-                        ${mainBook.price} <span>${mainBook.oldPrice}</span>
+                        ${bookData.price} <span>${bookData.oldPrice}</span>
                     </p>
                     <div class="mobile-buttons">
                         <a href="#" class="btn">📖 Comprar</a>
@@ -543,10 +562,7 @@
 
         // --- FUNÇÕES DE DADOS (LocalStorage) ---
         function saveData() {
-            const data = {
-                books: books,
-                lpTitle: lpTitle
-            };
+            const data = { books: books, lpTitle: lpTitle };
             localStorage.setItem('jessicaCodeData', JSON.stringify(data));
         }
 
@@ -568,10 +584,13 @@
             const book = books.find(b => b.id === bookId);
             if (!book) return;
 
+            const coverStyle = book.image ? `background-image: url('${book.image}')` : 'background: linear-gradient(135deg, #1a0f0a, #3d2317);';
+            const coverContent = !book.image ? `<span>${book.title}</span>` : '';
+
             bookDetailContent.innerHTML = `
                 <div class="panel-header">
-                    <div class="panel-cover" style="${book.image ? `background-image: url('${book.image}')` : 'background: linear-gradient(135deg, #1a0f0a, #3d2317);'}">
-                        ${!book.image ? `<span>${book.title}</span>` : ''}
+                    <div class="panel-cover" style="${coverStyle}">
+                        ${coverContent}
                     </div>
                     <div class="panel-info">
                         <h2>${book.title}</h2>
