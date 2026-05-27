@@ -2,8 +2,8 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Livro: O Código da Mente - Jessica Code</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Jessica Code Editora</title>
     <style>
         /* Reset e estilos base */
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -34,11 +34,11 @@
             background: rgba(26, 15, 10, 0.8); backdrop-filter: blur(10px); position: relative; z-index: 10;
         }
         header h1 {
-            font-size: 1.5rem; font-weight: 300; letter-spacing: 3px; text-transform: uppercase;
+            font-size: 1.5rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
             color: #d4af37; text-shadow: 0 0 20px rgba(212, 175, 55, 0.3); cursor: pointer;
         }
 
-        /* Seção principal do livro */
+        /* Seção principal do livro - Desktop */
         .hero { display: flex; align-items: center; justify-content: center; gap: 60px; padding: 80px 0; flex-wrap: wrap; }
         .book-cover {
             flex: 0 0 300px; height: 450px; background: linear-gradient(145deg, #1a0f0a, #3d2317);
@@ -46,13 +46,14 @@
             font-size: 1.2rem; text-align: center; padding: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(212, 175, 55, 0.1), inset 0 0 30px rgba(212, 175, 55, 0.05);
             position: relative; overflow: hidden; border: 1px solid rgba(212, 175, 55, 0.2);
-            background-size: cover; background-position: center;
+            background-size: contain; background-position: center; background-repeat: no-repeat;
         }
         .book-cover-content { position: relative; z-index: 1; color: #f5e6d3; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8); background: rgba(0,0,0,0.4); padding: 15px; border-radius: 8px; backdrop-filter: blur(4px); }
         .book-cover h2 { font-size: 2rem; margin-bottom: 10px; text-shadow: 0 0 20px rgba(212, 175, 55, 0.3); }
         .book-cover p { font-size: 0.9rem; opacity: 0.9; }
         .book-info { flex: 1; min-width: 300px; }
         .book-info h2 { font-size: 2.5rem; margin-bottom: 15px; color: #d4af37; text-shadow: 0 0 20px rgba(212, 175, 55, 0.2); }
+        .book-info .subtitle { font-size: 1.2rem; color: #c4a882; margin-bottom: 10px; font-style: italic; }
         .book-info .author { font-size: 1.1rem; color: #c4a882; margin-bottom: 20px; }
         .book-info .price { font-size: 2rem; font-weight: 700; color: #d4af37; margin-bottom: 25px; text-shadow: 0 0 15px rgba(212, 175, 55, 0.2); }
         .book-info .price span { font-size: 1rem; color: #8b7355; text-decoration: line-through; margin-left: 10px; font-weight: 400; }
@@ -60,6 +61,51 @@
         .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(212, 175, 55, 0.6), 0 0 40px rgba(212, 175, 55, 0.2); }
         .btn-secondary { background: transparent; border: 2px solid #d4af37; color: #d4af37; margin-left: 15px; box-shadow: none; }
         .btn-secondary:hover { background: rgba(212, 175, 55, 0.1); box-shadow: 0 0 20px rgba(212, 175, 55, 0.2); }
+
+        /* Mobile Hero - Tela Cheia */
+        .mobile-hero {
+            display: none;
+            min-height: 100vh;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+        }
+        .mobile-hero .mobile-cover {
+            width: 200px;
+            height: 280px;
+            margin-bottom: 30px;
+            border-radius: 12px;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        .mobile-hero h2 { font-size: 2rem; color: #d4af37; margin-bottom: 10px; text-shadow: 0 0 20px rgba(212, 175, 55, 0.2); }
+        .mobile-hero .mobile-subtitle { font-size: 1rem; color: #c4a882; margin-bottom: 10px; font-style: italic; }
+        .mobile-hero .mobile-author { font-size: 1rem; color: #c4a882; margin-bottom: 15px; }
+        .mobile-hero .mobile-price { font-size: 1.8rem; font-weight: 700; color: #d4af37; margin-bottom: 25px; text-shadow: 0 0 15px rgba(212, 175, 55, 0.2); }
+        .mobile-hero .mobile-price span { font-size: 0.9rem; color: #8b7355; text-decoration: line-through; margin-left: 10px; font-weight: 400; }
+        .mobile-hero .mobile-buttons { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-bottom: 40px; }
+        .mobile-hero .mobile-buttons .btn { padding: 14px 30px; font-size: 1rem; }
+        .mobile-hero .scroll-indicator {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: bounce 2s infinite;
+            color: #d4af37;
+            font-size: 2rem;
+            cursor: pointer;
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
+            40% { transform: translateX(-50%) translateY(-20px); }
+            60% { transform: translateX(-50%) translateY(-10px); }
+        }
 
         /* Faixa de Sinopse */
         .synopsis-bar { background: rgba(26, 15, 10, 0.9); padding: 40px 0; border-top: 2px solid rgba(212, 175, 55, 0.3); border-bottom: 2px solid rgba(212, 175, 55, 0.3); margin: 20px 0; position: relative; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 0 30px rgba(212, 175, 55, 0.05); }
@@ -73,12 +119,12 @@
         .other-books { padding: 80px 0; }
         .other-books h2 { text-align: center; font-size: 2rem; margin-bottom: 50px; color: #d4af37; text-shadow: 0 0 20px rgba(212, 175, 55, 0.2); }
         .books-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; }
-        .book-card { background: rgba(26, 15, 10, 0.8); border-radius: 12px; padding: 30px; text-align: center; transition: all 0.3s ease; border: 1px solid rgba(212, 175, 55, 0.2); backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 0 20px rgba(212, 175, 55, 0.03); }
+        .book-card { background: rgba(26, 15, 10, 0.8); border-radius: 12px; padding: 30px; text-align: center; transition: all 0.3s ease; border: 1px solid rgba(212, 175, 55, 0.2); backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 0 20px rgba(212, 175, 55, 0.03); cursor: pointer; }
         .book-card:hover { transform: translateY(-5px); background: rgba(26, 15, 10, 0.9); border-color: #d4af37; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(212, 175, 55, 0.1); }
         .book-card .mini-cover {
-            width: 100%; height: 170px; margin: 0 auto 20px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            width: 100%; height: 200px; margin: 0 auto 20px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
             font-size: 0.8rem; color: #f5e6d3; font-weight: 600; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3), inset 0 0 20px rgba(212, 175, 55, 0.05);
-            border: 1px solid rgba(212, 175, 55, 0.2); background-size: cover; background-position: center;
+            border: 1px solid rgba(212, 175, 55, 0.2); background-size: contain; background-position: center; background-repeat: no-repeat;
         }
         .book-card .mini-cover-content { background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px; backdrop-filter: blur(3px); }
         .book-card h3 { font-size: 1.2rem; margin-bottom: 8px; color: #f5e6d3; }
@@ -122,7 +168,7 @@
             background: rgba(255,255,255,0.03); border-radius: 8px; margin-bottom: 10px;
             flex-wrap: wrap;
         }
-        .admin-book-list .book-item img { width: 40px; height: 60px; border-radius: 4px; object-fit: cover; }
+        .admin-book-list .book-item img { width: 40px; height: 60px; border-radius: 4px; object-fit: contain; }
         .admin-book-list .book-item .info { flex: 1; }
         .admin-book-list .book-item .info strong { color: #f5e6d3; }
         .admin-book-list .book-item .info span { color: #c4a882; font-size: 0.9em; }
@@ -148,24 +194,58 @@
         .admin-form textarea { min-height: 120px; resize: vertical; }
         .admin-form .form-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 15px; }
 
+        /* Painel de Detalhes do Livro */
+        .book-detail-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8); z-index: 1000; opacity: 0; transition: opacity 0.3s ease;
+        }
+        .book-detail-overlay.active { display: block; opacity: 1; }
+        .book-detail-panel {
+            position: fixed; bottom: -85%; left: 0; width: 100%; height: 85%;
+            background: linear-gradient(135deg, #1a0f0a, #2c1810);
+            border-radius: 30px 30px 0 0; z-index: 1001;
+            transition: bottom 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5), 0 0 60px rgba(212, 175, 55, 0.1);
+            overflow-y: auto; border-top: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        .book-detail-panel.active { bottom: 0; }
+        .book-detail-panel .panel-content { padding: 40px; max-width: 800px; margin: 0 auto; }
+        .book-detail-panel .panel-close {
+            position: absolute; top: 20px; right: 20px; width: 40px; height: 40px;
+            background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 50%; font-size: 1.5rem; cursor: pointer; color: #d4af37;
+            transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;
+        }
+        .book-detail-panel .panel-close:hover { background: rgba(212, 175, 55, 0.2); transform: rotate(90deg); box-shadow: 0 0 20px rgba(212, 175, 55, 0.3); }
+        .book-detail-panel .panel-header { display: flex; gap: 40px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 30px; }
+        .book-detail-panel .panel-cover { width: 200px; height: 280px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: #f5e6d3; font-weight: 600; text-align: center; padding: 20px; flex-shrink: 0; box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4), 0 0 30px rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.2); background-size: contain; background-position: center; background-repeat: no-repeat; }
+        .book-detail-panel .panel-info { flex: 1; min-width: 250px; }
+        .book-detail-panel .panel-info h2 { font-size: 2rem; color: #d4af37; margin-bottom: 10px; text-shadow: 0 0 15px rgba(212, 175, 55, 0.2); }
+        .book-detail-panel .panel-info .panel-subtitle { font-size: 1.1rem; color: #c4a882; margin-bottom: 10px; font-style: italic; }
+        .book-detail-panel .panel-info .panel-author { font-size: 1.1rem; color: #c4a882; margin-bottom: 15px; }
+        .book-detail-panel .panel-info .panel-synopsis { font-size: 1rem; color: #e8d5c4; line-height: 1.8; margin-bottom: 20px; }
+        .book-detail-panel .panel-info .panel-price { font-size: 1.8rem; font-weight: 700; color: #d4af37; margin-bottom: 25px; text-shadow: 0 0 15px rgba(212, 175, 55, 0.2); }
+        .book-detail-panel .panel-info .panel-price span { font-size: 1rem; color: #8b7355; text-decoration: line-through; margin-left: 10px; font-weight: 400; }
+        .book-detail-panel .panel-buttons { display: flex; gap: 15px; flex-wrap: wrap; }
+
         /* Responsivo */
         @media (max-width: 768px) {
-            .hero { flex-direction: column; text-align: center; padding: 40px 0; }
-            .book-info h2 { font-size: 2rem; }
-            .btn-secondary { margin-left: 0; margin-top: 15px; }
-            .book-cover { flex: 0 0 auto; width: 250px; height: 375px; }
+            .hero { display: none; }
+            .mobile-hero { display: flex; }
             .synopsis-bar .container { flex-direction: column; text-align: center; }
             .admin-form { grid-template-columns: 1fr; }
             .admin-form .full-width { grid-column: auto; }
             .admin-book-list .book-item { flex-direction: column; align-items: flex-start; }
+            .book-detail-panel .panel-header { flex-direction: column; align-items: center; text-align: center; }
+            .book-detail-panel .panel-buttons { justify-content: center; }
+            .book-detail-panel .panel-content { padding: 30px 20px; }
         }
         @media (max-width: 480px) {
             header h1 { font-size: 1.2rem; }
-            .book-info h2 { font-size: 1.8rem; }
-            .book-info .price { font-size: 1.6rem; }
-            .btn { padding: 12px 30px; font-size: 1rem; }
             .other-books h2 { font-size: 1.6rem; }
             .admin-panel .panel-content { padding: 20px; }
+            .mobile-hero .mobile-cover { width: 160px; height: 220px; }
+            .mobile-hero h2 { font-size: 1.6rem; }
         }
     </style>
 </head>
@@ -180,12 +260,32 @@
         <!-- O conteúdo aqui será gerado dinamicamente pelo JavaScript -->
     </main>
 
+    <!-- Painel de Detalhes do Livro -->
+    <div class="book-detail-overlay" id="bookDetailOverlay"></div>
+    <div class="book-detail-panel" id="bookDetailPanel">
+        <button class="panel-close" id="bookDetailClose">✕</button>
+        <div class="panel-content" id="bookDetailContent">
+            <!-- Conteúdo será preenchido dinamicamente -->
+        </div>
+    </div>
+
     <!-- Painel de Administração -->
     <div class="admin-panel-overlay" id="adminPanelOverlay"></div>
     <div class="admin-panel" id="adminPanel">
         <button class="panel-close" id="adminPanelClose">✕</button>
         <div class="panel-content">
             <h2>Gerenciador de Livros</h2>
+            
+            <div class="admin-form" id="lpTitleForm">
+                <div class="form-group full-width">
+                    <label for="lpTitle">Título da Landing Page (em negrito)</label>
+                    <input type="text" id="lpTitle" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn" id="saveLpTitle">Salvar Título</button>
+                </div>
+            </div>
+
             <div class="admin-book-list" id="adminBookList">
                 <!-- Lista de livros será preenchida aqui -->
             </div>
@@ -199,6 +299,10 @@
                 <div class="form-group">
                     <label for="bookTitle">Título</label>
                     <input type="text" id="bookTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="bookSubtitle">Subtítulo</label>
+                    <input type="text" id="bookSubtitle">
                 </div>
                 <div class="form-group">
                     <label for="bookAuthor">Autor</label>
@@ -230,7 +334,7 @@
 
     <footer>
         <div class="container">
-            <p>© 2024 Jessica Code Editora - Todos os direitos reservados</p>
+            <p>© 2024 <span id="footerTitle">Jessica Code Editora</span> - Todos os direitos reservados</p>
             <p>Feito com ☕ para desenvolvedores | <a href="#">Termos de Uso</a> | <a href="#">Privacidade</a></p>
         </div>
     </footer>
@@ -239,19 +343,23 @@
     document.addEventListener('DOMContentLoaded', () => {
         // --- ESTADO E DADOS INICIAIS ---
         let books = [];
+        let lpTitle = '☕ Jessica Code Editora';
+        
         const initialBooks = [
             {
                 id: 1,
                 title: 'O Código da Mente',
+                subtitle: 'Desvendando os segredos da programação quântica',
                 author: 'Jessica Code & Equipe',
                 price: 'R$ 49,90',
                 oldPrice: 'R$ 89,90',
                 synopsis: 'Uma jornada fascinante pelo universo da programação, onde a lógica encontra a criatividade. Aprenda a pensar como um desenvolvedor sênior e transforme suas ideias em código funcional. Inclui exemplos práticos, desafios e acesso a comunidade exclusiva. Este livro é o guia definitivo para quem quer dominar a arte da programação moderna.',
-                image: '' // Sem imagem para usar o design padrão
+                image: ''
             },
             {
                 id: 2,
                 title: 'Algoritmos do Amor',
+                subtitle: 'Encontre o amor com a ciência da computação',
                 author: 'Maria Silva',
                 price: 'R$ 39,90',
                 oldPrice: 'R$ 69,90',
@@ -261,6 +369,7 @@
             {
                 id: 3,
                 title: 'Estruturas de Dados',
+                subtitle: 'Domine as bases da programação',
                 author: 'Carlos Oliveira',
                 price: 'R$ 59,90',
                 oldPrice: 'R$ 89,90',
@@ -270,6 +379,7 @@
             {
                 id: 4,
                 title: 'React Profundo',
+                subtitle: 'Do básico ao avançado',
                 author: 'Ana Costa',
                 price: 'R$ 69,90',
                 oldPrice: 'R$ 99,90',
@@ -279,6 +389,7 @@
             {
                 id: 5,
                 title: 'Python para Todos',
+                subtitle: 'Aprenda programação de forma divertida',
                 author: 'Lucas Mendes',
                 price: 'R$ 44,90',
                 oldPrice: 'R$ 74,90',
@@ -290,229 +401,14 @@
         // --- ELEMENTOS DO DOM ---
         const mainContent = document.getElementById('mainContent');
         const mainTitle = document.getElementById('mainTitle');
+        const footerTitle = document.getElementById('footerTitle');
         const adminPanelOverlay = document.getElementById('adminPanelOverlay');
         const adminPanel = document.getElementById('adminPanel');
         const adminPanelClose = document.getElementById('adminPanelClose');
         const adminBookList = document.getElementById('adminBookList');
-        const addNewBookBtn = document.getElementById('addNewBookBtn');
-        const adminForm = document.getElementById('adminForm');
-        const cancelFormBtn = document.getElementById('cancelFormBtn');
-        const formTitle = document.getElementById('formTitle');
+        const addNewBook
 
-        // --- FUNÇÕES DE RENDERIZAÇÃO ---
-        function renderLandingPage() {
-            if (books.length === 0) {
-                mainContent.innerHTML = `<div class="container" style="padding: 80px 20px; text-align: center;"><h2>Nenhum livro cadastrado.</h2><p>Clique 5 vezes no título da página para abrir o painel e adicionar livros.</p></div>`;
-                return;
-            }
-
-            const mainBook = books[0];
-            const otherBooks = books.slice(1);
-
-            const heroHTML = `
-                <section class="hero container">
-                    <div class="book-cover" style="${mainBook.image ? `background-image: url('${mainBook.image}')` : ''}">
-                        <div class="book-cover-content">
-                            <h2>${mainBook.title.replace(' ', '<br>')}</h2>
-                            <p>${mainBook.author}</p>
-                        </div>
-                    </div>
-                    <div class="book-info">
-                        <h2>${mainBook.title}</h2>
-                        <p class="author">Por ${mainBook.author}</p>
-                        <p class="price">
-                            ${mainBook.price} <span>${mainBook.oldPrice}</span>
-                        </p>
-                        <a href="#" class="btn">📖 Comprar Agora</a>
-                        <a href="#" class="btn btn-secondary">📄 Ler Amostra</a>
-                    </div>
-                </section>
-            `;
-
-            const synopsisHTML = `
-                <section class="synopsis-bar">
-                    <div class="container">
-                        <div class="synopsis-icon">📖</div>
-                        <div class="synopsis-text">
-                            <h3>Sinopse</h3>
-                            <p>${mainBook.synopsis.replace(/\n/g, '<br>')}</p>
-                        </div>
-                    </div>
-                </section>
-            `;
-
-            const otherBooksHTML = otherBooks.length > 0 ? `
-                <section class="other-books">
-                    <div class="container">
-                        <h2>📕 Outros Títulos que Você Pode Gostar</h2>
-                        <div class="books-grid">
-                            ${otherBooks.map(book => `
-                                <div class="book-card">
-                                    <div class="mini-cover" style="${book.image ? `background-image: url('${book.image}')` : 'background: linear-gradient(135deg, #4a2c1e, #2c1810);'}">
-                                        <div class="mini-cover-content">
-                                            <span>${book.title}</span>
-                                        </div>
-                                    </div>
-                                    <h3>${book.title}</h3>
-                                    <p class="card-author">${book.author}</p>
-                                    <p class="card-price">${book.price} <span>${book.oldPrice}</span></p>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                </section>
-            ` : '';
-
-            mainContent.innerHTML = heroHTML + synopsisHTML + otherBooksHTML;
-        }
-
-        function renderAdminPanel() {
-            adminBookList.innerHTML = books.map((book, index) => `
-                <div class="book-item">
-                    <img src="${book.image || 'https://via.placeholder.com/40x60/2c1810/d4af37?text=Capa'}" alt="Capa de ${book.title}">
-                    <div class="info">
-                        <strong>${book.title}</strong> ${index === 0 ? '<span style="color: #d4af37;">(Principal)</span>' : ''}<br>
-                        <span>${book.author}</span>
-                    </div>
-                    <div class="actions">
-                        <button class="btn-admin btn-edit" data-id="${book.id}">Editar</button>
-                        <button class="btn-admin btn-delete" data-id="${book.id}">Excluir</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // --- FUNÇÕES DE DADOS (LocalStorage) ---
-        function saveBooks() {
-            localStorage.setItem('jessicaCodeBooks', JSON.stringify(books));
-        }
-
-        function loadBooks() {
-            const storedBooks = localStorage.getItem('jessicaCodeBooks');
-            if (storedBooks) {
-                books = JSON.parse(storedBooks);
-            } else {
-                books = initialBooks;
-                saveBooks();
-            }
-        }
-
-        // --- LÓGICA DO PAINEL ADMIN ---
-        let clickCount = 0;
-        let clickTimer = null;
-
-        mainTitle.addEventListener('click', () => {
-            clickCount++;
-            if (clickTimer) clearTimeout(clickTimer);
-            clickTimer = setTimeout(() => { clickCount = 0; }, 1500); // Reseta após 1.5s
-            if (clickCount === 5) {
-                clickCount = 0;
-                openAdminPanel();
-            }
-        });
-
-        function openAdminPanel() {
-            renderAdminPanel();
-            adminPanelOverlay.classList.add('active');
-            adminPanel.classList.add('active');
-            document.body.classList.add('no-scroll');
-        }
-
-        function closeAdminPanel() {
-            adminPanelOverlay.classList.remove('active');
-            adminPanel.classList.remove('active');
-            document.body.classList.remove('no-scroll');
-            hideForm();
-        }
-
-        adminPanelClose.addEventListener('click', closeAdminPanel);
-        adminPanelOverlay.addEventListener('click', closeAdminPanel);
-
-        // --- LÓGICA DO FORMULÁRIO ---
-        function showForm(type = 'new', book = null) {
-            adminForm.style.display = 'grid';
-            addNewBookBtn.style.display = 'none';
-            adminForm.reset();
-            document.getElementById('bookId').value = '';
-
-            if (type === 'edit' && book) {
-                formTitle.textContent = 'Editando Livro';
-                document.getElementById('bookId').value = book.id;
-                document.getElementById('bookTitle').value = book.title;
-                document.getElementById('bookAuthor').value = book.author;
-                document.getElementById('bookPrice').value = book.price;
-                document.getElementById('bookOldPrice').value = book.oldPrice;
-                document.getElementById('bookImage').value = book.image;
-                document.getElementById('bookSynopsis').value = book.synopsis;
-            } else {
-                formTitle.textContent = 'Adicionar Novo Livro';
-            }
-        }
-
-        function hideForm() {
-            adminForm.style.display = 'none';
-            addNewBookBtn.style.display = 'block';
-        }
-
-        addNewBookBtn.addEventListener('click', () => showForm('new'));
-        cancelFormBtn.addEventListener('click', hideForm);
-
-        adminForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const id = document.getElementById('bookId').value;
-            const bookData = {
-                title: document.getElementById('bookTitle').value,
-                author: document.getElementById('bookAuthor').value,
-                price: document.getElementById('bookPrice').value,
-                oldPrice: document.getElementById('bookOldPrice').value,
-                image: document.getElementById('bookImage').value,
-                synopsis: document.getElementById('bookSynopsis').value,
-            };
-
-            if (id) { // Editando
-                const index = books.findIndex(b => b.id == id);
-                if (index > -1) {
-                    books[index] = { ...books[index], ...bookData };
-                }
-            } else { // Criando
-                bookData.id = Date.now(); // ID único
-                books.push(bookData);
-            }
-
-            saveBooks();
-            renderLandingPage();
-            renderAdminPanel();
-            hideForm();
-        });
-
-        // --- AÇÕES DE EDITAR/EXCLUIR (Event Delegation) ---
-        adminBookList.addEventListener('click', (e) => {
-            const target = e.target;
-            const bookId = target.dataset.id;
-
-            if (target.classList.contains('btn-edit')) {
-                const bookToEdit = books.find(b => b.id == bookId);
-                if (bookToEdit) showForm('edit', bookToEdit);
-            }
-
-            if (target.classList.contains('btn-delete')) {
-                if (confirm(`Tem certeza que deseja excluir este livro?`)) {
-                    books = books.filter(b => b.id != bookId);
-                    saveBooks();
-                    renderLandingPage();
-                    renderAdminPanel();
-                }
-            }
-        });
-
-        // --- INICIALIZAÇÃO ---
-        function init() {
-            loadBooks();
-            renderLandingPage();
-        }
-
-        init();
-    });
-    </script>
-</body>
-</html>
+<div class="flex justify-between items-center text-[10px] text-slate-500 mt-6 pt-3 border-t border-slate-800/60 select-none">
+            <span class="flex items-center gap-1.5 uppercase font-bold tracking-widest"><i class="fa-solid fa-brain text-emerald-500/50"></i> DeepSeek <span class="text-slate-600 font-mono font-normal tracking-normal lowercase ml-1">(deepseek-chat)</span></span>
+            <span class="font-mono tracking-wider opacity-70">27/05/2026 • 17:21 BRT</span>
+        </div>
