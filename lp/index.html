@@ -14,8 +14,8 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-            color: #fff;
+            background: linear-gradient(135deg, #f5e6d3 0%, #e8d5c4 30%, #d4b896 60%, #c4a882 100%);
+            color: #3d2b1f;
             min-height: 100vh;
             line-height: 1.6;
         }
@@ -30,7 +30,9 @@
         header {
             padding: 20px 0;
             text-align: center;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(61, 43, 31, 0.15);
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
         }
 
         header h1 {
@@ -38,7 +40,7 @@
             font-weight: 300;
             letter-spacing: 3px;
             text-transform: uppercase;
-            color: #a78bfa;
+            color: #6b4c3b;
         }
 
         /* Seção principal do livro */
@@ -54,7 +56,7 @@
         .book-cover {
             flex: 0 0 300px;
             height: 450px;
-            background: linear-gradient(145deg, #7c3aed, #a78bfa);
+            background: linear-gradient(145deg, #8B6914, #D4A574);
             border-radius: 12px;
             display: flex;
             align-items: center;
@@ -62,7 +64,7 @@
             font-size: 1.2rem;
             text-align: center;
             padding: 20px;
-            box-shadow: 0 20px 60px rgba(124, 58, 237, 0.4);
+            box-shadow: 0 20px 60px rgba(139, 105, 20, 0.3);
             position: relative;
             overflow: hidden;
         }
@@ -74,7 +76,7 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
             animation: shine 6s infinite;
         }
 
@@ -86,6 +88,7 @@
         .book-cover-content {
             position: relative;
             z-index: 1;
+            color: #fff;
         }
 
         .book-cover h2 {
@@ -107,29 +110,19 @@
         .book-info h2 {
             font-size: 2.5rem;
             margin-bottom: 15px;
-            background: linear-gradient(90deg, #a78bfa, #f472b6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #3d2b1f;
         }
 
         .book-info .author {
             font-size: 1.1rem;
-            color: #c4b5fd;
+            color: #6b4c3b;
             margin-bottom: 20px;
-        }
-
-        .book-info .description {
-            font-size: 1.05rem;
-            color: #d1d5db;
-            margin-bottom: 30px;
-            max-width: 500px;
         }
 
         .book-info .price {
             font-size: 2rem;
             font-weight: 700;
-            color: #fbbf24;
+            color: #8B6914;
             margin-bottom: 25px;
         }
 
@@ -144,7 +137,7 @@
         .btn {
             display: inline-block;
             padding: 16px 40px;
-            background: linear-gradient(90deg, #7c3aed, #a78bfa);
+            background: linear-gradient(90deg, #8B6914, #D4A574);
             color: #fff;
             text-decoration: none;
             border-radius: 50px;
@@ -153,35 +146,73 @@
             transition: all 0.3s ease;
             border: none;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+            box-shadow: 0 4px 15px rgba(139, 105, 20, 0.4);
         }
 
         .btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(124, 58, 237, 0.6);
+            box-shadow: 0 8px 25px rgba(139, 105, 20, 0.6);
         }
 
         .btn-secondary {
             background: transparent;
-            border: 2px solid #a78bfa;
+            border: 2px solid #8B6914;
+            color: #8B6914;
             margin-left: 15px;
         }
 
         .btn-secondary:hover {
-            background: rgba(167, 139, 250, 0.1);
+            background: rgba(139, 105, 20, 0.1);
+        }
+
+        /* Faixa de Sinopse */
+        .synopsis-bar {
+            background: rgba(61, 43, 31, 0.08);
+            padding: 40px 0;
+            border-top: 2px solid rgba(139, 105, 20, 0.2);
+            border-bottom: 2px solid rgba(139, 105, 20, 0.2);
+            margin: 20px 0;
+        }
+
+        .synopsis-bar .container {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+
+        .synopsis-bar .synopsis-icon {
+            font-size: 3rem;
+            color: #8B6914;
+        }
+
+        .synopsis-bar .synopsis-text {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .synopsis-bar .synopsis-text h3 {
+            font-size: 1.3rem;
+            color: #3d2b1f;
+            margin-bottom: 10px;
+        }
+
+        .synopsis-bar .synopsis-text p {
+            font-size: 1.05rem;
+            color: #5c4033;
+            line-height: 1.8;
         }
 
         /* Seção de outros livros */
         .other-books {
             padding: 80px 0;
-            border-top: 1px solid rgba(255,255,255,0.1);
         }
 
         .other-books h2 {
             text-align: center;
             font-size: 2rem;
             margin-bottom: 50px;
-            color: #e0e7ff;
+            color: #3d2b1f;
         }
 
         .books-grid {
@@ -191,19 +222,20 @@
         }
 
         .book-card {
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.6);
             border-radius: 12px;
             padding: 30px;
             text-align: center;
             transition: all 0.3s ease;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(139, 105, 20, 0.15);
             backdrop-filter: blur(10px);
+            cursor: pointer;
         }
 
         .book-card:hover {
             transform: translateY(-5px);
-            background: rgba(255,255,255,0.1);
-            border-color: #a78bfa;
+            background: rgba(255, 255, 255, 0.8);
+            border-color: #8B6914;
         }
 
         .book-card .mini-cover {
@@ -222,50 +254,187 @@
         .book-card h3 {
             font-size: 1.2rem;
             margin-bottom: 8px;
-            color: #f0f0ff;
+            color: #3d2b1f;
         }
 
         .book-card .card-author {
             font-size: 0.9rem;
-            color: #a78bfa;
+            color: #6b4c3b;
             margin-bottom: 10px;
         }
 
         .book-card .card-price {
             font-size: 1.3rem;
             font-weight: 700;
-            color: #fbbf24;
+            color: #8B6914;
             margin-bottom: 15px;
         }
 
         .book-card .btn-small {
             display: inline-block;
             padding: 10px 25px;
-            background: linear-gradient(90deg, #7c3aed, #a78bfa);
+            background: linear-gradient(90deg, #8B6914, #D4A574);
             color: #fff;
             text-decoration: none;
             border-radius: 50px;
             font-weight: 600;
             font-size: 0.9rem;
             transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
         }
 
         .book-card .btn-small:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+            box-shadow: 0 4px 15px rgba(139, 105, 20, 0.4);
+        }
+
+        /* Painel Deslizante */
+        .book-panel-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .book-panel-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .book-panel {
+            position: fixed;
+            bottom: -85%;
+            left: 0;
+            width: 100%;
+            height: 85%;
+            background: linear-gradient(135deg, #f5e6d3, #e8d5c4);
+            border-radius: 30px 30px 0 0;
+            z-index: 1001;
+            transition: bottom 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
+            overflow-y: auto;
+        }
+
+        .book-panel.active {
+            bottom: 0;
+        }
+
+        .book-panel .panel-content {
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .book-panel .panel-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(61, 43, 31, 0.1);
+            border: none;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #3d2b1f;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .book-panel .panel-close:hover {
+            background: rgba(61, 43, 31, 0.2);
+            transform: rotate(90deg);
+        }
+
+        .book-panel .panel-header {
+            display: flex;
+            gap: 40px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .book-panel .panel-cover {
+            width: 200px;
+            height: 280px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: #fff;
+            font-weight: 600;
+            text-align: center;
+            padding: 20px;
+            flex-shrink: 0;
+        }
+
+        .book-panel .panel-info {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .book-panel .panel-info h2 {
+            font-size: 2rem;
+            color: #3d2b1f;
+            margin-bottom: 10px;
+        }
+
+        .book-panel .panel-info .panel-author {
+            font-size: 1.1rem;
+            color: #6b4c3b;
+            margin-bottom: 15px;
+        }
+
+        .book-panel .panel-info .panel-synopsis {
+            font-size: 1rem;
+            color: #5c4033;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .book-panel .panel-info .panel-price {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #8B6914;
+            margin-bottom: 25px;
+        }
+
+        .book-panel .panel-info .panel-price span {
+            font-size: 1rem;
+            color: #9ca3af;
+            text-decoration: line-through;
+            margin-left: 10px;
+            font-weight: 400;
+        }
+
+        .book-panel .panel-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
         }
 
         /* Footer */
         footer {
             text-align: center;
             padding: 40px 0;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            color: #9ca3af;
+            border-top: 1px solid rgba(61, 43, 31, 0.15);
+            color: #6b4c3b;
             font-size: 0.9rem;
+            background: rgba(255, 255, 255, 0.3);
         }
 
         footer a {
-            color: #a78bfa;
+            color: #8B6914;
             text-decoration: none;
         }
 
@@ -275,10 +444,6 @@
                 flex-direction: column;
                 text-align: center;
                 padding: 40px 0;
-            }
-
-            .book-info .description {
-                margin: 0 auto 30px;
             }
 
             .book-info h2 {
@@ -295,13 +460,32 @@
                 height: 350px;
                 width: 250px;
             }
+
+            .synopsis-bar .container {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .book-panel .panel-header {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .book-panel .panel-buttons {
+                justify-content: center;
+            }
+
+            .book-panel .panel-content {
+                padding: 30px 20px;
+            }
         }
     </style>
 </head>
 <body>
     <header>
         <div class="container">
-            <h1>📚 Jessica Code Editora</h1>
+            <h1>☕ Jessica Code Editora</h1>
         </div>
     </header>
 
@@ -317,11 +501,6 @@
             <div class="book-info">
                 <h2>O Código da Mente</h2>
                 <p class="author">Por Jessica Code & Equipe</p>
-                <p class="description">
-                    Uma jornada fascinante pelo universo da programação, onde a lógica encontra a criatividade. 
-                    Aprenda a pensar como um desenvolvedor sênior e transforme suas ideias em código funcional. 
-                    Inclui exemplos práticos, desafios e acesso a comunidade exclusiva.
-                </p>
                 <p class="price">
                     R$ 49,90 <span>R$ 89,90</span>
                 </p>
@@ -330,60 +509,197 @@
             </div>
         </section>
 
+        <!-- Faixa de Sinopse -->
+        <section class="synopsis-bar">
+            <div class="container">
+                <div class="synopsis-icon">📖</div>
+                <div class="synopsis-text">
+                    <h3>Sinopse</h3>
+                    <p>
+                        Uma jornada fascinante pelo universo da programação, onde a lógica encontra a criatividade. 
+                        Aprenda a pensar como um desenvolvedor sênior e transforme suas ideias em código funcional. 
+                        Inclui exemplos práticos, desafios e acesso a comunidade exclusiva. 
+                        Este livro é o guia definitivo para quem quer dominar a arte da programação moderna.
+                    </p>
+                </div>
+            </div>
+        </section>
+
         <!-- Outros Livros -->
         <section class="other-books">
             <div class="container">
                 <h2>📕 Outros Títulos que Você Pode Gostar</h2>
                 <div class="books-grid">
-                    <div class="book-card">
+                    <div class="book-card" data-book="1">
                         <div class="mini-cover" style="background: linear-gradient(135deg, #f472b6, #ec4899);">
                             <span>Algoritmos<br>do Amor</span>
                         </div>
                         <h3>Algoritmos do Amor</h3>
                         <p class="card-author">Maria Silva</p>
                         <p class="card-price">R$ 39,90</p>
-                        <a href="#" class="btn-small">Saiba Mais</a>
+                        <button class="btn-small">Saiba Mais</button>
                     </div>
 
-                    <div class="book-card">
+                    <div class="book-card" data-book="2">
                         <div class="mini-cover" style="background: linear-gradient(135deg, #34d399, #059669);">
                             <span>Estruturas<br>de Dados</span>
                         </div>
                         <h3>Estruturas de Dados na Prática</h3>
                         <p class="card-author">Carlos Oliveira</p>
                         <p class="card-price">R$ 59,90</p>
-                        <a href="#" class="btn-small">Saiba Mais</a>
+                        <button class="btn-small">Saiba Mais</button>
                     </div>
 
-                    <div class="book-card">
+                    <div class="book-card" data-book="3">
                         <div class="mini-cover" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
                             <span>React<br>Profundo</span>
                         </div>
                         <h3>React Profundo</h3>
                         <p class="card-author">Ana Costa</p>
                         <p class="card-price">R$ 69,90</p>
-                        <a href="#" class="btn-small">Saiba Mais</a>
+                        <button class="btn-small">Saiba Mais</button>
                     </div>
 
-                    <div class="book-card">
+                    <div class="book-card" data-book="4">
                         <div class="mini-cover" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
                             <span>Python<br>para Todos</span>
                         </div>
                         <h3>Python para Todos</h3>
                         <p class="card-author">Lucas Mendes</p>
                         <p class="card-price">R$ 44,90</p>
-                        <a href="#" class="btn-small">Saiba Mais</a>
+                        <button class="btn-small">Saiba Mais</button>
                     </div>
                 </div>
             </div>
         </section>
     </main>
 
+    <!-- Painel Deslizante -->
+    <div class="book-panel-overlay" id="panelOverlay"></div>
+    <div class="book-panel" id="bookPanel">
+        <button class="panel-close" id="panelClose">✕</button>
+        <div class="panel-content" id="panelContent">
+            <!-- Conteúdo será preenchido dinamicamente -->
+        </div>
+    </div>
+
     <footer>
         <div class="container">
             <p>© 2024 Jessica Code Editora - Todos os direitos reservados</p>
-            <p>Feito com ❤️ para desenvolvedores | <a href="#">Termos de Uso</a> | <a href="#">Privacidade</a></p>
+            <p>Feito com ☕ para desenvolvedores | <a href="#">Termos de Uso</a> | <a href="#">Privacidade</a></p>
         </div>
     </footer>
+
+    <script>
+        // Dados dos livros
+        const booksData = {
+            1: {
+                title: 'Algoritmos do Amor',
+                author: 'Maria Silva',
+                price: 'R$ 39,90',
+                oldPrice: 'R$ 69,90',
+                synopsis: 'Descubra como os algoritmos podem ajudar a encontrar o amor verdadeiro. Uma abordagem única que une programação e relacionamentos, mostrando como padrões de comportamento podem ser decodificados para criar conexões mais profundas e significativas.',
+                coverColor: 'linear-gradient(135deg, #f472b6, #ec4899)'
+            },
+            2: {
+                title: 'Estruturas de Dados na Prática',
+                author: 'Carlos Oliveira',
+                price: 'R$ 59,90',
+                oldPrice: 'R$ 89,90',
+                synopsis: 'Domine as estruturas de dados mais importantes do mercado. Este livro aborda desde listas encadeadas até árvores balanceadas, com exemplos práticos em Python e JavaScript. Ideal para quem quer se preparar para entrevistas técnicas.',
+                coverColor: 'linear-gradient(135deg, #34d399, #059669)'
+            },
+            3: {
+                title: 'React Profundo',
+                author: 'Ana Costa',
+                price: 'R$ 69,90',
+                oldPrice: 'R$ 99,90',
+                synopsis: 'Vá além do básico do React e aprenda padrões avançados, otimização de performance, gerenciamento de estado complexo e arquitetura de componentes. Um guia completo para desenvolvedores que querem dominar o ecossistema React.',
+                coverColor: 'linear-gradient(135deg, #f59e0b, #d97706)'
+            },
+            4: {
+                title: 'Python para Todos',
+                author: 'Lucas Mendes',
+                price: 'R$ 44,90',
+                oldPrice: 'R$ 74,90',
+                synopsis: 'Aprenda Python do zero de forma prática e divertida. Este livro cobre desde conceitos básicos até tópicos avançados como web scraping, automação e análise de dados. Perfeito para iniciantes e profissionais que querem expandir seus horizontes.',
+                coverColor: 'linear-gradient(135deg, #8b5cf6, #6d28d9)'
+            }
+        };
+
+        // Elementos do DOM
+        const panelOverlay = document.getElementById('panelOverlay');
+        const bookPanel = document.getElementById('bookPanel');
+        const panelContent = document.getElementById('panelContent');
+        const panelClose = document.getElementById('panelClose');
+
+        // Função para abrir o painel
+        function openPanel(bookId) {
+            const book = booksData[bookId];
+            if (!book) return;
+
+            panelContent.innerHTML = `
+                <div class="panel-header">
+                    <div class="panel-cover" style="background: ${book.coverColor};">
+                        <span>${book.title}</span>
+                    </div>
+                    <div class="panel-info">
+                        <h2>${book.title}</h2>
+                        <p class="panel-author">Por ${book.author}</p>
+                        <p class="panel-synopsis">${book.synopsis}</p>
+                        <p class="panel-price">
+                            ${book.price} <span>${book.oldPrice}</span>
+                        </p>
+                        <div class="panel-buttons">
+                            <a href="#" class="btn">📖 Comprar Agora</a>
+                            <a href="#" class="btn btn-secondary">📄 Ler Amostra</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            panelOverlay.classList.add('active');
+            bookPanel.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Função para fechar o painel
+        function closePanel() {
+            panelOverlay.classList.remove('active');
+            bookPanel.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Event listeners para os cards
+        document.querySelectorAll('.book-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                // Evita abrir o painel se clicar no botão (para não duplicar)
+                if (e.target.classList.contains('btn-small')) {
+                    e.stopPropagation();
+                }
+                const bookId = this.getAttribute('data-book');
+                openPanel(bookId);
+            });
+
+            // Event listener específico para o botão "Saiba Mais"
+            const btn = card.querySelector('.btn-small');
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const bookId = this.closest('.book-card').getAttribute('data-book');
+                openPanel(bookId);
+            });
+        });
+
+        // Fechar painel
+        panelClose.addEventListener('click', closePanel);
+        panelOverlay.addEventListener('click', closePanel);
+
+        // Fechar com tecla ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && bookPanel.classList.contains('active')) {
+                closePanel();
+            }
+        });
+    </script>
 </body>
 </html>
