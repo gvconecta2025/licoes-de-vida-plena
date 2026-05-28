@@ -347,7 +347,7 @@
             .mobile-hero h2 { font-size: 1.6rem; }
         }
     </style>
-        <script>
+          <script>
     // ============================================================
     // CONFIGURAÇÃO DO FIREBASE
     // ============================================================
@@ -414,9 +414,417 @@
             ? `<div class="book-cover-content">
                 <h2>${book.title.replace(' ', '<br>')}</h2>
                 <p>${book.author}</p>
-            </div>`
+            </div>` 
+            : '';
 
-<div class="flex justify-between items-center text-[10px] text-slate-500 mt-6 pt-3 border-t border-slate-800/60 select-none">
-            <span class="flex items-center gap-1.5 uppercase font-bold tracking-widest"><i class="fa-solid fa-brain text-emerald-500/50"></i> DeepSeek <span class="text-slate-600 font-mono font-normal tracking-normal lowercase ml-1">(deepseek-chat)</span></span>
-            <span class="font-mono tracking-wider opacity-70">27/05/2026 • 21:54 BRT</span>
-        </div>
+        return {
+            coverStyle,
+            coverContent,
+            title: book.title,
+            subtitle: book.subtitle,
+            author: book.author,
+            price: book.price,
+            oldPrice: book.oldPrice
+        };
+    }
+
+    // ============================================================
+    // RENDERIZAÇÃO PRINCIPAL DA LANDING PAGE
+    // ============================================================
+    function renderLandingPage() {
+        // Atualiza título do cabeçalho e rodapé
+        mainTitle.textContent = state.lpTitle;
+        footerTitle.textContent = state.lpTitle.replace('☕ ', '');
+
+        // Se não houver livros, exibe mensagem
+        if (state.books.length === 0) {
+            mainContent.innerHTML = `
+                <div class="mobile-hero" style="display: flex;">
+                    <h2>Nenhum livro cadastrado</h2>
+                    <p style="color: #c4a882; margin-top: 20px;">Clique 5 vezes no título para abrir o painel admin</p>
+                </div>
+            `;
+            return;
+        }
+
+        const mainBook = state.books[0];
+        const otherBooks = state.books.slice(1);
+        const bookData = generateMainBookHTML(mainBook);
+
+        // --- Layout Desktop ---
+        const heroDesktop = `
+            <section class="hero container">
+                <div class="book-cover" style="${bookData.coverStyle}">
+                    ${bookData.coverContent}
+                </div>
+                <div class="book-info">
+                    <h2>${bookData.title}</h2>
+                    ${bookData.subtitle ? `<p class="subtitle">${bookData.subtitle}</p>` : ''}
+                    <p class="author">Por ${bookData.author}</p>
+                    <p class="price">
+                        ${bookData.price} <span>${bookData.oldPrice}</span>
+                    </p>
+                    <a href="#" class="btn">📖 Comprar Agora</a>
+                    <a href="#" class="btn btn-secondary">📄 Ler Amostra</a>
+                </div>
+            </section>
+        `;
+
+        // --- Layout Mobile ---
+        const heroMobile = `
+            <section class="mobile-hero">
+                <div class="mobile-cover" style="${bookData.coverStyle}">
+                    ${bookData.coverContent}
+                </div>
+                <h2>${bookData.title}</h2>
+                ${bookData.subtitle ? `<p class="mobile-subtitle">${bookData.subtitle}</p>` : ''}
+                <p class="mobile-author">Por ${bookData.author}</p>
+                <p class="mobile-price">
+                    ${bookData.price} <span>${bookData.oldPrice}</span>
+                </p>
+                <div class="mobile-buttons">
+                    <a href="#" class="btn">📖 Comprar</a>
+                    <a href="#" class="btn btn-secondary">📄 Amostra</a>
+                </div>
+                <div class="scroll-indicator">↓</div>
+            </section>
+        `;
+
+        // --- Faixa de Sinopse ---
+        const synopsisHTML = `
+            <section class="synopsis-bar">
+                <div class="container">
+                    <div class="synopsis-icon">📖</div>
+                    <div class="synopsis-text">
+                        <h3>Sinopse</h3>
+                        <p>${mainBook.synopsis.replace(/\n/g, '<br>')}</p>
+                    </div>
+                </div>
+            </section>
+        `;
+
+        // --- Grid de outros livros ---
+        const otherBooksHTML = otherBooks.length > 0 ? `
+            <section class="other-books">
+                <div class="container">
+                    <h2>📕 Outros Títulos que Você Pode Gostar</h2>
+                    <div class="books-grid">
+                        ${otherBooks.map(book => `
+                            <div class="book-card" data-id="${book.id}">
+                                <div class="mini-cover" style="${book.image ? `background-image: url('${book.image}')` : 'background: linear-gradient(135deg, #4a2c1e, #2c1810);'}">
+                                    ${!book.image ? `<div class="mini-cover-content"><span>${book.title}</span></div>` : ''}
+                                </div>
+                                <h3>${book.title}</h3>
+                                <p class="card-author">${book.author}</p>
+                                <p class="card-price">${book.price} <span>${book.oldPrice}</span></p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </section>
+        ` : '';
+
+        // Injeta todo o conteúdo no main (desktop + mobile + sinopse + grid)
+        mainContent.innerHTML = heroDesktop + heroMobile + synopsisHTML + otherBooksHTML;
+
+        // Adiciona eventos de clique nos cards dos outros livros
+        document.querySelectorAll('.book-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const bookId = this.dataset.id;
+                openBookDetail(bookId);
+            });
+        });
+    }
+
+    // ============================================================
+    // RENDERIZAÇÃO DO PAINEL ADMIN
+    // ============================================================
+    function renderAdminPanel() {
+        adminBookList.innerHTML = state.books.map((book, index) => `
+            <div class="book-item">
+                <img src="${book.image || 'https://via.placeholder.com/40x60/2c1810/d4af37?text=Capa'}" alt="Capa de ${book.title}">
+                <div class="info">
+                    <strong>${book.title}</strong> ${index === 0 ? '<span style="color: #d4af37;">(Principal)</span>' : ''}<br>
+                    <span>${book.author}</span>
+                    ${book.subtitle ? `<br><span style="font-size: 0.85em; color: #8b7355;">${book.subtitle}</span>` : ''}
+                </div>
+                <div class="actions">
+                    <button class="btn-admin btn-edit" data-id="${book.id}">Editar</button>
+                    <button class="btn-admin btn-delete" data-id="${book.id}">Excluir</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // ============================================================
+    // LISTENER EM TEMPO REAL DO FIRESTORE
+    // ============================================================
+    function startRealtimeListener() {
+        // onSnapshot dispara automaticamente quando há mudanças no Firestore
+        booksCollection.orderBy('createdAt', 'asc').onSnapshot((snapshot) => {
+            const books = [];
+            snapshot.forEach((doc) => {
+                books.push({ id: doc.id, ...doc.data() });
+            });
+            
+            // Atualiza o estado centralizado
+            state.books = books;
+            
+            // Re-renderiza a landing page (desktop e mobile)
+            renderLandingPage();
+            
+            // Se o painel admin estiver aberto, re-renderiza também
+            if (adminPanel.classList.contains('active')) {
+                renderAdminPanel();
+            }
+        }, (error) => {
+            console.error('Erro no listener do Firestore:', error);
+        });
+    }
+
+    // ============================================================
+    // OPERAÇÕES NO FIRESTORE
+    // ============================================================
+
+    // Adiciona novo livro
+    async function addBook(bookData) {
+        try {
+            await booksCollection.add({
+                ...bookData,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            // A atualização é automática via onSnapshot
+        } catch (error) {
+            console.error('Erro ao adicionar livro:', error);
+            alert('Erro ao adicionar livro. Verifique o console.');
+        }
+    }
+
+    // Atualiza livro existente
+    async function updateBook(id, bookData) {
+        try {
+            await booksCollection.doc(id).update(bookData);
+            // Atualização automática via onSnapshot
+        } catch (error) {
+            console.error('Erro ao atualizar livro:', error);
+            alert('Erro ao atualizar livro.');
+        }
+    }
+
+    // Remove livro
+    async function deleteBook(id) {
+        try {
+            await booksCollection.doc(id).delete();
+            // Atualização automática
+        } catch (error) {
+            console.error('Erro ao excluir livro:', error);
+            alert('Erro ao excluir livro.');
+        }
+    }
+
+    // ============================================================
+    // PAINEL DE DETALHES DO LIVRO
+    // ============================================================
+    function openBookDetail(bookId) {
+        const book = state.books.find(b => b.id === bookId);
+        if (!book) return;
+
+        const coverStyle = book.image 
+            ? `background-image: url('${book.image}')` 
+            : 'background: linear-gradient(135deg, #1a0f0a, #3d2317);';
+        const coverContent = !book.image ? `<span>${book.title}</span>` : '';
+
+        bookDetailContent.innerHTML = `
+            <div class="panel-header">
+                <div class="panel-cover" style="${coverStyle}">${coverContent}</div>
+                <div class="panel-info">
+                    <h2>${book.title}</h2>
+                    ${book.subtitle ? `<p class="panel-subtitle">${book.subtitle}</p>` : ''}
+                    <p class="panel-author">Por ${book.author}</p>
+                    <p class="panel-synopsis">${book.synopsis.replace(/\n/g, '<br>')}</p>
+                    <p class="panel-price">${book.price} <span>${book.oldPrice}</span></p>
+                    <div class="panel-buttons">
+                        <a href="#" class="btn">📖 Comprar Agora</a>
+                        <a href="#" class="btn btn-secondary">📄 Ler Amostra</a>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        bookDetailOverlay.classList.add('active');
+        bookDetailPanel.classList.add('active');
+        document.body.classList.add('no-scroll');
+    }
+
+    function closeBookDetail() {
+        bookDetailOverlay.classList.remove('active');
+        bookDetailPanel.classList.remove('active');
+        document.body.classList.remove('no-scroll');
+    }
+
+    bookDetailClose.addEventListener('click', closeBookDetail);
+    bookDetailOverlay.addEventListener('click', closeBookDetail);
+
+    // ============================================================
+    // LÓGICA DO PAINEL ADMIN (ABERTURA E FECHAMENTO)
+    // ============================================================
+    let clickCount = 0;
+    let clickTimer = null;
+
+    // 5 cliques no título para abrir painel admin
+    mainTitle.addEventListener('click', () => {
+        clickCount++;
+        if (clickTimer) clearTimeout(clickTimer);
+        clickTimer = setTimeout(() => { clickCount = 0; }, 1500);
+        if (clickCount === 5) {
+            clickCount = 0;
+            openAdminPanel();
+        }
+    });
+
+    function openAdminPanel() {
+        lpTitleInput.value = state.lpTitle;
+        renderAdminPanel();
+        adminPanelOverlay.classList.add('active');
+        adminPanel.classList.add('active');
+        document.body.classList.add('no-scroll');
+    }
+
+    function closeAdminPanel() {
+        adminPanelOverlay.classList.remove('active');
+        adminPanel.classList.remove('active');
+        document.body.classList.remove('no-scroll');
+        hideForm();
+    }
+
+    adminPanelClose.addEventListener('click', closeAdminPanel);
+    adminPanelOverlay.addEventListener('click', closeAdminPanel);
+
+    // Salvar título da Landing Page no Firestore (ou local)
+    saveLpTitleBtn.addEventListener('click', () => {
+        const newTitle = lpTitleInput.value.trim();
+        if (newTitle) {
+            state.lpTitle = newTitle;
+            // Opcional: salvar título em um documento de configurações
+            db.collection('config').doc('landing').set({ title: newTitle }, { merge: true })
+                .then(() => {
+                    renderLandingPage();
+                    alert('Título atualizado com sucesso!');
+                })
+                .catch(err => console.error('Erro ao salvar título:', err));
+        }
+    });
+
+    // ============================================================
+    // FORMULÁRIO DE CRIAÇÃO/EDIÇÃO
+    // ============================================================
+    function showForm(type = 'new', book = null) {
+        adminForm.style.display = 'grid';
+        addNewBookBtn.style.display = 'none';
+        adminForm.reset();
+        document.getElementById('bookId').value = '';
+
+        if (type === 'edit' && book) {
+            formTitle.textContent = 'Editando Livro';
+            document.getElementById('bookId').value = book.id;
+            document.getElementById('bookTitle').value = book.title;
+            document.getElementById('bookSubtitle').value = book.subtitle || '';
+            document.getElementById('bookAuthor').value = book.author;
+            document.getElementById('bookPrice').value = book.price;
+            document.getElementById('bookOldPrice').value = book.oldPrice;
+            document.getElementById('bookImage').value = book.image || '';
+            document.getElementById('bookSynopsis').value = book.synopsis;
+        } else {
+            formTitle.textContent = 'Adicionar Novo Livro';
+        }
+    }
+
+    function hideForm() {
+        adminForm.style.display = 'none';
+        addNewBookBtn.style.display = 'block';
+    }
+
+    addNewBookBtn.addEventListener('click', () => showForm('new'));
+    cancelFormBtn.addEventListener('click', hideForm);
+
+    adminForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const bookData = {
+            title: document.getElementById('bookTitle').value,
+            subtitle: document.getElementById('bookSubtitle').value,
+            author: document.getElementById('bookAuthor').value,
+            price: document.getElementById('bookPrice').value,
+            oldPrice: document.getElementById('bookOldPrice').value,
+            image: document.getElementById('bookImage').value,
+            synopsis: document.getElementById('bookSynopsis').value,
+        };
+
+        const id = document.getElementById('bookId').value;
+        
+        if (id) {
+            // Edição
+            updateBook(id, bookData);
+        } else {
+            // Criação
+            addBook(bookData);
+        }
+
+        hideForm();
+    });
+
+    // ============================================================
+    // AÇÕES DO PAINEL ADMIN (EDITAR E EXCLUIR)
+    // ============================================================
+    adminBookList.addEventListener('click', (e) => {
+        const target = e.target;
+        const bookId = target.dataset.id;
+
+        if (target.classList.contains('btn-edit')) {
+            const bookToEdit = state.books.find(b => b.id === bookId);
+            if (bookToEdit) showForm('edit', bookToEdit);
+        }
+
+        if (target.classList.contains('btn-delete')) {
+            if (confirm('Tem certeza que deseja excluir este livro?')) {
+                deleteBook(bookId);
+            }
+        }
+    });
+
+    // ============================================================
+    // FECHAR PAINÉIS COM TECLA ESC
+    // ============================================================
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (bookDetailPanel.classList.contains('active')) closeBookDetail();
+            if (adminPanel.classList.contains('active')) closeAdminPanel();
+        }
+    });
+
+    // ============================================================
+    // INICIALIZAÇÃO
+    // ============================================================
+    function init() {
+        // Carrega título da LP (pode estar no Firestore)
+        db.collection('config').doc('landing').get()
+            .then((doc) => {
+                if (doc.exists && doc.data().title) {
+                    state.lpTitle = doc.data().title;
+                    renderLandingPage();
+                }
+            })
+            .catch(() => {
+                // Se falhar, usa o padrão
+                renderLandingPage();
+            });
+
+        // Inicia o listener em tempo real dos livros
+        startRealtimeListener();
+    }
+
+    // Inicia tudo quando a página carregar
+    init();
+    </script>
+</body>
+</html>
