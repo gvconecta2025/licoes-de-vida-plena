@@ -18,14 +18,17 @@ import { getFirestore } from "firebase/firestore";
 // 6. Dê um nome ao seu app e clique em "Registrar app".
 // 7. O Firebase fornecerá um objeto `firebaseConfig`. Copie e cole aqui.
 // =============================================================================
+
 const firebaseConfig = {
-  apiKey: "SUA_API_KEY",
-  authDomain: "SEU_PROJECT_ID.firebaseapp.com",
-  projectId: "SEU_PROJECT_ID",
-  storageBucket: "SEU_PROJECT_ID.appspot.com",
-  messagingSenderId: "SEU_MESSAGING_SENDER_ID",
-  appId: "SEU_APP_ID"
+  apiKey: "AIzaSyC4GUyzhu-ax0a-DuqWWneSI764wgGga90",
+  authDomain: "landingpagelivros.firebaseapp.com",
+  projectId: "landingpagelivros",
+  storageBucket: "landingpagelivros.firebasestorage.app",
+  messagingSenderId: "681377067030",
+  appId: "1:681377067030:web:3722bdf9cd4e36e3970537",
+  measurementId: "G-JN86KFWJ7L"
 };
+
 
 // Inicializa o aplicativo Firebase com a configuração fornecida.
 // Esta é a porta de entrada para todos os serviços do Firebase.
