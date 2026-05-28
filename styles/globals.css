@@ -1,8 +1,8 @@
 /* styles/globals.css */
 
 :root {
-    --bg-primary: #121017;
-    --bg-secondary: #1e1d2b;
+    --bg-primary: #0a090d;
+    --bg-secondary: #1a1822;
     --bg-tertiary: #2a2839;
     --text-primary: #f0f0f0;
     --text-secondary: #a0a0a0;
@@ -15,347 +15,178 @@
     --font-heading: 'Playfair Display', serif;
     --font-body: 'Inter', sans-serif;
 
-    --spacing-xs: 4px;
-    --spacing-s: 8px;
-    --spacing-m: 16px;
-    --spacing-l: 24px;
-    --spacing-xl: 32px;
-    --spacing-xxl: 48px;
+    --spacing-xs: 4px; --spacing-s: 8px; --spacing-m: 16px;
+    --spacing-l: 24px; --spacing-xl: 32px; --spacing-xxl: 48px;
     --spacing-xxxl: 64px;
 
     --border-radius: 8px;
     --transition-speed: 0.3s;
 }
 
-/* --- RESET GLOBAL E ESTILOS BASE --- */
-*, *::before, *::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-html {
-    scroll-behavior: smooth;
-}
-
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
 body {
-    font-family: var(--font-body);
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
-    line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    position: relative;
-    overflow-x: hidden;
+    font-family: var(--font-body); background-color: var(--bg-primary);
+    color: var(--text-primary); line-height: 1.6;
+    -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+    position: relative; overflow-x: hidden;
 }
+body.no-scroll { overflow: hidden; }
 
-body.no-scroll {
-    overflow: hidden;
-}
-
-/* EFEITO VISUAL: Brilho ambiente dourado */
 .glow-effect {
-    position: fixed;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 800px;
-    height: 800px;
-    background: radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, rgba(212, 175, 55, 0) 60%);
-    pointer-events: none;
-    z-index: -1;
+    position: fixed; top: -20%; left: 50%; transform: translateX(-50%);
+    width: 1000px; height: 1000px;
+    background: radial-gradient(circle, rgba(212, 175, 55, 0.06) 0%, rgba(212, 175, 55, 0) 50%);
+    pointer-events: none; z-index: -1;
 }
 
-h1, h2, h3, h4 {
-    font-family: var(--font-heading);
-    color: var(--text-primary);
-    line-height: 1.2;
-}
+h1, h2, h3, h4 { font-family: var(--font-heading); color: var(--text-primary); line-height: 1.2; }
+a { color: var(--accent-gold); text-decoration: none; }
+img { max-width: 100%; display: block; }
 
-a {
-    color: var(--accent-gold);
-    text-decoration: none;
+/* --- EFEITO GLOW CINEMATOGRÁFICO --- */
+.book-cover-glow {
+    /* drop-shadow é superior a box-shadow para brilhos em objetos com transparência */
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3)) 
+            drop-shadow(0 0 15px rgba(212, 175, 55, 0.15));
+    transition: filter var(--transition-speed) ease;
 }
-
-img {
-    max-width: 100%;
-    display: block;
+.book-cover-glow:hover {
+    filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.4)) 
+            drop-shadow(0 0 25px rgba(212, 175, 55, 0.25));
 }
 
 /* --- LAYOUT PRINCIPAL --- */
 .app-header {
-    background-color: rgba(18, 16, 23, 0.8);
-    backdrop-filter: blur(10px);
-    padding: var(--spacing-m) var(--spacing-m);
-    position: sticky;
-    top: 0;
-    z-index: 100;
+    background-color: rgba(10, 9, 13, 0.8); backdrop-filter: blur(10px);
+    padding: var(--spacing-m); position: sticky; top: 0; z-index: 100;
     border-bottom: 1px solid var(--border-color);
 }
+.header-content { max-width: 1200px; margin: 0 auto; }
+.header-title { font-size: 1.5rem; color: var(--accent-gold); cursor: pointer; user-select: none; }
 
-.header-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+/* --- SEÇÃO HERO --- */
+.hero-section {
+    text-align: center;
+    padding: var(--spacing-xxl) var(--spacing-m);
+    border-bottom: 1px solid var(--border-color);
 }
+.hero-content { max-width: 70ch; margin: 0 auto; }
+.hero-title { font-size: 2.2rem; font-weight: 800; margin-bottom: var(--spacing-m); }
+.hero-subtitle { font-size: 1.1rem; color: var(--text-secondary); line-height: 1.7; }
 
-.header-title {
-    font-size: 1.5rem;
-    color: var(--accent-gold);
-    cursor: pointer; /* Dica visual para o gatilho secreto */
-    user-select: none; /* Impede a seleção de texto durante os cliques */
-}
-
-main {
-    padding: var(--spacing-l) var(--spacing-m);
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-/* --- LOADER INICIAL --- */
-.loader-overlay {
-    position: fixed; inset: 0; background-color: var(--bg-primary);
-    display: flex; justify-content: center; align-items: center;
-    z-index: 9999; transition: opacity var(--transition-speed) ease;
-}
-.loader-spinner {
-    width: 50px; height: 50px; border: 5px solid var(--border-color);
-    border-top-color: var(--accent-gold); border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* --- ESTADO DE PÁGINA VAZIA --- */
-.empty-state {
-    text-align: center; padding: var(--spacing-xxxl) var(--spacing-m);
-    background-color: var(--bg-secondary); border-radius: var(--border-radius);
-    border: 1px dashed var(--border-color);
-}
-.empty-state p { font-size: 1.2rem; font-weight: 600; }
-.empty-state span { color: var(--text-secondary); }
+main { padding: var(--spacing-xl) var(--spacing-m); max-width: 1200px; margin: 0 auto; }
 
 /* --- SEÇÃO DE LIVRO EM DESTAQUE --- */
-.featured-book-section {
-    margin-bottom: var(--spacing-xxxl);
-}
+.featured-book-section { margin-bottom: var(--spacing-xxxl); }
+.featured-book { display: grid; grid-template-columns: 1fr; gap: var(--spacing-l); align-items: center; }
+.featured-book-cover { display: flex; justify-content: center; }
+.featured-book-cover img { width: 100%; max-width: 300px; height: auto; border-radius: var(--border-radius); }
+.featured-book-title { font-size: 2.2rem; font-weight: 800; margin-bottom: var(--spacing-xs); }
+.featured-book-subtitle { font-family: var(--font-body); font-weight: 400; color: var(--text-secondary); font-size: 1.1rem; margin-bottom: var(--spacing-s); }
+.featured-book-author { font-size: 1rem; color: var(--text-secondary); margin-bottom: var(--spacing-l); }
+.featured-book-synopsis { margin-bottom: var(--spacing-l); color: var(--text-secondary); max-width: 60ch; }
+.featured-book-price { margin-bottom: var(--spacing-l); }
+.featured-book-price .old-price { font-size: 1rem; color: var(--text-secondary); text-decoration: line-through; margin-right: var(--spacing-m); }
+.featured-book-price .current-price { font-size: 1.8rem; font-weight: 700; color: var(--accent-gold); }
 
-.featured-book {
-    display: grid;
-    grid-template-columns: 1fr; /* Mobile: imagem em cima, texto embaixo */
-    gap: var(--spacing-l);
-    align-items: center;
-}
-
-.featured-book-cover {
+/* --- SISTEMA DE BOTÕES CTA --- */
+.featured-book-actions, .book-modal-actions {
     display: flex;
-    justify-content: center;
+    flex-wrap: wrap; /* Garante que os botões quebrem a linha em telas pequenas */
+    gap: var(--spacing-m);
+    margin-top: var(--spacing-l);
 }
-
-.featured-book-cover img {
-    width: 100%;
-    max-width: 350px;
-    height: auto;
-    border-radius: var(--border-radius);
-    box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+.btn {
+    padding: 12px 24px; border-radius: var(--border-radius);
+    font-family: var(--font-body); font-size: 0.9rem; font-weight: 600;
+    cursor: pointer; transition: all var(--transition-speed) ease;
+    border: 1px solid transparent; text-align: center;
 }
-
-.featured-book-title {
-    font-size: 2.5rem;
-    font-weight: 800;
-    margin-bottom: var(--spacing-xs);
-}
-
-.featured-book-subtitle {
-    font-family: var(--font-body);
-    font-weight: 400;
-    color: var(--text-secondary);
-    font-size: 1.2rem;
-    margin-bottom: var(--spacing-s);
-}
-
-.featured-book-author {
-    font-size: 1.1rem;
-    color: var(--text-secondary);
-    margin-bottom: var(--spacing-l);
-}
-
-.featured-book-synopsis {
-    margin-bottom: var(--spacing-l);
-    color: var(--text-secondary);
-    max-width: 60ch; /* Melhora a legibilidade */
-}
-
-.featured-book-price {
-    margin-bottom: var(--spacing-l);
-}
-.featured-book-price .old-price {
-    font-size: 1.1rem; color: var(--text-secondary);
-    text-decoration: line-through; margin-right: var(--spacing-m);
-}
-.featured-book-price .current-price {
-    font-size: 2rem; font-weight: 700; color: var(--accent-gold);
-}
-
-.btn-details {
-    background-color: var(--accent-gold);
-    color: var(--bg-primary);
-    border: none;
-    border-radius: var(--border-radius);
-    padding: 14px 28px;
-    font-family: var(--font-body);
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all var(--transition-speed) ease;
-}
-.btn-details:hover {
-    background-color: var(--accent-gold-darker);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
-}
+.btn-primary { background-color: var(--accent-gold); color: var(--bg-primary); }
+.btn-primary:hover { background-color: var(--accent-gold-darker); transform: translateY(-2px); }
+.btn-secondary { background-color: transparent; color: var(--accent-gold); border-color: var(--accent-gold); }
+.btn-secondary:hover { background-color: var(--accent-gold); color: var(--bg-primary); }
+.btn-tertiary { background-color: transparent; color: var(--text-secondary); border-color: var(--border-color); }
+.btn-tertiary:hover { color: var(--text-primary); border-color: var(--text-secondary); }
 
 /* --- SEÇÃO DE SUGESTÕES --- */
-.suggested-books-section {
-    padding-top: var(--spacing-xl);
-}
-
+.suggested-books-section { padding-top: var(--spacing-xl); }
 .section-title {
-    font-size: 2rem;
-    margin-bottom: var(--spacing-l);
-    position: relative;
+    font-size: 1.8rem; margin-bottom: var(--spacing-l); position: relative;
     padding-bottom: var(--spacing-m);
 }
-
-/* EFEITO VISUAL: Linha dourada sob o título */
 .section-title::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 60px;
-    height: 3px;
+    content: ''; position: absolute; bottom: 0; left: 0;
+    width: 60px; height: 3px;
     background: linear-gradient(90deg, var(--accent-gold), transparent);
 }
+.book-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--spacing-m); }
 
-.book-grid {
-    display: grid;
-    grid-template-columns: 1fr; /* Mobile-first: 1 coluna */
-    gap: var(--spacing-l);
-}
-
-/* --- CARD DE LIVRO (sem alterações) --- */
+/* --- CARD DE LIVRO (ESCALA REFINADA) --- */
 .book-card {
     background-color: var(--bg-secondary); border-radius: var(--border-radius);
     overflow: hidden; display: flex; flex-direction: column; cursor: pointer;
     transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
-    border: 1px solid transparent;
+    border: 1px solid var(--border-color);
 }
-.book-card:hover {
-    transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-    border-color: var(--border-color);
-}
+.book-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
 .book-card-image-wrapper { aspect-ratio: 2 / 3; background-color: var(--bg-primary); }
 .book-card-image { width: 100%; height: 100%; object-fit: cover; }
 .book-card-content { padding: var(--spacing-m); display: flex; flex-direction: column; flex-grow: 1; }
-.book-card-title { font-size: 1.1rem; margin-bottom: var(--spacing-xs); }
-.book-card-author { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: var(--spacing-m); flex-grow: 1; }
-.book-card-price .old-price { text-decoration: line-through; color: var(--text-secondary); font-size: 0.9rem; margin-right: var(--spacing-s); }
-.book-card-price .current-price { color: var(--accent-gold); font-weight: 700; font-size: 1.2rem; }
+.book-card-title { font-size: 1rem; margin-bottom: var(--spacing-xs); }
+.book-card-author { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: var(--spacing-m); flex-grow: 1; }
+.book-card-price .old-price { text-decoration: line-through; color: var(--text-secondary); font-size: 0.8rem; margin-right: var(--spacing-s); }
+.book-card-price .current-price { color: var(--accent-gold); font-weight: 700; font-size: 1.1rem; }
 
-/* --- MODAL DE DETALHES DO LIVRO (sem alterações) --- */
-.modal-overlay {
-    position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(5px); display: flex; justify-content: center;
-    align-items: center; padding: var(--spacing-m); z-index: 1000;
-    opacity: 0; transition: opacity var(--transition-speed) ease;
+/* --- MODAL DE DETALHES --- */
+.modal-content { padding: var(--spacing-l); }
+.book-modal-image { max-width: 250px; }
+
+/* --- RODAPÉ --- */
+.app-footer {
+    border-top: 1px solid var(--border-color);
+    padding: var(--spacing-xl) var(--spacing-m);
+    margin-top: var(--spacing-xxxl);
 }
-.modal-overlay.visible { opacity: 1; }
-.modal-content {
-    background-color: var(--bg-secondary); border-radius: var(--border-radius);
-    width: 100%; max-width: 900px; max-height: 90vh; overflow-y: auto;
-    position: relative; padding: var(--spacing-l); transform: scale(0.95);
-    transition: transform var(--transition-speed) ease;
+.footer-content {
+    max-width: 1200px; margin: 0 auto; text-align: center;
+    color: var(--text-secondary); font-size: 0.9rem;
 }
-.modal-overlay.visible .modal-content { transform: scale(1); }
-.modal-close-btn {
-    position: absolute; top: var(--spacing-m); right: var(--spacing-m);
+.jessica-code { color: var(--accent-gold); font-weight: 500; }
+
+/* --- PAINEL DE ADMIN (NOVOS ESTILOS) --- */
+.admin-panel-tabs {
+    display: flex; border-bottom: 1px solid var(--border-color);
+    padding: 0 var(--spacing-l); flex-shrink: 0;
+}
+.tab-btn {
     background: none; border: none; color: var(--text-secondary);
-    cursor: pointer; padding: var(--spacing-s);
+    padding: var(--spacing-m) var(--spacing-s); cursor: pointer;
+    font-size: 0.9rem; font-weight: 500; position: relative;
+    border-bottom: 2px solid transparent;
 }
-.modal-close-btn:hover { color: var(--text-primary); }
-.modal-close-btn svg { width: 28px; height: 28px; }
-.book-modal-grid { display: grid; grid-template-columns: 1fr; gap: var(--spacing-l); }
-.book-modal-image-container { display: flex; justify-content: center; }
-.book-modal-image { width: 100%; max-width: 300px; height: auto; object-fit: contain; border-radius: var(--border-radius); }
-.book-modal-title { font-size: 2rem; margin-bottom: var(--spacing-xs); }
-.book-modal-subtitle { font-family: var(--font-body); font-weight: 400; color: var(--text-secondary); font-size: 1.1rem; margin-bottom: var(--spacing-s); }
-.book-modal-author { font-size: 1rem; color: var(--text-secondary); margin-bottom: var(--spacing-l); }
-.book-modal-price { margin-bottom: var(--spacing-l); }
-.book-modal-price .old-price { font-size: 1rem; color: var(--text-secondary); text-decoration: line-through; margin-right: var(--spacing-m); }
-.book-modal-price .current-price { font-size: 1.8rem; font-weight: 700; color: var(--accent-gold); }
-.book-modal-synopsis h3 { font-size: 1.2rem; margin-bottom: var(--spacing-s); border-left: 3px solid var(--accent-gold); padding-left: var(--spacing-m); }
-.book-modal-synopsis p { color: var(--text-secondary); }
-
-/* --- PAINEL DE ADMIN (sem alterações) --- */
-.admin-panel-overlay {
-    position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.6);
-    z-index: 1100; opacity: 0; transition: opacity var(--transition-speed) ease;
-}
-.admin-panel-overlay.visible { opacity: 1; }
-.admin-panel {
-    position: fixed; top: 0; right: 0; width: 100%; max-width: 600px;
-    height: 100%; background-color: var(--bg-primary);
-    box-shadow: -10px 0 30px rgba(0,0,0,0.3); display: flex;
-    flex-direction: column; transform: translateX(100%);
-    transition: transform var(--transition-speed) ease;
-}
-.admin-panel-overlay.visible .admin-panel { transform: translateX(0); }
-.admin-panel-header {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: var(--spacing-m) var(--spacing-l);
-    border-bottom: 1px solid var(--border-color); flex-shrink: 0;
-}
-.admin-panel-header h2 { font-size: 1.3rem; }
-.close-panel-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; }
-.close-panel-btn svg { width: 24px; height: 24px; }
-.admin-panel-content {
-    padding: var(--spacing-l); overflow-y: auto; flex-grow: 1;
-    display: flex; flex-direction: column; gap: var(--spacing-l);
-}
-.admin-form-container { flex-grow: 1; }
-#book-form .form-group { margin-bottom: var(--spacing-m); }
-#book-form .form-group-row { display: flex; gap: var(--spacing-m); }
-#book-form .form-group-row .form-group { flex: 1; }
-#book-form label { display: block; margin-bottom: var(--spacing-s); font-weight: 500; color: var(--text-secondary); font-size: 0.9rem; }
-#book-form input, #book-form textarea {
+.tab-btn.active { color: var(--text-primary); border-bottom-color: var(--accent-gold); }
+.tab-content { display: none; }
+.tab-content.active { display: flex; flex-direction: column; }
+#edit-book-tab.active { flex-direction: column; } /* Manter layout mobile */
+.admin-panel-content { padding: var(--spacing-l); overflow-y: auto; flex-grow: 1; }
+#book-form input, #book-form textarea, #curation-form select {
     width: 100%; padding: 12px; background-color: var(--bg-secondary);
     border: 1px solid var(--border-color); border-radius: var(--border-radius);
     color: var(--text-primary); font-family: var(--font-body); font-size: 1rem;
     transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
 }
-#book-form input:focus, #book-form textarea:focus {
-    outline: none; border-color: var(--accent-gold);
-    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
-}
-#book-form textarea { resize: vertical; }
-.form-actions { margin-top: var(--spacing-l); display: flex; gap: var(--spacing-m); }
-.form-actions button {
-    padding: 12px 20px; border: none; border-radius: var(--border-radius);
-    font-size: 1rem; font-weight: 600; cursor: pointer;
-    transition: background-color var(--transition-speed) ease; flex-grow: 1;
-}
-.form-actions .btn-save { background-color: var(--accent-gold); color: var(--bg-primary); }
-.form-actions .btn-save:hover { background-color: var(--accent-gold-darker); }
-.form-actions .btn-delete { background-color: var(--accent-danger); color: var(--text-primary); }
-.form-actions .btn-delete:hover { background-color: var(--accent-danger-darker); }
-.form-actions button:disabled { opacity: 0.6; cursor: not-allowed; }
-.admin-preview-container { text-align: center; }
-.admin-preview-container h4 { margin-bottom: var(--spacing-m); color: var(--text-secondary); }
-.image-preview {
-    width: 100%; max-width: 250px; height: auto; aspect-ratio: 2 / 3;
-    object-fit: cover; border-radius: var(--border-radius);
-    background-color: var(--bg-secondary); border: 1px solid var(--border-color);
-    margin: 0 auto;
-}
+#curation-form select { appearance: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23a0a0a0' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 12px center; background-size: 1em; }
+.order-list { list-style: none; display: flex; flex-direction: column; gap: var(--spacing-m); }
+.order-item { display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-secondary); padding: var(--spacing-s) var(--spacing-m); border-radius: var(--border-radius); }
+.order-item-title { flex-grow: 1; padding-right: var(--spacing-m); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.order-item-input { width: 70px; text-align: center; }
+
+/* --- Outros estilos (loader, empty-state, etc) permanecem os mesmos --- */
+.loader-overlay { position: fixed; inset: 0; background-color: var(--bg-primary); display: flex; justify-content: center; align-items: center; z-index: 9999; transition: opacity var(--transition-speed) ease; }
+.loader-spinner { width: 50px; height: 50px; border: 5px solid var(--border-color); border-top-color: var(--accent-gold); border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty-state { text-align: center; padding: var(--spacing-xxxl) var(--spacing-m); background-color: var(--bg-secondary); border-radius: var(--border-radius); border: 1px dashed var(--border-color); }
+.empty-state p { font-size: 1.2rem; font-weight: 600; }
+.empty-state span { color: var(--text-secondary); }

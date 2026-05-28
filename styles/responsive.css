@@ -2,101 +2,74 @@
 
 /* 
   ARQUITETURA DE ESTILO: APRIMORAMENTO PROGRESSIVO
-  Este arquivo adapta a base mobile-first do globals.css para telas maiores,
-  garantindo uma experiência premium em qualquer dispositivo.
+  Este arquivo refina a base mobile-first para telas maiores, ajustando
+  a escala, proporções e layouts para uma experiência premium em tablets e desktops.
 */
 
 /* --- TABLETS (e celulares em paisagem) --- */
 @media (min-width: 768px) {
-    /* Aumenta o espaçamento lateral no layout principal */
-    .app-header {
-        padding: var(--spacing-m) var(--spacing-l);
-    }
-    main {
-        padding: var(--spacing-xl) var(--spacing-l);
-    }
+    /* Ajustes de layout e espaçamento */
+    .app-header { padding: var(--spacing-m) var(--spacing-l); }
+    main { padding: var(--spacing-xl) var(--spacing-l); }
+    .hero-section { padding: var(--spacing-xxxl) var(--spacing-l); }
+    .hero-title { font-size: 3rem; }
+    .hero-subtitle { font-size: 1.2rem; }
 
-    /* 
-      Layout do Livro em Destaque para Tablets/Desktops:
-      Muda para um layout horizontal (imagem à esquerda, texto à direita)
-      para uma apresentação mais cinematográfica.
-    */
+    /* Layout do Livro em Destaque para Tablets/Desktops */
     .featured-book {
-        grid-template-columns: 300px 1fr; /* Coluna fixa para a imagem */
+        grid-template-columns: 280px 1fr; /* Coluna da imagem um pouco menor */
         gap: var(--spacing-xl);
     }
+    .featured-book-title { font-size: 3rem; }
 
-    .featured-book-title {
-        font-size: 3.5rem;
-    }
-
-    /* Transforma o grid de sugestões para 2 colunas */
+    /* Grid de sugestões com 3 colunas em tablets */
     .book-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--spacing-l);
     }
 
-    /* Melhora o layout do modal de detalhes */
-    .modal-content {
-        padding: var(--spacing-xl);
-    }
-    .book-modal-grid {
-        grid-template-columns: 250px 1fr;
-        gap: var(--spacing-xl);
-    }
-    .book-modal-image {
-        max-width: 100%;
-    }
+    /* Layout do Modal */
+    .modal-content { padding: var(--spacing-xl); }
+    .book-modal-grid { grid-template-columns: 250px 1fr; gap: var(--spacing-xl); }
+    .book-modal-image { max-width: 100%; }
 }
 
 /* --- DESKTOPS PEQUENOS E TABLETS GRANDES --- */
 @media (min-width: 1024px) {
-    /* Aumenta ainda mais o espaçamento para uma sensação mais arejada */
-    main {
-        padding: var(--spacing-xxl) var(--spacing-xl);
-    }
+    main { padding: var(--spacing-xxl) var(--spacing-xl); }
 
     /* Refina o layout do livro em destaque */
     .featured-book {
-        grid-template-columns: 350px 1fr;
+        grid-template-columns: 320px 1fr;
         gap: var(--spacing-xxl);
     }
 
-    /* Transforma o grid de sugestões para 3 colunas */
+    /* Grid de sugestões com 4 colunas */
     .book-grid {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr);
     }
 
-    /* Melhora o layout do modal de detalhes para telas maiores */
-    .book-modal-grid {
-        grid-template-columns: 300px 1fr;
-    }
-    .book-modal-title {
-        font-size: 2.5rem;
-    }
-
-    /* Layout do Painel Admin: formulário e preview lado a lado */
-    .admin-panel-content {
+    /* Layout do Painel Admin para Desktop */
+    #edit-book-tab.active {
         flex-direction: row;
         gap: var(--spacing-xl);
     }
-    .admin-form-container {
-        flex: 2;
-    }
+    .admin-form-container { flex: 2; }
     .admin-preview-container {
         flex: 1;
         position: sticky;
         top: 0;
         padding-top: var(--spacing-l);
     }
-    .image-preview {
-        max-width: 100%;
-    }
+    .image-preview { max-width: 100%; }
 }
 
 /* --- DESKTOPS GRANDES --- */
-@media (min-width: 1280px) {
-    /* Transforma o grid de sugestões para 4 colunas */
-    .book-grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
+@media (min-width: 1440px) {
+    /* Em telas muito grandes, podemos aumentar um pouco a fonte para melhor legibilidade */
+    .hero-title { font-size: 3.5rem; }
+    .featured-book-title { font-size: 3.5rem; }
+
+    /* Opcional: aumentar o número de colunas se desejado */
+    /* .book-grid { grid-template-columns: repeat(5, 1fr); } */
 }

@@ -3,31 +3,17 @@
 import { store } from '../state/store.js';
 
 // ARQUITETURA: Componente de Destaque (Hero Component)
-// Este componente é dedicado a criar uma apresentação cinematográfica e imersiva
-// para o livro principal da landing page. Ele tem uma estrutura e estilo únicos
-// para estabelecer hierarquia visual e capturar a atenção do usuário.
+// Refinado para incluir múltiplos CTAs (Calls to Action), transformando-o
+// em uma ferramenta de marketing mais eficaz, além de ser uma vitrine.
 
-/**
- * Formata um número para a moeda brasileira (BRL).
- * @param {number} value - O valor numérico a ser formatado.
- * @returns {string} O valor formatado como string.
- */
 const formatPrice = (value) => {
     if (typeof value !== 'number') return '';
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 };
 
-/**
- * Trunca a sinopse para uma prévia curta e atraente.
- * @param {string} synopsis - O texto completo da sinopse.
- * @param {number} wordLimit - O número máximo de palavras.
- * @returns {string} A sinopse truncada.
- */
 const truncateSynopsis = (synopsis, wordLimit = 35) => {
     const words = synopsis.split(' ');
-    if (words.length <= wordLimit) {
-        return synopsis;
-    }
+    if (words.length <= wordLimit) return synopsis;
     return words.slice(0, wordLimit).join(' ') + '...';
 };
 
@@ -49,7 +35,7 @@ export const createFeaturedBook = (book) => {
 
     featuredElement.innerHTML = `
         <div class="featured-book-cover">
-            <img src="${book.image}" alt="Capa do livro ${book.title}">
+            <img src="${book.image}" alt="Capa do livro ${book.title}" class="book-cover-glow">
         </div>
         <div class="featured-book-details">
             <h2 class="featured-book-title">${book.title}</h2>
@@ -57,18 +43,26 @@ export const createFeaturedBook = (book) => {
             <p class="featured-book-author">por ${book.author}</p>
             <p class="featured-book-synopsis">${truncateSynopsis(book.synopsis)}</p>
             ${priceHTML}
-            <button class="btn-details">Ver Detalhes</button>
+            
+            <!-- NOVOS BOTÕES DE AÇÃO -->
+            <div class="featured-book-actions">
+                <button class="btn btn-primary">Comprar Agora</button>
+                <button class="btn btn-secondary">Ver Detalhes</button>
+                <button class="btn btn-tertiary">Ler Amostra</button>
+            </div>
         </div>
     `;
 
-    // INTERATIVIDADE: Reutilizando a arquitetura de modal existente.
-    // Ao clicar no botão, despachamos a mesma ação que o BookCard despacha.
-    // Isso desacopla completamente este componente do modal. Ele apenas informa
-    // à 'store' a intenção do usuário, e o sistema reage.
-    const detailsButton = featuredElement.querySelector('.btn-details');
+    // A imagem agora tem a classe 'book-cover-glow' para o efeito visual.
+
+    // O botão "Ver Detalhes" (agora btn-secondary) mantém sua funcionalidade.
+    const detailsButton = featuredElement.querySelector('.btn-secondary');
     detailsButton.addEventListener('click', () => {
         store.dispatch({ type: 'OPEN_BOOK_MODAL', payload: book.id });
     });
+
+    // NOTA: Os outros botões são para fins de UI nesta fase.
+    // Em uma aplicação completa, eles teriam seus próprios event listeners.
 
     return featuredElement;
 };

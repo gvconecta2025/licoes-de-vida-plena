@@ -1,75 +1,75 @@
 // services/bookService.js
 
-// Importa a instância 'db' do nosso arquivo de configuração e todas as
-// funções do Firestore que precisaremos para o CRUD e para o listener em tempo real.
 import { db } from '../firebase/firebaseConfig.js';
 import {
-    collection,
-    query,
-    orderBy,
-    onSnapshot,
-    addDoc,
-    updateDoc,
-    deleteDoc,
-    doc,
-    serverTimestamp
+    collection, query, orderBy, onSnapshot,
+    addDoc, updateDoc, deleteDoc, doc,
+    serverTimestamp, getDoc, setDoc
 } from "firebase/firestore";
 
-// ARQUITETURA: Camada de Serviço (Service Layer)
-// Esta camada isola completamente a lógica de acesso a dados (Firestore)
-// do resto da aplicação (estado, renderização). Se um dia quisermos trocar
-// o Firebase por outro banco, só precisaremos modificar este arquivo.
-
-// Referência para a coleção 'books' no Firestore.
-// Manter isso como uma constante evita erros de digitação.
 const booksCollection = collection(db, 'books');
+const settingsCollection = collection(db, 'settings');
 
 /**
- * A função mais importante: escuta por mudanças em tempo real na coleção de livros.
- * @param {function} callback - Uma função que será chamada toda vez que os dados mudarem.
- * Ela receberá a lista atualizada de livros como argumento.
- * @returns {function} Uma função 'unsubscribe' para parar de escutar e evitar memory leaks.
+ * Escuta por mudanças em tempo real na coleção de livros.
+ * A ordenação padrão agora é pelo 'displayOrder', depois por data.
  */
 const listenToBooks = (callback) => {
-    // Cria uma query para buscar os livros, ordenando pelos mais recentes primeiro.
-    // A ordenação por 'createdAt' garante uma exibição consistente.
-    const q = query(booksCollection, orderBy('createdAt', 'desc'));
+    const q = query(booksCollection, orderBy('displayOrder', 'asc'), orderBy('createdAt', 'desc'));
 
-    // onSnapshot é o coração da nossa aplicação em tempo real.
-    // Ele estabelece uma conexão persistente com o Firestore.
-    // O callback interno é disparado imediatamente com os dados atuais e, depois,
-    // toda vez que um documento for adicionado, modificado ou removido na coleção.
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const books = [];
         querySnapshot.forEach((doc) => {
-            // Para cada documento, extraímos os dados e adicionamos o ID,
-            // que é crucial para operações de update e delete.
             books.push({ id: doc.id, ...doc.data() });
         });
-        // Chama o callback fornecido (que no nosso caso, atualizará o estado global)
-        // com a lista de livros completa e atualizada.
         callback(books);
     }, (error) => {
-        // Tratamento de erros para a escuta em tempo real.
         console.error("Erro ao escutar por atualizações de livros: ", error);
-        // Em uma aplicação de produção, poderíamos mostrar uma notificação ao usuário.
-        callback([]); // Retorna um array vazio em caso de erro.
+        callback([]);
     });
 
-    // Retorna a função 'unsubscribe' para que o chamador possa encerrar a escuta
-    // quando não for mais necessária.
     return unsubscribe;
 };
 
 /**
- * Cria um novo livro no Firestore.
- * @param {object} bookData - Os dados do livro a ser criado.
- * @returns {Promise<void>}
+ * Escuta por mudanças em tempo real nas configurações da homepage.
+ * @param {function} callback - Chamada com os dados de configuração.
+ * @returns {function} Uma função 'unsubscribe'.
  */
+const listenToHomepageSettings = (callback) => {
+    const homepageDocRef = doc(settingsCollection, 'homepage');
+    const unsubscribe = onSnapshot(homepageDocRef, (doc) => {
+        if (doc.exists()) {
+            callback(doc.data());
+        } else {
+            // Se o documento não existir, retorna um estado padrão.
+            console.warn("Documento de configurações 'homepage' não encontrado. Usando padrão.");
+            callback({ featuredBookId: null });
+        }
+    }, (error) => {
+        console.error("Erro ao escutar configurações da homepage: ", error);
+        callback({ featuredBookId: null });
+    });
+    return unsubscribe;
+};
+
+/**
+ * Atualiza as configurações da homepage.
+ * @param {object} settingsData - Os dados a serem salvos, ex: { featuredBookId: '...' }.
+ */
+const updateHomepageSettings = async (settingsData) => {
+    try {
+        const homepageDocRef = doc(settingsCollection, 'homepage');
+        // Usa setDoc com merge: true para criar o documento se não existir, ou atualizar se existir.
+        await setDoc(homepageDocRef, settingsData, { merge: true });
+    } catch (error) {
+        console.error("Erro ao atualizar configurações da homepage: ", error);
+        throw error;
+    }
+};
+
 const createBook = async (bookData) => {
     try {
-        // Adiciona timestamps do servidor. Usar serverTimestamp() garante que a hora
-        // seja definida pelo servidor do Firebase, evitando inconsistências de fuso horário do cliente.
         await addDoc(booksCollection, {
             ...bookData,
             createdAt: serverTimestamp(),
@@ -77,23 +77,13 @@ const createBook = async (bookData) => {
         });
     } catch (error) {
         console.error("Erro ao criar livro: ", error);
-        // Lançar o erro permite que a UI (ex: o painel admin) saiba que a operação falhou
-        // e possa, por exemplo, reativar o botão de salvar.
         throw error;
     }
 };
 
-/**
- * Atualiza um livro existente no Firestore.
- * @param {string} bookId - O ID do livro a ser atualizado.
- * @param {object} bookData - Os novos dados para o livro.
- * @returns {Promise<void>}
- */
 const updateBook = async (bookId, bookData) => {
     try {
-        // Cria uma referência direta ao documento que queremos atualizar.
         const bookDoc = doc(db, 'books', bookId);
-        // Atualiza o documento, incluindo o timestamp de atualização.
         await updateDoc(bookDoc, {
             ...bookData,
             updatedAt: serverTimestamp(),
@@ -104,11 +94,6 @@ const updateBook = async (bookId, bookData) => {
     }
 };
 
-/**
- * Deleta um livro do Firestore.
- * @param {string} bookId - O ID do livro a ser deletado.
- * @returns {Promise<void>}
- */
 const deleteBook = async (bookId) => {
     try {
         const bookDoc = doc(db, 'books', bookId);
@@ -119,5 +104,11 @@ const deleteBook = async (bookId) => {
     }
 };
 
-// Exporta todas as funções para serem usadas por outras partes da aplicação.
-export { listenToBooks, createBook, updateBook, deleteBook };
+export {
+    listenToBooks,
+    createBook,
+    updateBook,
+    deleteBook,
+    listenToHomepageSettings,
+    updateHomepageSettings
+};

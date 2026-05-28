@@ -3,16 +3,10 @@
 import { store } from '../state/store.js';
 
 // ARQUITETURA: Componente de Overlay
-// Este componente é responsável por criar a experiência imersiva de visualização
-// de um livro. Ele é renderizado "por cima" do resto da aplicação.
-// Sua lógica é autocontida: ele sabe como se exibir e como despachar a ação
-// para se fechar, mas não se preocupa com o que o acionou.
+// Refinado para incluir os mesmos CTAs da seção de destaque, garantindo
+// uma experiência de usuário consistente, não importa como ele chegue
+// aos detalhes do livro.
 
-/**
- * Formata um número para a moeda brasileira (BRL).
- * @param {number} value - O valor numérico a ser formatado.
- * @returns {string} O valor formatado como string.
- */
 const formatPrice = (value) => {
     if (typeof value !== 'number') return '';
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -27,8 +21,6 @@ export const createBookModal = (book) => {
     const modalOverlay = document.createElement('div');
     modalOverlay.className = 'modal-overlay';
 
-    // Adiciona uma classe para iniciar a animação de fade-in
-    // A remoção da classe para fade-out será gerenciada pelo renderer.
     setTimeout(() => modalOverlay.classList.add('visible'), 10);
 
     const priceHTML = `
@@ -45,13 +37,20 @@ export const createBookModal = (book) => {
             </button>
             <div class="book-modal-grid">
                 <div class="book-modal-image-container">
-                    <img src="${book.image}" alt="Capa do livro ${book.title}" class="book-modal-image">
+                    <img src="${book.image}" alt="Capa do livro ${book.title}" class="book-modal-image book-cover-glow">
                 </div>
                 <div class="book-modal-details">
                     <h2 class="book-modal-title">${book.title}</h2>
                     ${book.subtitle ? `<h4 class="book-modal-subtitle">${book.subtitle}</h4>` : ''}
                     <p class="book-modal-author">por ${book.author}</p>
                     ${priceHTML}
+                    
+                    <!-- NOVOS BOTÕES DE AÇÃO -->
+                    <div class="book-modal-actions">
+                        <button class="btn btn-primary">Comprar Agora</button>
+                        <button class="btn btn-tertiary">Ler Amostra</button>
+                    </div>
+
                     <div class="book-modal-synopsis">
                         <h3>Sinopse</h3>
                         <p>${book.synopsis.replace(/\n/g, '<br>')}</p>
@@ -61,48 +60,30 @@ export const createBookModal = (book) => {
         </div>
     `;
 
-    // LÓGICA DE FECHAMENTO:
-    // Despachar a ação 'CLOSE_BOOK_MODAL' para a store. A store irá atualizar
-    // o estado, e o renderer principal irá remover o modal do DOM.
+    // A imagem agora tem a classe 'book-cover-glow' para o efeito visual.
 
     const closeModal = () => {
-        // Primeiro, remove a classe 'visible' para iniciar a animação de fade-out.
         modalOverlay.classList.remove('visible');
-        // Espera a animação terminar antes de despachar a ação de fechamento.
-        // O tempo (300ms) deve corresponder à duração da transição no CSS.
         setTimeout(() => {
             store.dispatch({ type: 'CLOSE_BOOK_MODAL' });
         }, 300);
     };
 
-    const closeButton = modalOverlay.querySelector('.modal-close-btn');
-    closeButton.addEventListener('click', closeModal);
-
-    // Fechar ao clicar fora do conteúdo do modal (no overlay escuro).
+    modalOverlay.querySelector('.modal-close-btn').addEventListener('click', closeModal);
     modalOverlay.addEventListener('click', (event) => {
-        if (event.target === modalOverlay) {
-            closeModal();
-        }
+        if (event.target === modalOverlay) closeModal();
     });
-
-    // Impede que cliques dentro do modal fechem o modal (propagação de evento).
-    const modalContent = modalOverlay.querySelector('.modal-content');
-    modalContent.addEventListener('click', (event) => {
+    modalOverlay.querySelector('.modal-content').addEventListener('click', (event) => {
         event.stopPropagation();
     });
 
-    // Acessibilidade: Fechar com a tecla 'Escape'.
-    // A gestão de adicionar/remover este listener será feita no renderer principal
-    // para evitar listeners duplicados ou órfãos.
     const handleEscKey = (event) => {
         if (event.key === 'Escape') {
             closeModal();
-            // Remove o listener de si mesmo após ser usado.
             document.removeEventListener('keydown', handleEscKey);
         }
     };
     document.addEventListener('keydown', handleEscKey);
-
 
     return modalOverlay;
 };

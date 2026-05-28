@@ -26,32 +26,39 @@
 </head>
 <body>
 
-    <!-- Efeito visual de brilho ambiente -->
     <div class="glow-effect"></div>
 
     <div id="app">
         <header class="app-header">
             <div class="header-content">
-                <!-- O título agora é o gatilho para o painel de admin -->
                 <h1 id="header-title" class="header-title">Livraria V9</h1>
-                <!-- O botão de admin foi removido -->
             </div>
         </header>
 
+        <!-- NOVA SEÇÃO HERO -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <h2 class="hero-title">Onde cada capa conta uma história.</h2>
+                <p class="hero-subtitle">Descubra obras selecionadas que transcendem o tempo. Uma curadoria de clássicos e contemporâneos para o leitor exigente.</p>
+            </div>
+        </section>
+
         <main>
-            <!-- 
-              NOVA ESTRUTURA DA LANDING PAGE:
-              1. Container para o livro em destaque (apresentação cinematográfica).
-              2. Container para a grade de livros sugeridos.
-              Esta estrutura cria a hierarquia visual desejada.
-            -->
             <section id="featured-book-container" class="featured-book-section"></section>
             
             <section id="suggested-books-section" class="suggested-books-section">
-                <h2 class="section-title">Sugestões</h2>
+                <h2 class="section-title">Nossa Seleção</h2>
                 <div id="suggested-books-grid" class="book-grid"></div>
             </section>
         </main>
+
+        <!-- NOVO RODAPÉ -->
+        <footer class="app-footer">
+            <div class="footer-content">
+                <p>&copy; 2024 Livraria V9. Todos os direitos reservados.</p>
+                <p>Uma criação de <span class="jessica-code">Jessica Code</span></p>
+            </div>
+        </footer>
     </div>
 
     <div id="admin-panel-container"></div>

@@ -3,43 +3,21 @@
 import { createFeaturedBook } from '../components/FeaturedBook.js';
 import { createBookCard } from '../components/BookCard.js';
 
-// ARQUITETURA: Render Engine da Página Principal
-// Este módulo foi refatorado para orquestrar a renderização de toda a landing page,
-// incluindo a seção de destaque e a grade de sugestões. Ele é o responsável por
-// traduzir a lista de livros do estado em uma estrutura visual hierárquica.
+// ARQUITETURA: Render Engine com Lógica de Curadoria
+// Este módulo foi promovido para ser o cérebro da apresentação da homepage.
+// Ele consome tanto a lista de livros quanto as configurações de curadoria
+// para construir a página exatamente como o administrador a projetou.
 
-/**
- * Renderiza a seção do livro em destaque.
- * @param {HTMLElement} container - O elemento DOM para a seção de destaque.
- * @param {object | undefined} featuredBook - O objeto do livro em destaque.
- */
 const renderFeaturedBook = (container, featuredBook) => {
-    container.innerHTML = ''; // Limpa o container antes de renderizar
+    container.innerHTML = '';
     if (featuredBook) {
         const featuredElement = createFeaturedBook(featuredBook);
         container.appendChild(featuredElement);
-    } else {
-        // Opcional: Renderizar um placeholder se não houver livro em destaque.
-        // Por enquanto, deixamos em branco.
     }
 };
 
-/**
- * Renderiza a grade de livros sugeridos.
- * @param {HTMLElement} gridContainer - O elemento DOM para a grade de sugestões.
- * @param {Array<object>} suggestedBooks - A lista de livros para a grade.
- */
 const renderSuggestedBooks = (gridContainer, suggestedBooks) => {
-    // CORREÇÃO CRÍTICA DO BUG DE SINCRONIZAÇÃO MÓVEL:
-    // A abordagem anterior de "diffing" manual do DOM era frágil e causava
-    // inconsistências. A nova abordagem é mais robusta e declarativa:
-    // 1. Limpar completamente o container.
-    // 2. Recriar todos os cards a partir do estado atual.
-    // Para a quantidade de livros em uma landing page, o impacto de performance
-    // é mínimo, mas a confiabilidade é máxima. O DOM é sempre um reflexo
-    // perfeito do estado, em qualquer dispositivo.
     gridContainer.innerHTML = '';
-
     if (suggestedBooks.length > 0) {
         const fragment = document.createDocumentFragment();
         suggestedBooks.forEach(book => {
@@ -48,42 +26,52 @@ const renderSuggestedBooks = (gridContainer, suggestedBooks) => {
         });
         gridContainer.appendChild(fragment);
     }
-    // Se não houver livros sugeridos, o grid simplesmente permanecerá vazio,
-    // o que é o comportamento visual desejado.
 };
 
 /**
  * Orquestra a renderização de toda a página principal.
  * @param {object} containers - Um objeto contendo os elementos DOM necessários.
  * @param {Array<object>} books - A lista completa de livros vinda do estado.
+ * @param {object} settings - As configurações da homepage (ex: featuredBookId).
  */
-export const renderLandingPage = (containers, books) => {
+export const renderLandingPage = (containers, books, settings) => {
     const { featuredContainer, suggestedGrid, suggestedSection } = containers;
 
-    // Separa o livro em destaque (o mais recente) do resto.
-    const featuredBook = books[0];
-    const suggestedBooks = books.slice(1);
+    // LÓGICA DE CURADORIA:
+    // 1. Encontra o livro em destaque com base no ID salvo nas configurações.
+    const featuredBook = settings.featuredBookId
+        ? books.find(book => book.id === settings.featuredBookId)
+        : null;
 
-    // Renderiza as duas seções
+    // 2. Prepara a lista de sugestões.
+    const suggestedBooks = books
+        // Filtra para remover o livro que já está em destaque.
+        .filter(book => book.id !== settings.featuredBookId)
+        // Ordena pelo campo 'displayOrder'. Livros sem ordem (ou com ordem 0)
+        // são empurrados para o final.
+        .sort((a, b) => (a.displayOrder || 999) - (b.displayOrder || 999));
+
+    // Renderiza as duas seções com os dados curados.
     renderFeaturedBook(featuredContainer, featuredBook);
     renderSuggestedBooks(suggestedGrid, suggestedBooks);
 
-    // Lógica de visibilidade da seção de sugestões.
-    // Se não houver livros para sugerir, a seção inteira (incluindo o título "Sugestões")
-    // é ocultada para uma UI mais limpa.
-    if (suggestedBooks.length > 0) {
-        suggestedSection.style.display = 'block';
-    } else {
-        suggestedSection.style.display = 'none';
-    }
+    // Gerencia a visibilidade da seção de sugestões.
+    suggestedSection.style.display = suggestedBooks.length > 0 ? 'block' : 'none';
 
-    // Gerencia o estado de "página vazia".
-    // Se não houver NENHUM livro, mostra uma mensagem amigável no lugar do destaque.
+    // Gerencia os estados de "página vazia" ou "sem destaque".
     if (books.length === 0) {
         featuredContainer.innerHTML = `
             <div class="empty-state">
                 <p>Nenhum livro na coleção.</p>
-                <span>Clique 5x no título do site para adicionar o primeiro livro.</span>
+                <span>Use o painel de administração para adicionar o primeiro livro.</span>
+            </div>
+        `;
+    } else if (!featuredBook) {
+        // NOVO ESTADO: Há livros, mas nenhum foi escolhido como destaque.
+        featuredContainer.innerHTML = `
+            <div class="empty-state">
+                <p>Nenhum livro em destaque selecionado.</p>
+                <span>Use o painel de administração para escolher um.</span>
             </div>
         `;
     }
