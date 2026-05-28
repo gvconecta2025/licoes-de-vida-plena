@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Jessica Code Editora</title>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js">
+    </script>
+
     <style>
         /* Reset e estilos base */
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -109,8 +116,6 @@
     </style>
 </head>
 <body>
-
-//comentario
         <header>
         <div class="container">
             <h1 id="mainTitle">☕ Jessica Code Editora</h1>
@@ -118,7 +123,7 @@
     </header>
 
     <main id="mainContent">
-        <!-- O conteúdo aqui será gerado dinamicamente pelo JavaScript -->
+        <!-- Conteúdo gerado dinamicamente pelo JavaScript -->
     </main>
 
     <!-- Painel de Detalhes do Livro -->
@@ -126,7 +131,7 @@
     <div class="book-detail-panel" id="bookDetailPanel">
         <button class="panel-close" id="bookDetailClose">✕</button>
         <div class="panel-content" id="bookDetailContent">
-            <!-- Conteúdo será preenchido dinamicamente -->
+            <!-- Conteúdo preenchido dinamicamente -->
         </div>
     </div>
 
@@ -148,7 +153,7 @@
             </div>
 
             <div class="admin-book-list" id="adminBookList">
-                <!-- Lista de livros será preenchida aqui -->
+                <!-- Lista de livros preenchida aqui -->
             </div>
             
             <button class="btn" id="addNewBookBtn" style="margin-top: 20px; width: 100%;">+ Adicionar Novo Livro</button>
@@ -342,428 +347,76 @@
             .mobile-hero h2 { font-size: 1.6rem; }
         }
     </style>
-
-
-    /*comentario*/
         <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // --- ESTADO E DADOS INICIAIS ---
-        let books = [];
-        let lpTitle = '☕ Jessica Code Editora';
-        
-        const initialBooks = [
-            {
-                id: 1,
-                title: 'O Código da Mente',
-                subtitle: 'Desvendando os segredos da programação quântica',
-                author: 'Jessica Code & Equipe',
-                price: 'R$ 49,90',
-                oldPrice: 'R$ 89,90',
-                synopsis: 'Uma jornada fascinante pelo universo da programação, onde a lógica encontra a criatividade. Aprenda a pensar como um desenvolvedor sênior e transforme suas ideias em código funcional. Inclui exemplos práticos, desafios e acesso a comunidade exclusiva. Este livro é o guia definitivo para quem quer dominar a arte da programação moderna.',
-                image: ''
-            },
-            {
-                id: 2,
-                title: 'Algoritmos do Amor',
-                subtitle: 'Encontre o amor com a ciência da computação',
-                author: 'Maria Silva',
-                price: 'R$ 39,90',
-                oldPrice: 'R$ 69,90',
-                synopsis: 'Descubra como os algoritmos podem ajudar a encontrar o amor verdadeiro. Uma abordagem única que une programação e relacionamentos.',
-                image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400'
-            },
-            {
-                id: 3,
-                title: 'Estruturas de Dados',
-                subtitle: 'Domine as bases da programação',
-                author: 'Carlos Oliveira',
-                price: 'R$ 59,90',
-                oldPrice: 'R$ 89,90',
-                synopsis: 'Domine as estruturas de dados mais importantes do mercado, com exemplos práticos em Python e JavaScript.',
-                image: 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=400'
-            },
-            {
-                id: 4,
-                title: 'React Profundo',
-                subtitle: 'Do básico ao avançado',
-                author: 'Ana Costa',
-                price: 'R$ 69,90',
-                oldPrice: 'R$ 99,90',
-                synopsis: 'Vá além do básico do React e aprenda padrões avançados, otimização de performance e arquitetura de componentes.',
-                image: 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=400'
-            },
-            {
-                id: 5,
-                title: 'Python para Todos',
-                subtitle: 'Aprenda programação de forma divertida',
-                author: 'Lucas Mendes',
-                price: 'R$ 44,90',
-                oldPrice: 'R$ 74,90',
-                synopsis: 'Aprenda Python do zero de forma prática e divertida. Cobre desde conceitos básicos até web scraping e análise de dados.',
-                image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400'
-            }
-        ];
+    // ============================================================
+    // CONFIGURAÇÃO DO FIREBASE
+    // ============================================================
+    // Substitua pelos seus dados do Firebase Console
+    const firebaseConfig = {
+        apiKey: "SUA_API_KEY",
+        authDomain: "SEU_PROJETO.firebaseapp.com",
+        projectId: "SEU_PROJETO",
+        storageBucket: "SEU_PROJETO.appspot.com",
+        messagingSenderId: "SEU_SENDER_ID",
+        appId: "SEU_APP_ID"
+    };
 
-        // --- ELEMENTOS DO DOM ---
-        const mainContent = document.getElementById('mainContent');
-        const mainTitle = document.getElementById('mainTitle');
-        const footerTitle = document.getElementById('footerTitle');
-        const adminPanelOverlay = document.getElementById('adminPanelOverlay');
-        const adminPanel = document.getElementById('adminPanel');
-        const adminPanelClose = document.getElementById('adminPanelClose');
-        const adminBookList = document.getElementById('adminBookList');
-        const addNewBookBtn = document.getElementById('addNewBookBtn');
-        const adminForm = document.getElementById('adminForm');
-        const cancelFormBtn = document.getElementById('cancelFormBtn');
-        const formTitle = document.getElementById('formTitle');
-        const lpTitleInput = document.getElementById('lpTitle');
-        const saveLpTitleBtn = document.getElementById('saveLpTitle');
-        const bookDetailOverlay = document.getElementById('bookDetailOverlay');
-        const bookDetailPanel = document.getElementById('bookDetailPanel');
-        const bookDetailContent = document.getElementById('bookDetailContent');
-        const bookDetailClose = document.getElementById('bookDetailClose');
+    // Inicializa o Firebase
+    firebase.initializeApp(firebaseConfig);
+    
+    // Obtém referência ao Firestore
+    const db = firebase.firestore();
+    
+    // Referência à coleção de livros
+    const booksCollection = db.collection('books');
 
-        // --- FUNÇÃO PARA GERAR HTML DO LIVRO PRINCIPAL ---
-        function generateMainBookHTML(book) {
-            const coverStyle = book.image ? `background-image: url('${book.image}')` : 'background: linear-gradient(145deg, #1a0f0a, #3d2317);';
-            const coverContent = !book.image ? `<div class="book-cover-content">
+    // ============================================================
+    // ESTADO CENTRALIZADO
+    // ============================================================
+    // Único estado compartilhado entre desktop e mobile
+    const state = {
+        books: [],          // Array de livros vindo do Firestore
+        lpTitle: '☕ Jessica Code Editora',  // Título da landing page
+        selectedBook: null  // Livro selecionado para detalhes
+    };
+
+    // ============================================================
+    // ELEMENTOS DO DOM
+    // ============================================================
+    const mainContent = document.getElementById('mainContent');
+    const mainTitle = document.getElementById('mainTitle');
+    const footerTitle = document.getElementById('footerTitle');
+    const adminPanelOverlay = document.getElementById('adminPanelOverlay');
+    const adminPanel = document.getElementById('adminPanel');
+    const adminPanelClose = document.getElementById('adminPanelClose');
+    const adminBookList = document.getElementById('adminBookList');
+    const addNewBookBtn = document.getElementById('addNewBookBtn');
+    const adminForm = document.getElementById('adminForm');
+    const cancelFormBtn = document.getElementById('cancelFormBtn');
+    const formTitle = document.getElementById('formTitle');
+    const lpTitleInput = document.getElementById('lpTitle');
+    const saveLpTitleBtn = document.getElementById('saveLpTitle');
+    const bookDetailOverlay = document.getElementById('bookDetailOverlay');
+    const bookDetailPanel = document.getElementById('bookDetailPanel');
+    const bookDetailContent = document.getElementById('bookDetailContent');
+    const bookDetailClose = document.getElementById('bookDetailClose');
+
+    // ============================================================
+    // FUNÇÃO PARA GERAR HTML DO LIVRO PRINCIPAL
+    // ============================================================
+    // Gera os dados visuais do livro principal para ambos os layouts
+    function generateMainBookHTML(book) {
+        const coverStyle = book.image 
+            ? `background-image: url('${book.image}')` 
+            : 'background: linear-gradient(145deg, #1a0f0a, #3d2317);';
+            
+        const coverContent = !book.image 
+            ? `<div class="book-cover-content">
                 <h2>${book.title.replace(' ', '<br>')}</h2>
                 <p>${book.author}</p>
-            </div>` : '';
+            </div>`
 
-            return {
-                coverStyle,
-                coverContent,
-                title: book.title,
-                subtitle: book.subtitle,
-                author: book.author,
-                price: book.price,
-                oldPrice: book.oldPrice
-            };
-        }
-
-        // --- FUNÇÕES DE RENDERIZAÇÃO ---
-        function renderLandingPage() {
-            mainTitle.textContent = lpTitle;
-            footerTitle.textContent = lpTitle.replace('☕ ', '');
-
-            if (books.length === 0) {
-                mainContent.innerHTML = `
-                    <div class="mobile-hero" style="display: flex;">
-                        <h2>Nenhum livro cadastrado</h2>
-                        <p style="color: #c4a882; margin-top: 20px;">Clique 5 vezes no título para abrir o painel admin</p>
-                    </div>
-                `;
-                return;
-            }
-
-            const mainBook = books[0];
-            const bookData = generateMainBookHTML(mainBook);
-            const otherBooks = books.slice(1);
-
-            // Versão Desktop
-            const heroDesktop = `
-                <section class="hero container">
-                    <div class="book-cover" style="${bookData.coverStyle}">
-                        ${bookData.coverContent}
-                    </div>
-                    <div class="book-info">
-                        <h2>${bookData.title}</h2>
-                        ${bookData.subtitle ? `<p class="subtitle">${bookData.subtitle}</p>` : ''}
-                        <p class="author">Por ${bookData.author}</p>
-                        <p class="price">
-                            ${bookData.price} <span>${bookData.oldPrice}</span>
-                        </p>
-                        <a href="#" class="btn">📖 Comprar Agora</a>
-                        <a href="#" class="btn btn-secondary">📄 Ler Amostra</a>
-                    </div>
-                </section>
-            `;
-
-            // Versão Mobile - MESMOS DADOS
-            const heroMobile = `
-                <section class="mobile-hero">
-                    <div class="mobile-cover" style="${bookData.coverStyle}">
-                        ${bookData.coverContent}
-                    </div>
-                    <h2>${bookData.title}</h2>
-                    ${bookData.subtitle ? `<p class="mobile-subtitle">${bookData.subtitle}</p>` : ''}
-                    <p class="mobile-author">Por ${bookData.author}</p>
-                    <p class="mobile-price">
-                        ${bookData.price} <span>${bookData.oldPrice}</span>
-                    </p>
-                    <div class="mobile-buttons">
-                        <a href="#" class="btn">📖 Comprar</a>
-                        <a href="#" class="btn btn-secondary">📄 Amostra</a>
-                    </div>
-                    <div class="scroll-indicator">↓</div>
-                </section>
-            `;
-
-            const synopsisHTML = `
-                <section class="synopsis-bar">
-                    <div class="container">
-                        <div class="synopsis-icon">📖</div>
-                        <div class="synopsis-text">
-                            <h3>Sinopse</h3>
-                            <p>${mainBook.synopsis.replace(/\n/g, '<br>')}</p>
-                        </div>
-                    </div>
-                </section>
-            `;
-
-            const otherBooksHTML = otherBooks.length > 0 ? `
-                <section class="other-books">
-                    <div class="container">
-                        <h2>📕 Outros Títulos que Você Pode Gostar</h2>
-                        <div class="books-grid">
-                            ${otherBooks.map(book => `
-                                <div class="book-card" data-id="${book.id}">
-                                    <div class="mini-cover" style="${book.image ? `background-image: url('${book.image}')` : 'background: linear-gradient(135deg, #4a2c1e, #2c1810);'}">
-                                        ${!book.image ? `<div class="mini-cover-content"><span>${book.title}</span></div>` : ''}
-                                    </div>
-                                    <h3>${book.title}</h3>
-                                    <p class="card-author">${book.author}</p>
-                                    <p class="card-price">${book.price} <span>${book.oldPrice}</span></p>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                </section>
-            ` : '';
-
-            mainContent.innerHTML = heroDesktop + heroMobile + synopsisHTML + otherBooksHTML;
-
-            // Adiciona eventos aos cards de outros livros
-            document.querySelectorAll('.book-card').forEach(card => {
-                card.addEventListener('click', function(e) {
-                    const bookId = parseInt(this.dataset.id);
-                    openBookDetail(bookId);
-                });
-            });
-        }
-
-        function renderAdminPanel() {
-            adminBookList.innerHTML = books.map((book, index) => `
-                <div class="book-item">
-                    <img src="${book.image || 'https://via.placeholder.com/40x60/2c1810/d4af37?text=Capa'}" alt="Capa de ${book.title}">
-                    <div class="info">
-                        <strong>${book.title}</strong> ${index === 0 ? '<span style="color: #d4af37;">(Principal)</span>' : ''}<br>
-                        <span>${book.author}</span>
-                        ${book.subtitle ? `<br><span style="font-size: 0.85em; color: #8b7355;">${book.subtitle}</span>` : ''}
-                    </div>
-                    <div class="actions">
-                        <button class="btn-admin btn-edit" data-id="${book.id}">Editar</button>
-                        <button class="btn-admin btn-delete" data-id="${book.id}">Excluir</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // --- FUNÇÕES DE DADOS (LocalStorage) ---
-        function saveData() {
-            const data = { books: books, lpTitle: lpTitle };
-            localStorage.setItem('jessicaCodeData', JSON.stringify(data));
-        }
-
-        function loadData() {
-            const storedData = localStorage.getItem('jessicaCodeData');
-            if (storedData) {
-                const data = JSON.parse(storedData);
-                books = data.books || [];
-                lpTitle = data.lpTitle || '☕ Jessica Code Editora';
-            } else {
-                books = initialBooks;
-                lpTitle = '☕ Jessica Code Editora';
-                saveData();
-            }
-        }
-
-        // --- FUNÇÕES DO PAINEL DE DETALHES ---
-        function openBookDetail(bookId) {
-            const book = books.find(b => b.id === bookId);
-            if (!book) return;
-
-            const coverStyle = book.image ? `background-image: url('${book.image}')` : 'background: linear-gradient(135deg, #1a0f0a, #3d2317);';
-            const coverContent = !book.image ? `<span>${book.title}</span>` : '';
-
-            bookDetailContent.innerHTML = `
-                <div class="panel-header">
-                    <div class="panel-cover" style="${coverStyle}">
-                        ${coverContent}
-                    </div>
-                    <div class="panel-info">
-                        <h2>${book.title}</h2>
-                        ${book.subtitle ? `<p class="panel-subtitle">${book.subtitle}</p>` : ''}
-                        <p class="panel-author">Por ${book.author}</p>
-                        <p class="panel-synopsis">${book.synopsis.replace(/\n/g, '<br>')}</p>
-                        <p class="panel-price">
-                            ${book.price} <span>${book.oldPrice}</span>
-                        </p>
-                        <div class="panel-buttons">
-                            <a href="#" class="btn">📖 Comprar Agora</a>
-                            <a href="#" class="btn btn-secondary">📄 Ler Amostra</a>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            bookDetailOverlay.classList.add('active');
-            bookDetailPanel.classList.add('active');
-            document.body.classList.add('no-scroll');
-        }
-
-        function closeBookDetail() {
-            bookDetailOverlay.classList.remove('active');
-            bookDetailPanel.classList.remove('active');
-            document.body.classList.remove('no-scroll');
-        }
-
-        bookDetailClose.addEventListener('click', closeBookDetail);
-        bookDetailOverlay.addEventListener('click', closeBookDetail);
-
-        // --- LÓGICA DO PAINEL ADMIN ---
-        let clickCount = 0;
-        let clickTimer = null;
-
-        mainTitle.addEventListener('click', () => {
-            clickCount++;
-            if (clickTimer) clearTimeout(clickTimer);
-            clickTimer = setTimeout(() => { clickCount = 0; }, 1500);
-            if (clickCount === 5) {
-                clickCount = 0;
-                openAdminPanel();
-            }
-        });
-
-        function openAdminPanel() {
-            lpTitleInput.value = lpTitle;
-            renderAdminPanel();
-            adminPanelOverlay.classList.add('active');
-            adminPanel.classList.add('active');
-            document.body.classList.add('no-scroll');
-        }
-
-        function closeAdminPanel() {
-            adminPanelOverlay.classList.remove('active');
-            adminPanel.classList.remove('active');
-            document.body.classList.remove('no-scroll');
-            hideForm();
-        }
-
-        adminPanelClose.addEventListener('click', closeAdminPanel);
-        adminPanelOverlay.addEventListener('click', closeAdminPanel);
-
-        // --- SALVAR TÍTULO DA LP ---
-        saveLpTitleBtn.addEventListener('click', () => {
-            const newTitle = lpTitleInput.value.trim();
-            if (newTitle) {
-                lpTitle = newTitle;
-                saveData();
-                renderLandingPage();
-                alert('Título atualizado com sucesso!');
-            }
-        });
-
-        // --- LÓGICA DO FORMULÁRIO ---
-        function showForm(type = 'new', book = null) {
-            adminForm.style.display = 'grid';
-            addNewBookBtn.style.display = 'none';
-            adminForm.reset();
-            document.getElementById('bookId').value = '';
-
-            if (type === 'edit' && book) {
-                formTitle.textContent = 'Editando Livro';
-                document.getElementById('bookId').value = book.id;
-                document.getElementById('bookTitle').value = book.title;
-                document.getElementById('bookSubtitle').value = book.subtitle || '';
-                document.getElementById('bookAuthor').value = book.author;
-                document.getElementById('bookPrice').value = book.price;
-                document.getElementById('bookOldPrice').value = book.oldPrice;
-                document.getElementById('bookImage').value = book.image || '';
-                document.getElementById('bookSynopsis').value = book.synopsis;
-            } else {
-                formTitle.textContent = 'Adicionar Novo Livro';
-            }
-        }
-
-        function hideForm() {
-            adminForm.style.display = 'none';
-            addNewBookBtn.style.display = 'block';
-        }
-
-        addNewBookBtn.addEventListener('click', () => showForm('new'));
-        cancelFormBtn.addEventListener('click', hideForm);
-
-        adminForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const id = document.getElementById('bookId').value;
-            const bookData = {
-                title: document.getElementById('bookTitle').value,
-                subtitle: document.getElementById('bookSubtitle').value,
-                author: document.getElementById('bookAuthor').value,
-                price: document.getElementById('bookPrice').value,
-                oldPrice: document.getElementById('bookOldPrice').value,
-                image: document.getElementById('bookImage').value,
-                synopsis: document.getElementById('bookSynopsis').value,
-            };
-
-            if (id) {
-                const index = books.findIndex(b => b.id == id);
-                if (index > -1) {
-                    books[index] = { ...books[index], ...bookData };
-                }
-            } else {
-                bookData.id = Date.now();
-                books.push(bookData);
-            }
-
-            saveData();
-            renderLandingPage();
-            renderAdminPanel();
-            hideForm();
-        });
-
-        // --- AÇÕES DE EDITAR/EXCLUIR ---
-        adminBookList.addEventListener('click', (e) => {
-            const target = e.target;
-            const bookId = target.dataset.id;
-
-            if (target.classList.contains('btn-edit')) {
-                const bookToEdit = books.find(b => b.id == bookId);
-                if (bookToEdit) showForm('edit', bookToEdit);
-            }
-
-            if (target.classList.contains('btn-delete')) {
-                if (confirm('Tem certeza que deseja excluir este livro?')) {
-                    books = books.filter(b => b.id != bookId);
-                    saveData();
-                    renderLandingPage();
-                    renderAdminPanel();
-                }
-            }
-        });
-
-        // --- FECHAR COM TECLA ESC ---
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                if (bookDetailPanel.classList.contains('active')) {
-                    closeBookDetail();
-                }
-                if (adminPanel.classList.contains('active')) {
-                    closeAdminPanel();
-                }
-            }
-        });
-
-        // --- INICIALIZAÇÃO ---
-        function init() {
-            loadData();
-            renderLandingPage();
-        }
-
-        init();
-    });
-    </script>
-</body>
-</html>
+<div class="flex justify-between items-center text-[10px] text-slate-500 mt-6 pt-3 border-t border-slate-800/60 select-none">
+            <span class="flex items-center gap-1.5 uppercase font-bold tracking-widest"><i class="fa-solid fa-brain text-emerald-500/50"></i> DeepSeek <span class="text-slate-600 font-mono font-normal tracking-normal lowercase ml-1">(deepseek-chat)</span></span>
+            <span class="font-mono tracking-wider opacity-70">27/05/2026 • 21:54 BRT</span>
+        </div>
