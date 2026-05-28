@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Livraria V9 | Jessica Code</title>
+    <meta name="description" content="Uma livraria premium com sincronização em tempo real via Firebase.">
+
+    <!-- Favicon (Exemplo, substitua pelo seu) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+
+    <!-- Importação de Fontes (Estética Premium) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Folhas de Estilo -->
+    <link rel="stylesheet" href="./styles/globals.css">
+    <link rel="stylesheet" href="./styles/responsive.css">
+
+    <!-- 
+      IMPORT MAP: Arquitetura Cloud-First sem Bundler.
+      Isso permite que usemos "imports" limpos nos nossos arquivos JS, 
+      como 'import { initializeApp } from "firebase/app";', 
+      e o navegador saberá buscar a URL completa do CDN.
+      Isso é fundamental para um desenvolvimento moderno e sem complicações de build.
+    -->
+    <script type="importmap">
+    {
+      "imports": {
+        "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
+        "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+      }
+    }
+    </script>
+</head>
+<body>
+
+    <!-- 
+      Estrutura de Containers:
+      A aplicação inteira é renderizada dinamicamente pelo JavaScript dentro desses containers.
+      Isso mantém o HTML limpo e focado na estrutura, enquanto a lógica de UI fica no JS.
+    -->
+    <div id="app">
+        <header class="app-header">
+            <div class="header-content">
+                <h1>Livraria V9</h1>
+                <button id="open-admin-btn" class="admin-button" aria-label="Abrir painel de administração">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                    <span>Gerenciar</span>
+                </button>
+            </div>
+        </header>
+
+        <main>
+            <!-- O grid de livros será renderizado aqui -->
+            <div id="book-grid-container" class="book-grid"></div>
+        </main>
+    </div>
+
+    <!-- 
+      Containers para Overlays:
+      O painel de admin e o modal de detalhes do livro são renderizados aqui.
+      Ficam fora do fluxo principal para facilitar o controle de z-index e posicionamento.
+    -->
+    <div id="admin-panel-container"></div>
+    <div id="book-modal-container"></div>
+
+    <!-- Indicador de Carregamento Inicial -->
+    <div id="loader" class="loader-overlay">
+        <div class="loader-spinner"></div>
+    </div>
+
+    <!-- Ponto de Entrada da Aplicação (Módulo JavaScript) -->
+    <script type="module" src="app.js"></script>
+
+</body>
+</html>
