@@ -1,0 +1,519 @@
+/* styles/globals.css */
+
+/* 
+  ARQUITETURA DE ESTILO: DESIGN SYSTEM COM VARIÁVEIS CSS
+  Centralizamos todas as decisões de design (cores, fontes, espaçamentos)
+  em variáveis no :root. Isso garante consistência visual em toda a aplicação
+  e torna a manutenção e o theming extremamente fáceis.
+*/
+:root {
+    --bg-primary: #121017;
+    --bg-secondary: #1e1d2b;
+    --bg-tertiary: #2a2839;
+    --text-primary: #f0f0f0;
+    --text-secondary: #a0a0a0;
+    --accent-gold: #d4af37;
+    --accent-gold-darker: #b89b31;
+    --accent-danger: #e53e3e;
+    --accent-danger-darker: #c53030;
+    --border-color: #3a384c;
+
+    --font-heading: 'Playfair Display', serif;
+    --font-body: 'Inter', sans-serif;
+
+    --spacing-xs: 4px;
+    --spacing-s: 8px;
+    --spacing-m: 16px;
+    --spacing-l: 24px;
+    --spacing-xl: 32px;
+    --spacing-xxl: 48px;
+
+    --border-radius: 8px;
+    --transition-speed: 0.3s;
+}
+
+/* --- RESET GLOBAL E ESTILOS BASE --- */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-body);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body.no-scroll {
+    overflow: hidden;
+}
+
+h1, h2, h3, h4 {
+    font-family: var(--font-heading);
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+a {
+    color: var(--accent-gold);
+    text-decoration: none;
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+/* --- LAYOUT PRINCIPAL --- */
+.app-header {
+    background-color: rgba(18, 16, 23, 0.8);
+    backdrop-filter: blur(10px);
+    padding: var(--spacing-m) var(--spacing-m);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.app-header h1 {
+    font-size: 1.5rem;
+    color: var(--accent-gold);
+}
+
+main {
+    padding: var(--spacing-l) var(--spacing-m);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* --- BOTÃO DE ADMIN --- */
+.admin-button {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-s);
+    background-color: transparent;
+    border: 1px solid var(--accent-gold);
+    color: var(--accent-gold);
+    padding: var(--spacing-s) var(--spacing-m);
+    border-radius: var(--border-radius);
+    font-family: var(--font-body);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-speed) ease;
+}
+
+.admin-button:hover {
+    background-color: var(--accent-gold);
+    color: var(--bg-primary);
+}
+
+.admin-button span {
+    display: none; /* Visível apenas em telas maiores */
+}
+
+/* --- LOADER INICIAL --- */
+.loader-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: var(--bg-primary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition: opacity var(--transition-speed) ease;
+}
+
+.loader-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid var(--border-color);
+    border-top-color: var(--accent-gold);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* --- GRID DE LIVROS --- */
+.book-grid {
+    display: grid;
+    grid-template-columns: 1fr; /* Mobile-first: 1 coluna */
+    gap: var(--spacing-l);
+}
+
+.empty-state {
+    text-align: center;
+    padding: var(--spacing-xxl) var(--spacing-m);
+    background-color: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    border: 1px dashed var(--border-color);
+}
+.empty-state p {
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+.empty-state span {
+    color: var(--text-secondary);
+}
+
+/* --- CARD DE LIVRO --- */
+.book-card {
+    background-color: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+    border: 1px solid transparent;
+}
+
+.book-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    border-color: var(--border-color);
+}
+
+.book-card-image-wrapper {
+    aspect-ratio: 2 / 3; /* Proporção clássica de livro */
+    background-color: var(--bg-primary);
+}
+
+.book-card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.book-card-content {
+    padding: var(--spacing-m);
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.book-card-title {
+    font-size: 1.1rem;
+    margin-bottom: var(--spacing-xs);
+}
+
+.book-card-author {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: var(--spacing-m);
+    flex-grow: 1;
+}
+
+.book-card-price .old-price {
+    text-decoration: line-through;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-right: var(--spacing-s);
+}
+
+.book-card-price .current-price {
+    color: var(--accent-gold);
+    font-weight: 700;
+    font-size: 1.2rem;
+}
+
+/* --- MODAL DE DETALHES DO LIVRO --- */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: var(--spacing-m);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity var(--transition-speed) ease;
+}
+
+.modal-overlay.visible {
+    opacity: 1;
+}
+
+.modal-content {
+    background-color: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    width: 100%;
+    max-width: 900px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    padding: var(--spacing-l);
+    transform: scale(0.95);
+    transition: transform var(--transition-speed) ease;
+}
+
+.modal-overlay.visible .modal-content {
+    transform: scale(1);
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: var(--spacing-m);
+    right: var(--spacing-m);
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: var(--spacing-s);
+}
+.modal-close-btn:hover {
+    color: var(--text-primary);
+}
+.modal-close-btn svg {
+    width: 28px;
+    height: 28px;
+}
+
+.book-modal-grid {
+    display: grid;
+    grid-template-columns: 1fr; /* Mobile-first: imagem em cima */
+    gap: var(--spacing-l);
+}
+
+.book-modal-image-container {
+    display: flex;
+    justify-content: center;
+}
+
+.book-modal-image {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    object-fit: contain;
+    border-radius: var(--border-radius);
+}
+
+.book-modal-title {
+    font-size: 2rem;
+    margin-bottom: var(--spacing-xs);
+}
+
+.book-modal-subtitle {
+    font-family: var(--font-body);
+    font-weight: 400;
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin-bottom: var(--spacing-s);
+}
+
+.book-modal-author {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-l);
+}
+
+.book-modal-price {
+    margin-bottom: var(--spacing-l);
+}
+.book-modal-price .old-price {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    text-decoration: line-through;
+    margin-right: var(--spacing-m);
+}
+.book-modal-price .current-price {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--accent-gold);
+}
+
+.book-modal-synopsis h3 {
+    font-size: 1.2rem;
+    margin-bottom: var(--spacing-s);
+    border-left: 3px solid var(--accent-gold);
+    padding-left: var(--spacing-m);
+}
+.book-modal-synopsis p {
+    color: var(--text-secondary);
+}
+
+/* --- PAINEL DE ADMIN --- */
+.admin-panel-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 1100;
+    opacity: 0;
+    transition: opacity var(--transition-speed) ease;
+}
+
+.admin-panel-overlay.visible {
+    opacity: 1;
+}
+
+.admin-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100%;
+    max-width: 600px;
+    height: 100%;
+    background-color: var(--bg-primary);
+    box-shadow: -10px 0 30px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform var(--transition-speed) ease;
+}
+
+.admin-panel-overlay.visible .admin-panel {
+    transform: translateX(0);
+}
+
+.admin-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-m) var(--spacing-l);
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+.admin-panel-header h2 {
+    font-size: 1.3rem;
+}
+.close-panel-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+.close-panel-btn svg {
+    width: 24px;
+    height: 24px;
+}
+
+.admin-panel-content {
+    padding: var(--spacing-l);
+    overflow-y: auto;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column; /* Mobile: form em cima, preview embaixo */
+    gap: var(--spacing-l);
+}
+
+.admin-form-container {
+    flex-grow: 1;
+}
+
+#book-form .form-group {
+    margin-bottom: var(--spacing-m);
+}
+#book-form .form-group-row {
+    display: flex;
+    gap: var(--spacing-m);
+}
+#book-form .form-group-row .form-group {
+    flex: 1;
+}
+
+#book-form label {
+    display: block;
+    margin-bottom: var(--spacing-s);
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+#book-form input, #book-form textarea {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+}
+
+#book-form input:focus, #book-form textarea:focus {
+    outline: none;
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+}
+
+#book-form textarea {
+    resize: vertical;
+}
+
+.form-actions {
+    margin-top: var(--spacing-l);
+    display: flex;
+    gap: var(--spacing-m);
+}
+
+.form-actions button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color var(--transition-speed) ease;
+    flex-grow: 1;
+}
+
+.form-actions .btn-save {
+    background-color: var(--accent-gold);
+    color: var(--bg-primary);
+}
+.form-actions .btn-save:hover {
+    background-color: var(--accent-gold-darker);
+}
+
+.form-actions .btn-delete {
+    background-color: var(--accent-danger);
+    color: var(--text-primary);
+}
+.form-actions .btn-delete:hover {
+    background-color: var(--accent-danger-darker);
+}
+
+.form-actions button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.admin-preview-container {
+    text-align: center;
+}
+.admin-preview-container h4 {
+    margin-bottom: var(--spacing-m);
+    color: var(--text-secondary);
+}
+.image-preview {
+    width: 100%;
+    max-width: 250px;
+    height: auto;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    border-radius: var(--border-radius);
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    margin: 0 auto;
+}
