@@ -1,69 +1,96 @@
 // app.js
 
 // ARQUITETURA: Orquestrador da Aplicação (Ponto de Entrada)
-// Este arquivo é o coração que conecta todas as outras partes.
-// Ele não renderiza nada diretamente nem busca dados. Sua responsabilidade é:
-// 1. Inicializar a conexão com o serviço de dados (Firestore).
-// 2. Assinar os renderizadores às mudanças de estado na store.
-// 3. Ligar os eventos iniciais da UI (como o botão de abrir admin) ao sistema de estado.
+// Este arquivo conecta todas as partes da aplicação.
+// Suas responsabilidades foram atualizadas para:
+// 1. Implementar a lógica de acesso secreto do administrador.
+// 2. Orquestrar a nova renderização da landing page (destaque + sugestões).
+// 3. Manter a conexão entre o serviço do Firestore, a store e os renderizadores.
 
 import { store } from './state/store.js';
 import { listenToBooks } from './services/bookService.js';
-import { renderBooks } from './render/renderBooks.js';
+import { renderLandingPage } from './render/renderLandingPage.js';
 import { renderAdminPanel, renderBookModal } from './render/renderOverlays.js';
 
-// Seleciona os containers principais do DOM uma única vez para performance.
-const bookGridContainer = document.getElementById('book-grid-container');
+// Seleciona os containers principais do DOM.
+// A lista foi atualizada para refletir a nova estrutura do index.html.
+const headerTitle = document.getElementById('header-title');
+const featuredBookContainer = document.getElementById('featured-book-container');
+const suggestedBooksSection = document.getElementById('suggested-books-section');
+const suggestedBooksGrid = document.getElementById('suggested-books-grid');
 const adminPanelContainer = document.getElementById('admin-panel-container');
 const bookModalContainer = document.getElementById('book-modal-container');
-const openAdminBtn = document.getElementById('open-admin-btn');
 const loader = document.getElementById('loader');
+
+// Agrupa os containers da landing page para passar ao renderizador.
+const landingPageContainers = {
+    featuredContainer: featuredBookContainer,
+    suggestedSection: suggestedBooksSection,
+    suggestedGrid: suggestedBooksGrid,
+};
 
 /**
  * A função de renderização principal.
- * Esta função é o ÚNICO assinante da store. Sempre que o estado muda,
- * ela é chamada e orquestra a atualização de todas as partes da UI.
- * Isso garante uma pipeline de renderização consistente e previsível.
+ * Chamada a cada mudança de estado, ela orquestra a atualização da UI.
  */
 const renderApp = () => {
-    // Obtém o estado mais recente da store.
     const state = store.getState();
 
-    // Chama cada renderizador com os dados e containers necessários.
-    renderBooks(bookGridContainer, state.books);
+    // Chama os renderizadores com os dados e containers necessários.
+    // Agora usamos o novo renderizador da landing page.
+    renderLandingPage(landingPageContainers, state.books);
     renderAdminPanel(adminPanelContainer, state);
     renderBookModal(bookModalContainer, state);
 
     // Gerencia a visibilidade do loader inicial.
     if (!state.isLoading && loader.style.opacity !== '0') {
         loader.style.opacity = '0';
-        // Remove o loader do DOM após a transição para não interferir com a UI.
         setTimeout(() => loader.style.display = 'none', 300);
     }
+};
+
+/**
+ * Configura o gatilho secreto para abrir o painel de administração.
+ */
+const setupAdminTrigger = () => {
+    let clickCount = 0;
+    let clickTimer = null;
+
+    headerTitle.addEventListener('click', () => {
+        clickCount++;
+
+        // Limpa o timer anterior a cada clique. Se o usuário parar de clicar,
+        // o timer vai expirar e resetar a contagem.
+        if (clickTimer) {
+            clearTimeout(clickTimer);
+        }
+
+        // Inicia um timer para resetar a contagem após 1 segundo de inatividade.
+        clickTimer = setTimeout(() => {
+            clickCount = 0;
+        }, 1000);
+
+        // Se 5 cliques forem detectados em rápida sucessão, abre o painel.
+        if (clickCount === 5) {
+            clickCount = 0;
+            clearTimeout(clickTimer);
+            store.dispatch({ type: 'OPEN_ADMIN_PANEL' });
+        }
+    });
 };
 
 /**
  * Função principal que inicializa a aplicação.
  */
 const main = () => {
-    // 1. Conecta a UI ao sistema de estado.
-    // O botão de admin não abre o painel diretamente. Ele despacha uma ação.
-    // A store então mudará o estado, e o `renderApp` cuidará de mostrar o painel.
-    openAdminBtn.addEventListener('click', () => {
-        // A ação não precisa de payload, pois estamos criando um novo livro (editingBook será null).
-        store.dispatch({ type: 'OPEN_ADMIN_PANEL' });
-    });
+    // 1. Configura o acesso secreto do administrador.
+    setupAdminTrigger();
 
     // 2. Assina a nossa função de renderização principal às mudanças da store.
-    // A partir de agora, qualquer `dispatch` vai acionar uma re-renderização da UI.
     store.subscribe(renderApp);
 
     // 3. Inicia a escuta em tempo real com o Firestore.
-    // O callback será chamado imediatamente com os dados iniciais e, depois,
-    // a cada mudança na coleção 'books'.
     listenToBooks((books) => {
-        // Quando recebemos os livros do Firestore, despachamos uma ação para
-        // atualizar o estado global. Isso acionará o `renderApp`.
         console.log('Dados do Firestore recebidos/atualizados:', books);
         store.dispatch({ type: 'SET_BOOKS', payload: books });
     });
