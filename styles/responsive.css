@@ -1,0 +1,88 @@
+/* styles/responsive.css */
+
+/* 
+  ARQUITETURA DE ESTILO: APRIMORAMENTO PROGRESSIVO (Progressive Enhancement)
+  Este arquivo contém apenas media queries que se aplicam a partir de uma largura
+  mínima ('min-width'). Isso significa que o 'globals.css' é a nossa base (mobile)
+  e aqui nós adicionamos ou sobrescrevemos estilos para telas maiores.
+*/
+
+/* --- TABLETS (e celulares em paisagem) --- */
+@media (min-width: 640px) {
+    /* Aumenta o espaçamento lateral no layout principal */
+    .app-header {
+        padding: var(--spacing-m) var(--spacing-l);
+    }
+    main {
+        padding: var(--spacing-l) var(--spacing-l);
+    }
+
+    /* Mostra o texto do botão de admin */
+    .admin-button span {
+        display: inline;
+    }
+
+    /* Transforma o grid de livros para 2 colunas */
+    .book-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Melhora o layout do modal de detalhes */
+    .modal-content {
+        padding: var(--spacing-xl);
+    }
+    .book-modal-grid {
+        /* Imagem à esquerda, detalhes à direita */
+        grid-template-columns: 250px 1fr;
+        gap: var(--spacing-xl);
+    }
+    .book-modal-image {
+        max-width: 100%;
+    }
+}
+
+/* --- DESKTOPS PEQUENOS E TABLETS GRANDES --- */
+@media (min-width: 1024px) {
+    /* Transforma o grid de livros para 3 colunas */
+    .book-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    /* Melhora o layout do modal de detalhes para telas maiores */
+    .book-modal-grid {
+        grid-template-columns: 300px 1fr;
+    }
+    .book-modal-title {
+        font-size: 2.5rem;
+    }
+
+    /* 
+      Layout do Painel Admin:
+      Em desktops, o formulário e o preview ficam lado a lado,
+      aproveitando o espaço horizontal.
+    */
+    .admin-panel-content {
+        flex-direction: row;
+        gap: var(--spacing-xl);
+    }
+    .admin-form-container {
+        flex: 2; /* O formulário ocupa 2/3 do espaço */
+    }
+    .admin-preview-container {
+        flex: 1; /* O preview ocupa 1/3 */
+        position: sticky; /* Faz o preview acompanhar o scroll do formulário */
+        top: 0;
+        padding-top: var(--spacing-l);
+    }
+    .image-preview {
+        max-width: 100%;
+    }
+}
+
+/* --- DESKTOPS GRANDES --- */
+@media (min-width: 1280px) {
+    /* Transforma o grid de livros para 4 colunas, preenchendo melhor a tela */
+    .book-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
